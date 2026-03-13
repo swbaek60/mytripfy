@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed:translations": "node --env-file=.env.local scripts/seed-challenge-translations.mjs",
-    "fetch:food-images": "node scripts/fetch-food-images.mjs"
+    "fetch:food-images": "node scripts/fetch-food-images.mjs",
+    "delete-user": "node --env-file=.env.local scripts/delete-user-by-email.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1000.0",

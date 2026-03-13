@@ -2,6 +2,7 @@ import { login, signup, signInWithGoogle, signInWithApple, signInWithFacebook } 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Logo from '@/components/Logo'
+import InAppBrowserNotice from '@/components/InAppBrowserNotice'
 import { getTranslations } from 'next-intl/server'
 
 export default async function LoginPage({
@@ -31,6 +32,9 @@ export default async function LoginPage({
           </div>
 
           <div className="px-8 py-8 space-y-5">
+
+            {/* 카카오톡/인스타 등 인앱 브라우저에서 열었을 때 Google 로그인 불가 안내 */}
+            <InAppBrowserNotice />
 
             {/* ── Social Login Buttons ── */}
             <div className="space-y-3">

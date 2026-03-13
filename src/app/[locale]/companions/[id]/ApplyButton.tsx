@@ -26,36 +26,30 @@ export default function ApplyButton({
 
   const handleApply = async () => {
     setLoading(true)
-    const supabase = createClient()
-
-    // upsert: 기존 레코드(rejected/removed 포함)가 있으면 pending으로 재활성화, 없으면 신규 삽입
-    const { error: upsertError } = await supabase
-      .from('companion_applications')
-      .upsert(
-        { post_id: postId, applicant_id: userId, message: message || null, status: 'pending' },
-        { onConflict: 'post_id,applicant_id' }
-      )
-
+    const res = await fetch('/api/companion/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId, message: message || null }),
+    })
+    const data = res.ok ? null : await res.json().catch(() => ({}))
     setLoading(false)
-    if (!upsertError) {
+
+    if (res.ok) {
       setApplied(true)
       setShowForm(false)
       router.refresh()
-      // 호스트에게 이메일 알림 (비동기, 실패해도 UX 영향 없음)
       fetch('/api/email/companion-application', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ postId, applicantId: userId, message: message || null }),
       }).catch(console.error)
     } else {
-      console.error('Failed to upsert application:', JSON.stringify(upsertError))
-      const code = (upsertError as { code?: string }).code ?? ''
-      if (code === '23503') {
-        alert('게시글을 찾을 수 없거나 접근할 수 없습니다.')
-      } else if (upsertError.message?.includes('row-level security')) {
-        alert('권한이 없습니다. 로그아웃 후 다시 로그인해 주세요.')
+      if (res.status === 403) {
+        alert(data?.error || '이 동행은 성별 조건에 맞는 회원만 신청할 수 있습니다.')
+      } else if (res.status === 404) {
+        alert('게시글을 찾을 수 없습니다.')
       } else {
-        alert(`신청에 실패했습니다. (${upsertError.message || '알 수 없는 오류'})`)
+        alert(data?.error || '신청에 실패했습니다.')
       }
     }
   }

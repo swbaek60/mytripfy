@@ -59,6 +59,17 @@ export default async function CompanionDetailPage({
   const profile = post.profiles as Record<string, unknown>
   const isOwner = user?.id === profile?.id
 
+  // 신청자 성별 체크: 여성만/남성만 게시글은 프로필 성별이 일치할 때만 신청 가능
+  const { data: myProfile } = user
+    ? await supabase.from('profiles').select('gender').eq('id', user.id).single()
+    : { data: null }
+  const myGender = (myProfile?.gender as string) || ''
+  const pref = post.gender_preference as string
+  const canApplyByGender =
+    pref === 'any' ||
+    (pref === 'female_only' && myGender === 'female') ||
+    (pref === 'male_only' && myGender === 'male')
+
   // 호스트는 RLS 우회로 신청 목록 조회 (RLS 이슈 시 빈 목록 방지)
   const applicationsClient = isOwner ? createAdminClient() : supabase
   const { data: applications } = await applicationsClient
@@ -276,6 +287,32 @@ export default async function CompanionDetailPage({
                     <p className="text-gray-500 text-sm mb-3">Login to apply for this trip</p>
                     <Link href={`/${locale}/login`}>
                       <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-8">Login to Apply</Button>
+                    </Link>
+                  </div>
+                ) : !canApplyByGender ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    {pref === 'female_only' && (
+                      <>
+                        <p className="text-amber-800 font-medium text-sm">👩 This trip is for women only.</p>
+                        <p className="text-amber-700 text-xs mt-1">
+                          {myGender === 'male'
+                            ? 'Only users with Female in their profile can apply.'
+                            : 'Please set your gender to Female in Profile to apply.'}
+                        </p>
+                      </>
+                    )}
+                    {pref === 'male_only' && (
+                      <>
+                        <p className="text-amber-800 font-medium text-sm">👨 This trip is for men only.</p>
+                        <p className="text-amber-700 text-xs mt-1">
+                          {myGender === 'female'
+                            ? 'Only users with Male in their profile can apply.'
+                            : 'Please set your gender to Male in Profile to apply.'}
+                        </p>
+                      </>
+                    )}
+                    <Link href={`/${locale}/profile/edit`} className="inline-block mt-2 text-xs text-amber-700 underline hover:text-amber-900">
+                      Edit profile
                     </Link>
                   </div>
                 ) : wasRemoved ? (

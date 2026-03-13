@@ -110,8 +110,10 @@
     "destAustralia": "オーストラリア",
     "destSpain": "スペイン",
     "destVietnam": "ベトナム",
-    "searchPlaceholder": "目的地を検索...（例：フランス、バンコク）",
-    "searchHint": "例：日本 · タイ · イタリア · ソウル · ロンドン"
+    "searchPlaceholder": "目的地を検索...（例：France, Bangkok）",
+    "searchHint": "例：Japan · Thailand · Italy · Seoul · London",
+    "searchPlaceholderPrefix": "目的地を検索...",
+    "searchHintPrefix": "例： "
   },
   "Common": {
     "save": "保存",

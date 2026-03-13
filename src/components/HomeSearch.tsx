@@ -37,7 +37,7 @@ export default function HomeSearch({ locale }: Props) {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder={tSection('searchPlaceholder')}
+          placeholder={`${tSection('searchPlaceholderPrefix')} (e.g. France, Bangkok)`}
           className="flex-1 min-w-0 py-3 sm:py-3 px-2 text-gray-800 placeholder-gray-400 bg-transparent outline-none text-sm sm:text-base font-medium"
           autoComplete="off"
         />
@@ -49,7 +49,7 @@ export default function HomeSearch({ locale }: Props) {
         </button>
       </div>
       <p className="text-blue-300/70 text-xs mt-2 sm:mt-2.5 text-center px-1">
-        {tSection('searchHint')}
+        {tSection('searchHintPrefix')} Japan · Thailand · Italy · Seoul · London
       </p>
     </form>
   )

@@ -110,8 +110,10 @@
     "destAustralia": "澳大利亚",
     "destSpain": "西班牙",
     "destVietnam": "越南",
-    "searchPlaceholder": "搜索目的地...（如：法国、曼谷）",
-    "searchHint": "试试：日本 · 泰国 · 意大利 · 首尔 · 伦敦"
+    "searchPlaceholder": "搜索目的地...（如：France, Bangkok）",
+    "searchHint": "试试：Japan · Thailand · Italy · Seoul · London",
+    "searchPlaceholderPrefix": "搜索目的地...",
+    "searchHintPrefix": "试试："
   },
   "Common": {
     "save": "保存",

@@ -110,8 +110,10 @@
     "destAustralia": "호주",
     "destSpain": "스페인",
     "destVietnam": "베트남",
-    "searchPlaceholder": "목적지 검색... (예: 프랑스, 방콕)",
-    "searchHint": "예: 일본 · 태국 · 이탈리아 · 서울 · 런던"
+    "searchPlaceholder": "목적지 검색... (예: France, Bangkok)",
+    "searchHint": "예: Japan · Thailand · Italy · Seoul · London",
+    "searchPlaceholderPrefix": "목적지 검색...",
+    "searchHintPrefix": "예: "
   },
   "Common": {
     "save": "저장",

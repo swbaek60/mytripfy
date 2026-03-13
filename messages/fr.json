@@ -111,6 +111,8 @@
     "destSpain": "Espagne",
     "destVietnam": "Vietnam",
     "searchPlaceholder": "Rechercher une destination... (ex. France, Bangkok)",
+    "searchPlaceholderPrefix": "Rechercher une destination...",
+    "searchHintPrefix": "Ex. "
     "searchHint": "Essayez : Japon · Thaïlande · Italie · Séoul · Londres"
   },
   "Common": {

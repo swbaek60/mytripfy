@@ -110,7 +110,9 @@
     "destAustralia": "Australia",
     "destSpain": "España",
     "destVietnam": "Vietnam",
-    "searchPlaceholder": "Buscar destino... (ej. Francia, Bangkok)",
+    "searchPlaceholder": "Buscar destino... (ej. France, Bangkok)",
+    "searchPlaceholderPrefix": "Buscar destino...",
+    "searchHintPrefix": "Ej. "
     "searchHint": "Prueba: Japón · Tailandia · Italia · Seúl · Londres"
   },
   "Common": {

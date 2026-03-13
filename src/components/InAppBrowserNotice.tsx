@@ -2,21 +2,35 @@
 
 import { useState, useEffect } from 'react'
 
-/** 카카오톡·인스타·페이스북 등 인앱 브라우저(웹뷰) 감지.
- * Google OAuth는 이런 환경에서 정책상 차단되므로, 브라우저에서 열어달라고 안내. */
+/** 인앱 브라우저(웹뷰) 감지.
+ * 참고: Google OAuth는 embedded webview에서 차단됨(정책). UAParser InApps·Facebook/Instagram/LINE 등 문서·실무 UA 패턴 반영. */
 function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false
-  const ua = navigator.userAgent.toLowerCase()
+  const ua = navigator.userAgent
+  const lower = ua.toLowerCase()
   return (
-    ua.includes('kakaotalk') ||
-    ua.includes('instagram') ||
-    ua.includes('fbav') ||
-    ua.includes('fban') ||
-    ua.includes('fb_iab') ||
-    ua.includes('line/') ||
-    ua.includes('naver') ||
-    ua.includes('snapchat') ||
-    ua.includes('twitter')
+    lower.includes('kakaotalk') ||
+    lower.includes('instagram') ||
+    lower.includes('fbav') ||
+    lower.includes('fban') ||
+    lower.includes('fb_iab') ||
+    lower.includes('fb_ios') ||
+    lower.includes('fb4a') ||
+    lower.includes('line/') ||
+    lower.includes('line ') ||
+    lower.includes('naver') ||
+    lower.includes('snapchat') ||
+    lower.includes('twitter') ||
+    lower.includes('whatsapp') ||
+    lower.includes('telegram') ||
+    lower.includes('discord') ||
+    lower.includes('slack') ||
+    lower.includes('tiktok') ||
+    lower.includes('micromessenger') ||
+    lower.includes('wechat') ||
+    (lower.includes('teams') && (lower.includes('microsoft') || lower.includes('electron'))) ||
+    /\/iab$/i.test(ua) ||
+    /;\s*iab\s*;/i.test(ua)
   )
 }
 
@@ -41,13 +55,25 @@ function getKakaoOpenExternalUrl(): string {
   return `kakaotalk://web/openExternal?url=${encodeURIComponent(url)}`
 }
 
-/** Android (카카오 제외): Chrome Intent */
+/** Android (카카오 제외): Chrome Intent (Chrome 공식 문서·Stack Overflow 등에서 사용하는 형식) */
 function getChromeIntentUrl(): string {
   const { host, pathname, search } = window.location
   return `intent://${host}${pathname}${search}#Intent;scheme=https;package=com.android.chrome;end`
 }
 
-/** iOS (카카오 제외): Chrome 앱으로 열기. https → googlechromes://, http → googlechrome:// */
+/** iOS: Safari로 열기. iOS 17+ x-safari-https, 구버전 com-apple-mobilesafari-tab (실무에서 권장) */
+function getSafariIosUrl(): string {
+  const url = window.location.href
+  const withoutProtocol = url.replace(/^https?:\/\//, '')
+  return `x-safari-https://${withoutProtocol}`
+}
+
+function getSafariIosLegacyUrl(): string {
+  const url = window.location.href
+  return `com-apple-mobilesafari-tab:${url}`
+}
+
+/** iOS: Chrome 앱으로 열기 (Chrome 설치 시). https → googlechromes:// */
 function getChromeIosUrl(): string {
   const url = window.location.href
   if (url.startsWith('https://')) return `googlechromes://${url.slice(8)}`
@@ -74,7 +100,7 @@ export default function InAppBrowserNotice() {
     }
   }
 
-  /** 외부 브라우저로 열기. 카카오는 공식 스킴, 그 외는 Intent(Android) / Chrome(iOS) / 새창 시도 */
+  /** 외부 브라우저로 열기. 카카오=공식 스킴, Android=Chrome Intent, iOS=Safari 우선 후 구버전 폴백 */
   const openInExternalBrowser = () => {
     const url = window.location.href
     if (isKakaoTalk()) {
@@ -82,8 +108,11 @@ export default function InAppBrowserNotice() {
     } else if (isAndroid()) {
       window.location.href = getChromeIntentUrl()
     } else if (isIOS()) {
-      // iOS 인앱(인스타 등): Chrome 스킴 시도. 안 되면 새 창(일부 앱에서 Safari로 열림)
-      window.location.href = getChromeIosUrl()
+      // iOS: Safari는 기본 설치. x-safari-https(iOS 17+) 먼저, 안 되면 legacy 스킴 시도
+      window.location.href = getSafariIosUrl()
+      setTimeout(() => {
+        window.location.href = getSafariIosLegacyUrl()
+      }, 400)
     } else {
       window.open(url, '_blank', 'noopener,noreferrer')
     }
@@ -97,11 +126,11 @@ export default function InAppBrowserNotice() {
       className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
     >
       <p className="font-medium">
-        Google 로그인은 앱 안 브라우저(카카오톡·인스타·라인 등)에서 사용할 수 없습니다.
+        Google 로그인은 앱 안 브라우저(카카오톡·라인·인스타·페이스북·왓츠앱·텔레그램 등)에서 사용할 수 없습니다.
       </p>
       <p className="mt-2 text-amber-800">
-        <strong>브라우저에서 열기</strong>를 눌러 주세요. 카카오톡은 한 번에 전환되고,
-        인스타·라인 등은 안 될 수 있어 그때는 <strong>주소 복사</strong> 후 Chrome/Safari에 붙여넣기 하세요.
+        <strong>브라우저에서 열기</strong>를 누르면 Safari 또는 Chrome으로 넘어갈 수 있습니다.
+        앱에 따라 동작하지 않을 수 있으니, 그때는 <strong>주소 복사</strong> 후 Safari·Chrome에 붙여넣어 주세요.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button

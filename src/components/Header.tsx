@@ -77,7 +77,7 @@ export default async function Header({
             tLanguage={t('language')}
             tCurrency={t('currency')}
           />
-
+          </div>
         </div>
       </div>
     </header>

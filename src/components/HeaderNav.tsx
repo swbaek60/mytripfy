@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown } from 'lucide-react'
+import { Bell, MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Store, Trophy, Award } from 'lucide-react'
 import { logout } from '@/app/[locale]/actions'
 import LanguageSelector from '@/components/LanguageSelector'
 import CurrencySelector from '@/components/CurrencySelector'
@@ -65,6 +65,15 @@ export default function HeaderNav({
   }, [mobileOpen])
 
   const isActive = (href: string) => pathname.includes(href)
+
+  // 메인 메뉴 5개 아이콘 (모바일에서 햄버거 밖에 표시)
+  const navIcons: Record<string, ReactNode> = {
+    '/companions': <Users className="w-5 h-5" />,
+    '/guides': <Compass className="w-5 h-5" />,
+    '/sponsors': <Store className="w-5 h-5" />,
+    '/challenges': <Trophy className="w-5 h-5" />,
+    '/hall-of-fame': <Award className="w-5 h-5" />,
+  }
 
   // 아바타 이니셜 (fullName 또는 email 첫 글자)
   const initials = fullName
@@ -197,13 +206,29 @@ export default function HeaderNav({
         </div>{/* end 오른쪽 영역 */}
       </div>{/* end 데스크탑 flex-1 wrapper */}
 
-      {/* ── 모바일 오른쪽 영역: 메시지 + 알림 + 햄버거 (오른쪽 정렬) ── */}
-      <div className="md:hidden flex items-center gap-1 ml-auto">
+      {/* ── 모바일: 메인 메뉴 5개 아이콘 (바로 인지) + 메시지/알림 + 햄버거 ── */}
+      <div className="md:hidden flex flex-1 items-center justify-end gap-0.5 min-w-0">
+        {/* 메인 메뉴 5개: 아이콘만 표시 (햄버거 밖) */}
+        <nav className="flex items-center gap-0.5 shrink-0 mr-1">
+          {navLinks.map(link => (
+            <Link
+              key={link.href}
+              href={`/${locale}${link.href}`}
+              title={link.label}
+              className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors ${
+                isActive(link.href)
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+              }`}
+            >
+              {navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}
+            </Link>
+          ))}
+        </nav>
         {userId && (
           <>
-            {/* 메시지 */}
             <Link href={`/${locale}/messages`} title={tMessages}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors shrink-0">
               <MessageSquare style={{ width: 18, height: 18 }} />
               {unreadMessageCount > 0 && (
                 <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
@@ -211,9 +236,8 @@ export default function HeaderNav({
                 </span>
               )}
             </Link>
-            {/* 알림 */}
             <Link href={`/${locale}/notifications`} title={tNotifications}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors shrink-0">
               <Bell style={{ width: 18, height: 18 }} />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
@@ -223,13 +247,11 @@ export default function HeaderNav({
             </Link>
           </>
         )}
-
-        {/* 햄버거 */}
         <button
           suppressHydrationWarning
           onClick={() => setMobileOpen(true)}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
-          aria-label="Menu"
+          className="w-9 h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+          aria-label={tMenu}
         >
           <Menu style={{ width: 20, height: 20 }} />
         </button>
@@ -272,25 +294,7 @@ export default function HeaderNav({
               </button>
             </div>
 
-            {/* 네비게이션 링크 */}
-            <div className="px-3 py-3 border-b border-gray-100">
-              {navLinks.map(link => (
-                <Link
-                  key={link.href}
-                  href={`/${locale}${link.href}`}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold tracking-tight transition-colors mb-0.5 ${
-                    isActive(link.href)
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-800 hover:bg-gray-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* 사용자 메뉴 */}
+            {/* 사용자 메뉴 (메인 5개는 헤더 아이콘으로 표시됨) */}
             {userId ? (
               <>
                 <div className="px-3 py-3 border-b border-gray-100">

@@ -6,7 +6,7 @@ import { createClient, createAdminClient } from '@/utils/supabase/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 function getOrigin() {
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
 }
 
 /** 프로필의 preferred_locale 조회, 없으면 fallback 사용 */

@@ -1,0 +1,165 @@
+'use client'
+
+import { useState } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+
+const REVIEW_TAGS = [
+  { id: 'friendly', label: '😊 Friendly' },
+  { id: 'punctual', label: '⏰ Punctual' },
+  { id: 'communicative', label: '💬 Communicative' },
+  { id: 'responsible', label: '🤝 Responsible' },
+  { id: 'fun', label: '🎉 Fun' },
+  { id: 'helpful', label: '🙌 Helpful' },
+  { id: 'flexible', label: '🔄 Flexible' },
+  { id: 'organized', label: '📋 Organized' },
+]
+
+export default function ReviewForm({
+  revieweeId,
+  revieweeName,
+  postId,
+  locale,
+}: {
+  revieweeId: string
+  revieweeName: string
+  postId?: string
+  locale: string
+}) {
+  const router = useRouter()
+  const [rating, setRating] = useState(0)
+  const [hovered, setHovered] = useState(0)
+  const [content, setContent] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    )
+  }
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      setError('Please select a star rating.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    const supabase = createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setError('Please log in again.'); setLoading(false); return }
+
+    const { error: dbError } = await supabase.from('reviews').insert({
+      reviewer_id: user.id,
+      reviewee_id: revieweeId,
+      post_id: postId || null,
+      rating,
+      content: content.trim() || null,
+      tags: selectedTags.length > 0 ? selectedTags : null,
+    })
+
+    setLoading(false)
+    if (dbError) {
+      if (dbError.code === '23505') {
+        setError('You have already reviewed this person for this trip.')
+      } else {
+        setError('Failed to submit review. Please try again.')
+      }
+    } else {
+      setSuccess(true)
+      router.refresh()
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+        <div className="text-4xl mb-2">⭐</div>
+        <p className="text-green-700 font-semibold">Review submitted!</p>
+        <p className="text-green-600 text-sm mt-1">Thank you for your feedback.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+      <h3 className="font-bold text-gray-900 text-lg">⭐ Write a Review for {revieweeName}</h3>
+
+      {/* Star Rating */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 block mb-2">Rating *</label>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHovered(star)}
+              onMouseLeave={() => setHovered(0)}
+              className="text-3xl transition-transform hover:scale-110 focus:outline-none"
+            >
+              <span className={(hovered || rating) >= star ? 'text-yellow-400' : 'text-gray-300'}>
+                ★
+              </span>
+            </button>
+          ))}
+          {rating > 0 && (
+            <span className="text-sm text-gray-500 self-center ml-2">
+              {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][rating]}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 block mb-2">Tags (optional)</label>
+        <div className="flex flex-wrap gap-2">
+          {REVIEW_TAGS.map(tag => (
+            <button
+              key={tag.id}
+              type="button"
+              onClick={() => toggleTag(tag.id)}
+              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                selectedTags.includes(tag.id)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+              }`}
+            >
+              {tag.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 block mb-2">Review (optional)</label>
+        <textarea
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          placeholder="Share your experience traveling with this person..."
+          rows={4}
+          maxLength={500}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="text-xs text-gray-400 text-right mt-1">{content.length}/500</p>
+      </div>
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+
+      <Button
+        onClick={handleSubmit}
+        disabled={loading || rating === 0}
+        className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl"
+      >
+        {loading ? 'Submitting...' : '⭐ Submit Review'}
+      </Button>
+    </div>
+  )
+}

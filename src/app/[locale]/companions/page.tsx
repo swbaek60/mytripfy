@@ -1,0 +1,288 @@
+import { createClient } from '@/utils/supabase/server'
+import Link from 'next/link'
+import Header from '@/components/Header'
+import { Button } from '@/components/ui/button'
+import { getCountryByCode, getCountryCodesMatchingQuery } from '@/data/countries'
+import { headers } from 'next/headers'
+import BookmarkButton from '@/components/BookmarkButton'
+import CountryFlag from '@/components/CountryFlag'
+import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+
+export const metadata: Metadata = {
+  title: 'Find Travel Companions',
+  description: 'Browse and join travel companion posts. Find the perfect travel partner for your next adventure in any country around the world.',
+  openGraph: {
+    title: 'Find Travel Companions | mytripfy',
+    description: 'Browse and join travel companion posts worldwide.',
+  },
+}
+
+const PURPOSE_LABELS: Record<string, string> = {
+  tourism: 'Tourism',
+  backpacking: 'Backpacking',
+  business: 'Business',
+  food: 'Food Tour',
+  adventure: 'Adventure',
+  culture: 'Culture',
+  photography: 'Photography',
+  volunteer: 'Volunteer',
+  other: 'Other',
+}
+
+const GENDER_LABELS: Record<string, string> = {
+  any: 'Anyone',
+  male_only: 'Male only',
+  female_only: 'Female only',
+}
+
+export default async function CompanionsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ country?: string; purpose?: string; q?: string }>
+}) {
+  const { locale } = await params
+  const { country, purpose, q: searchQuery } = await searchParams
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const t = await getTranslations({ locale, namespace: 'Companions' })
+
+  const headersList = await headers()
+  const pathname = headersList.get('x-pathname') || ''
+
+  // 동행 게시글 조회 (프로필 join)
+  // end_date: 오늘 이후 종료되는 여행만 표시
+  const today = new Date().toISOString().split('T')[0]
+
+  let query = supabase
+    .from('companion_posts')
+    .select(`
+      *,
+      profiles (
+        id, full_name, avatar_url, travel_level, trust_score, nationality
+      )
+    `)
+    .eq('status', 'open')
+    .gte('end_date', today)
+    .order('created_at', { ascending: false })
+
+  if (country) {
+    query = query.eq('destination_country', country)
+  } else if (searchQuery?.trim()) {
+    const q = searchQuery.trim()
+    const escaped = q.replace(/[%_\\]/g, '\\$&').replace(/"/g, '""')
+    const matchingCodes = getCountryCodesMatchingQuery(q)
+    if (matchingCodes.length > 0) {
+      const cityPattern = `%${escaped}%`
+      query = query.or(
+        `destination_country.in.("${matchingCodes.join('","')}"),destination_city.ilike."${cityPattern.replace(/"/g, '""')}"`
+      )
+    } else {
+      query = query.ilike('destination_city', `%${escaped}%`)
+    }
+  }
+  if (purpose) query = query.eq('purpose', purpose)
+
+  const { data: posts } = await query
+
+  // 신청 수: companion_post_application_counts 뷰 사용 (schema-v35)
+  // 뷰 미적용 시 0으로 표시
+  let appCountMap: Record<string, number> = {}
+  if (posts && posts.length > 0) {
+    const postIds = posts.map(p => p.id)
+    const { data: counts } = await supabase
+      .from('companion_post_application_counts')
+      .select('post_id, count')
+      .in('post_id', postIds)
+    counts?.forEach((r: { post_id: string; count: number }) => {
+      appCountMap[r.post_id] = r.count
+    })
+  }
+
+  // 내 북마크 목록 가져오기
+  const { data: myBookmarks } = user ? await supabase
+    .from('bookmarks')
+    .select('reference_id')
+    .eq('user_id', user.id)
+    .eq('type', 'companion_post') : { data: [] }
+
+  const bookmarkedIds = new Set(myBookmarks?.map(b => b.reference_id) || [])
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header user={user} locale={locale} currentPath="/companions" />
+
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">{t('title')}</h1>
+            <p className="text-gray-500 mt-1">{t('subtitle')}</p>
+          </div>
+          {user ? (
+            <Link href={`/${locale}/companions/new`}>
+              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6 shrink-0">
+                + {t('post')}
+              </Button>
+            </Link>
+          ) : (
+            <Link href={`/${locale}/login`}>
+              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6 shrink-0">
+                + {t('post')}
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        {/* Filter Bar */}
+        <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-2 items-center">
+          <span className="text-sm text-gray-500 font-medium mr-1">Filter by purpose:</span>
+          <Link href={`/${locale}/companions`}>
+            <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!purpose ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+              All
+            </span>
+          </Link>
+          {Object.entries(PURPOSE_LABELS).map(([key, label]) => (
+            <Link key={key} href={`/${locale}/companions?purpose=${key}`}>
+              <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${purpose === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+                {label}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Posts Grid */}
+        {posts && posts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            {posts.map((post) => {
+              const country = getCountryByCode(post.destination_country)
+              const profile = post.profiles as Record<string, unknown>
+              const appCount = appCountMap[post.id] ?? 0
+              const startDate = new Date(post.start_date)
+              const endDate = new Date(post.end_date)
+              const nights = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+
+              return (
+                <Link key={post.id} href={`/${locale}/companions/${post.id}`}>
+                  <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-transparent hover:border-blue-100 h-full flex flex-col overflow-hidden">
+
+                    {/* Cover Image */}
+                    {post.cover_image ? (
+                      <div className="w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '16/7' }}>
+                        <img src={post.cover_image} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                      </div>
+                    ) : (
+                      <div className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center gap-2 px-4 py-4">
+                        <CountryFlag code={post.destination_country} size="sm" className="drop-shadow" />
+                        <span className="text-white text-base font-bold opacity-90 tracking-wide">
+                          {country?.name || post.destination_country}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="p-5 flex flex-col flex-1">
+                    {/* Destination: 커버 있을 때만 플래그+국가 (없으면 파란 헤더에 이미 표시) */}
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="min-w-0 flex-1">
+                        {post.cover_image ? (
+                          <div className="flex items-center gap-2">
+                            <CountryFlag code={post.destination_country} size="sm" className="shrink-0" />
+                            <div>
+                              <div className="font-bold text-gray-900 text-lg leading-tight">
+                                {country?.name || post.destination_country}
+                              </div>
+                              {post.destination_city && (
+                                <div className="text-sm text-gray-500 flex flex-wrap gap-1 mt-0.5">
+                                  {post.destination_city.split(', ').map((c: string) => (
+                                    <span key={c} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">{c}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : post.destination_city ? (
+                          <div className="text-sm text-gray-500">
+                            📍 {post.destination_city}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                          {nights}N {nights + 1}D
+                        </span>
+                        {user && (
+                          <BookmarkButton
+                            userId={user.id}
+                            type="companion_post"
+                            referenceId={post.id}
+                            isBookmarked={bookmarkedIds.has(post.id)}
+                            size="sm"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="font-semibold text-gray-800 mb-3 line-clamp-2">{post.title}</h3>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {post.purpose && (
+                        <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">
+                          {PURPOSE_LABELS[post.purpose] || post.purpose}
+                        </span>
+                      )}
+                      <span className="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">
+                        {GENDER_LABELS[post.gender_preference] || '👫 Anyone'}
+                      </span>
+                      <span className="text-xs bg-green-50 text-green-700 px-2.5 py-1 rounded-full">
+                        {post.max_people} people
+                      </span>
+                    </div>
+
+                    {/* Dates */}
+                    <div suppressHydrationWarning className="text-sm text-gray-500 mb-4">
+                      {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+
+                    {/* Footer: Profile + App count */}
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-sm">
+                          {(profile?.avatar_url as string) ? (
+                            <img src={profile.avatar_url as string} alt="" className="w-full h-full rounded-full object-cover" />
+                          ) : <span className="text-xs text-blue-400">?</span>}
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">
+                          {(profile?.full_name as string) || 'Anonymous'}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {appCount > 0 ? `${appCount} applied` : 'Be the first!'}
+                      </span>
+                    </div>
+                    </div>{/* end inner p-5 div */}
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
+            <div className="text-5xl mb-4">🌍</div>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">No trips posted yet</h3>
+            <p className="text-gray-500 mb-6">Be the first to post your trip and find a companion!</p>
+            <Link href={`/${locale}/companions/new`}>
+              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-8">
+                Post My Trip
+              </Button>
+            </Link>
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}

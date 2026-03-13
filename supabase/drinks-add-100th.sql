@@ -1,0 +1,2 @@
+-- ※ 9종 한 번에 추가하려면 drinks-add-9-to-100.sql 사용
+-- 100 Drinks: 91개 → 100개 (9종 추가) — supabase/drinks-add-9-to-100.sql 실행

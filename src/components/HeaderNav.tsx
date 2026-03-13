@@ -207,54 +207,59 @@ export default function HeaderNav({
       </div>{/* end 데스크탑 flex-1 wrapper */}
 
       {/* ── 모바일: 메인 메뉴 5개 아이콘 (바로 인지) + 메시지/알림 + 햄버거 ── */}
-      <div className="md:hidden flex flex-1 items-center justify-end gap-0.5 min-w-0">
-        {/* 메인 메뉴 5개: 아이콘만 표시 (햄버거 밖) */}
-        <nav className="flex items-center gap-0.5 shrink-0 mr-1">
-          {navLinks.map(link => (
-            <Link
-              key={link.href}
-              href={`/${locale}${link.href}`}
-              title={link.label}
-              className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors ${
-                isActive(link.href)
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-              }`}
-            >
-              {navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}
-            </Link>
-          ))}
-        </nav>
-        {userId && (
-          <>
-            <Link href={`/${locale}/messages`} title={tMessages}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors shrink-0">
-              <MessageSquare style={{ width: 18, height: 18 }} />
-              {unreadMessageCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                  {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                </span>
-              )}
-            </Link>
-            <Link href={`/${locale}/notifications`} title={tNotifications}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors shrink-0">
-              <Bell style={{ width: 18, height: 18 }} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Link>
-          </>
-        )}
-        <button
-          suppressHydrationWarning
-          onClick={() => setMobileOpen(true)}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
-          aria-label={tMenu}
-        >
-          <Menu style={{ width: 20, height: 20 }} />
-        </button>
+      <div className="md:hidden flex flex-1 items-center min-w-0 gap-1">
+        {/* 메인 메뉴 5개: 가용 공간만 쓰고 부족하면 가로 스크롤 */}
+        <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden">
+          <nav className="flex items-center gap-0.5 justify-end pr-1">
+            {navLinks.map(link => (
+              <Link
+                key={link.href}
+                href={`/${locale}${link.href}`}
+                title={link.label}
+                className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 transition-colors ${
+                  isActive(link.href)
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                }`}
+              >
+                {navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        {/* 오른쪽 고정: 메시지·알림·햄버거 (로고와 겹치지 않도록 shrink-0) */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          {userId && (
+            <>
+              <Link href={`/${locale}/messages`} title={tMessages}
+                className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <MessageSquare style={{ width: 18, height: 18 }} />
+                {unreadMessageCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                  </span>
+                )}
+              </Link>
+              <Link href={`/${locale}/notifications`} title={tNotifications}
+                className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <Bell style={{ width: 18, height: 18 }} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            </>
+          )}
+          <button
+            suppressHydrationWarning
+            onClick={() => setMobileOpen(true)}
+            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label={tMenu}
+          >
+            <Menu style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
       </div>
 
       {/* ── 모바일 메뉴 오버레이 ── */}

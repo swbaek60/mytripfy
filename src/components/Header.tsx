@@ -47,8 +47,8 @@ export default async function Header({
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center min-h-14 h-14 gap-2 sm:gap-3">
 
-          {/* 로고 */}
-          <Link href={`/${locale}`} className="shrink-0 flex items-center mr-2">
+          {/* 로고 (모바일에서 너비 제한해 메뉴 아이콘과 겹치지 않음) */}
+          <Link href={`/${locale}`} className="shrink-0 flex items-center mr-2 max-w-[88px] sm:max-w-[100px] md:max-w-none">
             <Logo className="h-[2.8rem] sm:h-[3.2rem]" />
           </Link>
 

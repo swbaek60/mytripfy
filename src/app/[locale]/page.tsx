@@ -9,6 +9,8 @@ import CountryFlag from '@/components/CountryFlag'
 import { Users, Plane, Compass, Globe, MessageSquare, ShieldCheck, Search, Star, UserCheck, Store, Trophy, Award, ClipboardList } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
+export const dynamic = 'force-dynamic'
+
 const POPULAR_DESTINATION_CODES = [
   { code: 'JP', emoji: '🇯🇵', nameKey: 'destJapan' as const },
   { code: 'TH', emoji: '🇹🇭', nameKey: 'destThailand' as const },

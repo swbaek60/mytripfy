@@ -48,8 +48,19 @@ export async function GET(request: Request) {
   const redirectUrl = `${origin}/${redirectLocale}`
 
   const response = NextResponse.redirect(redirectUrl)
+  const isSecure = origin.startsWith('https://')
+  const url = new URL(origin)
+  const domain = url.hostname === 'localhost' ? undefined : `.${url.hostname.replace(/^www\./, '')}`
   cookiesToSet.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options as Parameters<NextResponse['cookies']['set']>[2])
+    const opts = (options || {}) as Record<string, unknown>
+    response.cookies.set(name, value, {
+      path: (opts.path as string) ?? '/',
+      maxAge: (opts.maxAge as number) ?? 400 * 24 * 60 * 60,
+      httpOnly: (opts.httpOnly as boolean) ?? false,
+      secure: isSecure,
+      sameSite: (opts.sameSite as 'lax' | 'strict' | 'none') ?? 'lax',
+      ...(domain && { domain }),
+    })
   })
 
   return response

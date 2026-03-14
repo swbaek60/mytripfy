@@ -14,6 +14,7 @@ interface NavLink {
 }
 
 interface Props {
+  logoSlot: React.ReactNode
   locale: string
   userId?: string
   userEmail?: string
@@ -35,6 +36,7 @@ interface Props {
 }
 
 export default function HeaderNav({
+  logoSlot,
   locale, userId, userEmail,
   avatarUrl, fullName,
   navLinks,
@@ -80,8 +82,62 @@ export default function HeaderNav({
     ? fullName.slice(0, 1).toUpperCase()
     : userEmail?.slice(0, 1).toUpperCase() ?? '?'
 
+  const mobileRightIcons = (
+    <div className="flex items-center gap-0.5 shrink-0">
+      {userId ? (
+        <>
+          <Link href={`/${locale}/messages`} title={tMessages}
+            className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            <MessageSquare style={{ width: 18, height: 18 }} />
+            {unreadMessageCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+              </span>
+            )}
+          </Link>
+          <Link href={`/${locale}/notifications`} title={tNotifications}
+            className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            <Bell style={{ width: 18, height: 18 }} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+          <button
+            suppressHydrationWarning
+            onClick={() => setMobileOpen(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+            aria-label={tMenu}
+          >
+            <Menu style={{ width: 20, height: 20 }} />
+          </button>
+        </>
+      ) : (
+        <>
+          <LanguageSelector currentLocale={locale} compact userId={userId} />
+          <CurrencySelector compact />
+          <Link href={`/${locale}/login`}>
+            <button suppressHydrationWarning className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors shrink-0">
+              {tLogin}
+            </button>
+          </Link>
+        </>
+      )}
+    </div>
+  )
+
   return (
     <>
+      {/* 모바일: 1열 = 로고(왼쪽) + 메시지/알림/햄버거(오른쪽) | 데스크탑: 로고만 */}
+      <div className="flex flex-col md:flex-row md:items-center md:min-h-14 md:h-14 md:gap-2 sm:md:gap-3 w-full min-w-0">
+        <div className="flex justify-between items-center w-full md:contents">
+          {logoSlot}
+          <div className="md:hidden shrink-0">{mobileRightIcons}</div>
+        </div>
+
+        {/* 데스크탑: 가운데 네비 + 오른쪽 영역 | 모바일: 2열 5개 메뉴만 */}
+        <div className="flex md:flex-1 w-full min-w-0 flex-col md:flex-row">
       {/* ── 데스크탑 레이아웃: flex-1 으로 가운데 + 오른쪽 정렬 ── */}
       <div className="hidden md:flex flex-1 items-center justify-between">
         {/* 가운데 네비게이션 */}
@@ -206,60 +262,28 @@ export default function HeaderNav({
         </div>{/* end 오른쪽 영역 */}
       </div>{/* end 데스크탑 flex-1 wrapper */}
 
-      {/* ── 모바일 2행: 메인 메뉴 5개(아이콘+라벨) + 메시지/알림 + 햄버거 ── */}
-      <div className="md:hidden flex w-full items-center justify-between min-h-12 py-1 gap-2">
-        <nav className="flex items-center gap-0.5 sm:gap-1 shrink-0 min-w-0">
-          {navLinks.map(link => (
-            <Link
-              key={link.href}
-              href={`/${locale}${link.href}`}
-              title={link.label}
-              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-[52px] sm:min-w-0 sm:max-w-[4rem] rounded-lg shrink-0 transition-colors ${
-                isActive(link.href)
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-              }`}
-            >
-              <span className="shrink-0">{navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}</span>
-              <span className="text-[10px] sm:text-[11px] font-medium leading-tight truncate w-full text-center max-w-[3.5rem] sm:max-w-[4rem]">
-                {link.label}
-              </span>
-            </Link>
-          ))}
-        </nav>
-        <div className="flex items-center gap-0.5 shrink-0">
-          {userId && (
-            <>
-              <Link href={`/${locale}/messages`} title={tMessages}
-                className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <MessageSquare style={{ width: 18, height: 18 }} />
-                {unreadMessageCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                  </span>
-                )}
-              </Link>
-              <Link href={`/${locale}/notifications`} title={tNotifications}
-                className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <Bell style={{ width: 18, height: 18 }} />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </Link>
-            </>
-          )}
-          <button
-            suppressHydrationWarning
-            onClick={() => setMobileOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
-            aria-label={tMenu}
+      {/* ── 모바일 2열: 메인 메뉴 5개만, 가로 100%, 가운데 정렬 ── */}
+      <nav className="md:hidden flex w-full items-center justify-center gap-1 sm:gap-2 min-h-12 py-1 px-0">
+        {navLinks.map(link => (
+          <Link
+            key={link.href}
+            href={`/${locale}${link.href}`}
+            title={link.label}
+            className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-0 flex-1 max-w-[4.5rem] rounded-lg transition-colors ${
+              isActive(link.href)
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+            }`}
           >
-            <Menu style={{ width: 20, height: 20 }} />
-          </button>
-        </div>
-      </div>
+            <span className="shrink-0">{navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}</span>
+            <span className="text-[10px] sm:text-[11px] font-medium leading-tight truncate w-full text-center">
+              {link.label}
+            </span>
+          </Link>
+        ))}
+      </nav>
+        </div>{/* end flex md:flex-1 wrapper */}
+      </div>{/* end outer flex flex-col */}
 
       {/* ── 모바일 메뉴 오버레이 ── */}
       {mobileOpen && (

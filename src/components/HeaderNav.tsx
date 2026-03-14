@@ -206,21 +206,24 @@ export default function HeaderNav({
         </div>{/* end 오른쪽 영역 */}
       </div>{/* end 데스크탑 flex-1 wrapper */}
 
-      {/* ── 모바일 2행: 메인 메뉴 5개 + 메시지/알림 + 햄버거 (전체 너비, 모두 표시) ── */}
+      {/* ── 모바일 2행: 메인 메뉴 5개(아이콘+라벨) + 메시지/알림 + 햄버거 ── */}
       <div className="md:hidden flex w-full items-center justify-between min-h-12 py-1 gap-2">
-        <nav className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <nav className="flex items-center gap-0.5 sm:gap-1 shrink-0 min-w-0">
           {navLinks.map(link => (
             <Link
               key={link.href}
               href={`/${locale}${link.href}`}
               title={link.label}
-              className={`flex items-center justify-center w-9 h-9 rounded-full shrink-0 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-[52px] sm:min-w-0 sm:max-w-[4rem] rounded-lg shrink-0 transition-colors ${
                 isActive(link.href)
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
               }`}
             >
-              {navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}
+              <span className="shrink-0">{navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}</span>
+              <span className="text-[10px] sm:text-[11px] font-medium leading-tight truncate w-full text-center max-w-[3.5rem] sm:max-w-[4rem]">
+                {link.label}
+              </span>
             </Link>
           ))}
         </nav>

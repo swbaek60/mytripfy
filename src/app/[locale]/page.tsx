@@ -11,16 +11,10 @@ import { getTranslations } from 'next-intl/server'
 
 export const dynamic = 'force-dynamic'
 
-const POPULAR_DESTINATION_CODES = [
-  { code: 'JP', emoji: '🇯🇵', nameKey: 'destJapan' as const },
-  { code: 'TH', emoji: '🇹🇭', nameKey: 'destThailand' as const },
-  { code: 'IT', emoji: '🇮🇹', nameKey: 'destItaly' as const },
-  { code: 'FR', emoji: '🇫🇷', nameKey: 'destFrance' as const },
-  { code: 'US', emoji: '🇺🇸', nameKey: 'destUSA' as const },
-  { code: 'AU', emoji: '🇦🇺', nameKey: 'destAustralia' as const },
-  { code: 'ES', emoji: '🇪🇸', nameKey: 'destSpain' as const },
-  { code: 'VN', emoji: '🇻🇳', nameKey: 'destVietnam' as const },
+const POPULAR_DESTINATIONS_FALLBACK = [
+  'JP', 'TH', 'IT', 'FR', 'US', 'AU', 'ES', 'VN',
 ]
+const POPULAR_DESTINATIONS_MAX = 8
 
 export default async function Home({
   params,
@@ -40,6 +34,7 @@ export default async function Home({
     { count: postCount },
     { count: guideCount },
     { data: recentPosts },
+    { data: companionCountryRows },
     { data: topGuides },
     { data: recentGuideRequests },
     { data: hallOfFameTop5 },
@@ -52,6 +47,11 @@ export default async function Home({
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(6),
+    supabase
+      .from('companion_posts')
+      .select('destination_country')
+      .eq('status', 'open')
+      .not('destination_country', 'is', null),
     supabase
       .from('profiles')
       .select('*')
@@ -70,6 +70,31 @@ export default async function Home({
       .order('total_points', { ascending: false })
       .limit(5),
   ])
+
+  // Popular Destinations: Find Companions 글 많은 순으로 국가 정렬 (상위 8개, 부족하면 fallback으로 채움)
+  const countByCountry = new Map<string, number>()
+  for (const row of companionCountryRows ?? []) {
+    const code = (row as { destination_country: string | null }).destination_country
+    if (code && code.trim()) {
+      countByCountry.set(code, (countByCountry.get(code) ?? 0) + 1)
+    }
+  }
+  const sortedCodes = [...countByCountry.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([code]) => code)
+    .slice(0, POPULAR_DESTINATIONS_MAX)
+  const used = new Set(sortedCodes)
+  for (const code of POPULAR_DESTINATIONS_FALLBACK) {
+    if (sortedCodes.length >= POPULAR_DESTINATIONS_MAX) break
+    if (!used.has(code)) {
+      used.add(code)
+      sortedCodes.push(code)
+    }
+  }
+  const popularDestinations = sortedCodes.map(code => {
+    const country = getCountryByCode(code)
+    return { code, name: country?.name ?? code, emoji: country?.emoji ?? '🌍' }
+  })
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -182,13 +207,13 @@ export default async function Home({
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 sm:gap-3">
-            {POPULAR_DESTINATION_CODES.map(dest => (
+            {popularDestinations.map(dest => (
               <Link key={dest.code} href={`/companions?country=${dest.code}`}>
                 <div className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all cursor-pointer group">
                   <span className="group-hover:scale-110 transition-transform">
                     <CountryFlag code={dest.code} size="lg" />
                   </span>
-                  <span className="text-xs text-gray-600 font-medium text-center leading-tight">{s(dest.nameKey)}</span>
+                  <span className="text-xs text-gray-600 font-medium text-center leading-tight">{dest.name}</span>
                 </div>
               </Link>
             ))}

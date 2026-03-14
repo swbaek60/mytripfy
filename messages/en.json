@@ -162,7 +162,11 @@
     "applied": "Applied",
     "openStatus": "Open",
     "closedStatus": "Closed",
-    "viewPost": "View Post"
+    "viewPost": "View Post",
+    "filterByCountry": "Country:",
+    "allCountries": "All countries",
+    "viewAllCountries": "View all",
+    "filterByPurpose": "Purpose:"
   },
   "Guides": {
     "title": "Find Local Guides",

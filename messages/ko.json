@@ -162,7 +162,11 @@
     "applied": "신청 완료",
     "openStatus": "모집 중",
     "closedStatus": "마감",
-    "viewPost": "게시물 보기"
+    "viewPost": "게시물 보기",
+    "filterByCountry": "나라:",
+    "allCountries": "전체",
+    "viewAllCountries": "전체보기",
+    "filterByPurpose": "목적:"
   },
   "Guides": {
     "title": "현지 가이드 찾기",

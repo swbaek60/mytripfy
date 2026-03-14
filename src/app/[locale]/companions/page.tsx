@@ -6,6 +6,7 @@ import { getCountryByCode, getCountryCodesMatchingQuery } from '@/data/countries
 import { headers } from 'next/headers'
 import BookmarkButton from '@/components/BookmarkButton'
 import CountryFlag from '@/components/CountryFlag'
+import CompanionsCountryFilter from '@/app/[locale]/companions/CompanionsCountryFilter'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
@@ -55,6 +56,22 @@ export default async function CompanionsPage({
   // 동행 게시글 조회 (프로필 join)
   // end_date: 오늘 이후 종료되는 여행만 표시
   const today = new Date().toISOString().split('T')[0]
+
+  // 나라별 필터용: open 게시글의 destination_country 전체 목록 (글 많은 순, 클라이언트에서 상위 20개 먼저 표시 후 전체보기 가능)
+  const { data: countryRows } = await supabase
+    .from('companion_posts')
+    .select('destination_country')
+    .eq('status', 'open')
+    .gte('end_date', today)
+    .not('destination_country', 'is', null)
+  const countByCountry = new Map<string, number>()
+  for (const row of countryRows ?? []) {
+    const code = (row as { destination_country: string }).destination_country
+    if (code?.trim()) countByCountry.set(code, (countByCountry.get(code) ?? 0) + 1)
+  }
+  const countryFilterList = [...countByCountry.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([code]) => ({ code, count: countByCountry.get(code)! }))
 
   let query = supabase
     .from('companion_posts')
@@ -137,21 +154,36 @@ export default async function CompanionsPage({
           )}
         </div>
 
-        {/* Filter Bar */}
+        {/* Filter Bar: Country (상위 20개 + 전체보기) */}
+        <CompanionsCountryFilter
+          list={countryFilterList}
+          currentCountry={country}
+          locale={locale}
+          purpose={purpose}
+          searchQuery={searchQuery}
+          labelFilter={t('filterByCountry')}
+          labelAll={t('allCountries')}
+          labelViewAll={t('viewAllCountries')}
+        />
+
+        {/* Filter Bar: Purpose */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-gray-500 font-medium mr-1">Filter by purpose:</span>
-          <Link href={`/${locale}/companions`}>
+          <span className="text-sm text-gray-500 font-medium mr-1 shrink-0">{t('filterByPurpose')}</span>
+          <Link href={`/${locale}/companions${country || searchQuery ? `?${new URLSearchParams([...(country ? [['country', country]] : []), ...(searchQuery ? [['q', searchQuery]] : [])]).toString()}` : ''}`}>
             <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!purpose ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
               All
             </span>
           </Link>
-          {Object.entries(PURPOSE_LABELS).map(([key, label]) => (
-            <Link key={key} href={`/${locale}/companions?purpose=${key}`}>
-              <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${purpose === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
-                {label}
-              </span>
-            </Link>
-          ))}
+          {Object.entries(PURPOSE_LABELS).map(([key, label]) => {
+            const href = `/${locale}/companions?purpose=${key}${country ? `&country=${country}` : ''}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`
+            return (
+              <Link key={key} href={href}>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${purpose === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+                  {label}
+                </span>
+              </Link>
+            )
+          })}
         </div>
 
         {/* Posts Grid */}

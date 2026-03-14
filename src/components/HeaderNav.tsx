@@ -115,8 +115,8 @@ export default function HeaderNav({
         </>
       ) : (
         <>
-          <LanguageSelector currentLocale={locale} compact userId={userId} />
-          <CurrencySelector compact />
+          <LanguageSelector currentLocale={locale} compact iconOnly userId={userId} />
+          <CurrencySelector compact iconOnly />
           <Link href={`/${locale}/login`}>
             <button suppressHydrationWarning className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors shrink-0">
               {tLogin}

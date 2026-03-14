@@ -24,7 +24,7 @@ const CURRENCY_GROUPS = [
   },
 ]
 
-export default function CurrencySelector({ compact }: { compact?: boolean } = {}) {
+export default function CurrencySelector({ compact, iconOnly }: { compact?: boolean; iconOnly?: boolean } = {}) {
   const { selectedCurrency, setSelectedCurrency } = useCurrency()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -71,14 +71,16 @@ export default function CurrencySelector({ compact }: { compact?: boolean } = {}
       {/* 트리거 버튼 */}
       <button
         onClick={() => setOpen(true)}
-        className={compact
-          ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
-          : "flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        className={iconOnly
+          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-600 shrink-0 font-semibold text-sm"
+          : compact
+            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
+            : "flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
         }
         aria-label="Select currency"
       >
         <span className="font-semibold">{current.symbol}</span>
-        <span className="text-xs">{current.code}</span>
+        {!iconOnly && <span className="text-xs">{current.code}</span>}
       </button>
 
       {/* 풀 모달 */}

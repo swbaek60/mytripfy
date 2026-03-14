@@ -87,11 +87,13 @@ function switchLocaleInPath(pathname: string, newLocale: string): string {
 interface Props {
   currentLocale: string
   compact?: boolean
+  /** 아이콘만 표시 (모바일 상단 등 공간 절약) */
+  iconOnly?: boolean
   /** 로그인한 사용자 ID. 있으면 언어 선택 시 프로필에 저장해 두었다가 다음 로그인 시 해당 언어로 표시 */
   userId?: string
 }
 
-export default function LanguageSelector({ currentLocale, compact, userId }: Props) {
+export default function LanguageSelector({ currentLocale, compact, iconOnly, userId }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const router = useRouter()
@@ -147,21 +149,23 @@ export default function LanguageSelector({ currentLocale, compact, userId }: Pro
       {/* 트리거 버튼 */}
       <button
         onClick={() => setOpen(!open)}
-        className={compact
-          ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
-          : "flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium text-gray-600 group"
+        className={iconOnly
+          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-600 shrink-0"
+          : compact
+            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
+            : "flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium text-gray-600 group"
         }
         aria-label="Select language"
       >
         {LOCALE_TO_COUNTRY[currentLang.locale] ? (
-          <CountryFlag code={LOCALE_TO_COUNTRY[currentLang.locale]} size="sm" />
+          <CountryFlag code={LOCALE_TO_COUNTRY[currentLang.locale]} size={iconOnly ? 'sm' : 'sm'} />
         ) : (
           <span className="text-base leading-none">🌐</span>
         )}
-        {!compact && <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>}
-        {compact
+        {!iconOnly && !compact && <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>}
+        {!iconOnly && compact
           ? <span className="text-xs uppercase font-semibold">{currentLocale.split('-')[0]}</span>
-          : <svg
+          : !iconOnly && <svg
               className={`w-3 h-3 transition-transform duration-200 text-gray-400 group-hover:text-blue-500 ${open ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor"
             >

@@ -96,7 +96,7 @@ const DRINKS_DIRECT_IMAGES: Record<string, string> = {
   'Appleton Estate 50 Year Jamaica Rum': 'https://therumhowlerblog.com/wp-content/uploads/2012/06/appleton-estate-50.jpg?w=584',
   'Arak Chateau Ksara': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTq5RE6dhEqJnOIieplkTyRugopqxH579rjLw&s',
   'Arak Sefid': 'https://media.cnn.com/api/v1/images/stellar/prod/230627082427-03-world-arak-day-muaddi.jpg',
-  'Ararat 50 Year Nairi Brandy': 'https://www.raincitywines.com/cdn/shop/products/IMG_1753_grande.JPG?v=1519945397',
+  'Ararat 50 Year Nairi Brandy': 'https://royalbatch.com/upload/products/1/ararat-erebuni-50-years-old-armenian-brandy_RoyalBatch_dN7Nr5hxLgBt.jpg',
   'Avua Amburana Cachaca': 'https://happy-drinks.de/cdn/shop/files/Avua-Amburana_Cachaca_Cocktail.jpg?v=1718963352&width=1214',
   'Balvenie DoubleWood 17 Year': 'https://alcoholpleasehk.com/cdn/shop/files/balvenie-17-17yo-43percent-scotch-whisky-30344.jpg?v=1765400718&width=416',
   'Barbancourt 15 Year Reserve Speciale': 'https://bottleofitaly.com/cdn/shop/files/Barbancourt-Reserve-du-Domain-15-anni-70cl-Astucciato-Bottle-of-Italy.jpg?v=1706178780',

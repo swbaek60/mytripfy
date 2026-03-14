@@ -2,7 +2,7 @@ import { login, signup, signInWithGoogle, signInWithApple, signInWithFacebook } 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Logo from '@/components/Logo'
-import InAppBrowserNotice from '@/components/InAppBrowserNotice'
+import LoginInAppGate from './LoginInAppGate'
 import { getTranslations } from 'next-intl/server'
 
 export default async function LoginPage({
@@ -18,25 +18,22 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
-      <div className="w-full max-w-md">
+      <LoginInAppGate>
+        <div className="w-full max-w-md">
+          {/* Card */}
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
 
-        {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+            {/* Top banner */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-8 text-center">
+              <Logo className="h-9 mb-3 mx-auto brightness-0 invert" darkBg />
+              <p className="text-blue-100 text-sm">
+                Join millions of travelers worldwide 🌍
+              </p>
+            </div>
 
-          {/* Top banner */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-8 text-center">
-            <Logo className="h-9 mb-3 mx-auto brightness-0 invert" darkBg />
-            <p className="text-blue-100 text-sm">
-              Join millions of travelers worldwide 🌍
-            </p>
-          </div>
+            <div className="px-8 py-8 space-y-5">
 
-          <div className="px-8 py-8 space-y-5">
-
-            {/* 카카오톡/인스타 등 인앱 브라우저에서 열었을 때 Google 로그인 불가 안내 */}
-            <InAppBrowserNotice />
-
-            {/* ── Social Login Buttons ── */}
+              {/* ── Social Login Buttons ── */}
             <div className="space-y-3">
 
               {/* Google */}
@@ -171,6 +168,7 @@ export default async function LoginPage({
           ))}
         </div>
       </div>
+      </LoginInAppGate>
     </div>
   )
 }

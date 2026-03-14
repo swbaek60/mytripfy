@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 
-/** 인앱 브라우저(웹뷰) 감지.
- * 참고: Google OAuth는 embedded webview에서 차단됨(정책). UAParser InApps·Facebook/Instagram/LINE 등 문서·실무 UA 패턴 반영. */
-function isInAppBrowser(): boolean {
+/** 인앱 브라우저(웹뷰) 감지. 로그인 페이지 등에서 전체 UI 분기용으로 export. */
+export function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false
   const ua = navigator.userAgent
   const lower = ua.toLowerCase()
@@ -81,13 +80,56 @@ function getChromeIosUrl(): string {
   return `googlechromes://${url}`
 }
 
-export default function InAppBrowserNotice() {
+const noticeContent = (
+  copied: boolean,
+  onCopy: () => void,
+  onOpenExternal: () => void,
+  showCloseButton: boolean,
+  onClose: () => void
+) => (
+  <>
+    <p className="font-medium">
+      Google 로그인은 앱 안 브라우저(카카오톡·라인·인스타·페이스북·왓츠앱·텔레그램 등)에서 사용할 수 없습니다.
+    </p>
+    <p className="mt-2 text-amber-800">
+      <strong>브라우저에서 열기</strong>를 누르면 Safari 또는 Chrome으로 넘어갈 수 있습니다.
+      앱에 따라 동작하지 않을 수 있으니, 그때는 <strong>주소 복사</strong> 후 Safari·Chrome에 붙여넣어 주세요.
+    </p>
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={onOpenExternal}
+        className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-500"
+      >
+        브라우저에서 열기
+      </button>
+      <button
+        type="button"
+        onClick={onCopy}
+        className="rounded-lg bg-amber-200 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-300"
+      >
+        {copied ? '✓ 복사됨!' : '주소 복사'}
+      </button>
+      {showCloseButton && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-xs underline text-amber-700 hover:text-amber-900"
+        >
+          안내 닫기
+        </button>
+      )}
+    </div>
+  </>
+)
+
+export default function InAppBrowserNotice({ standalone = false }: { standalone?: boolean }) {
   const [show, setShow] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    setShow(isInAppBrowser())
-  }, [])
+    if (!standalone) setShow(isInAppBrowser())
+  }, [standalone])
 
   const copyUrl = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : ''
@@ -100,61 +142,34 @@ export default function InAppBrowserNotice() {
     }
   }
 
-  /** 외부 브라우저로 열기. 카카오=공식 스킴, Android=Chrome Intent, iOS=Safari 우선 후 구버전 폴백 */
   const openInExternalBrowser = () => {
-    const url = window.location.href
     if (isKakaoTalk()) {
       window.location.href = getKakaoOpenExternalUrl()
     } else if (isAndroid()) {
       window.location.href = getChromeIntentUrl()
     } else if (isIOS()) {
-      // iOS: Safari는 기본 설치. x-safari-https(iOS 17+) 먼저, 안 되면 legacy 스킴 시도
       window.location.href = getSafariIosUrl()
       setTimeout(() => {
         window.location.href = getSafariIosLegacyUrl()
       }, 400)
     } else {
-      window.open(url, '_blank', 'noopener,noreferrer')
+      window.open(window.location.href, '_blank', 'noopener,noreferrer')
     }
   }
 
-  if (!show) return null
+  const visible = standalone || show
+  if (!visible) return null
 
   return (
     <div
       role="alert"
-      className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+      className={
+        standalone
+          ? 'rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900'
+          : 'mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900'
+      }
     >
-      <p className="font-medium">
-        Google 로그인은 앱 안 브라우저(카카오톡·라인·인스타·페이스북·왓츠앱·텔레그램 등)에서 사용할 수 없습니다.
-      </p>
-      <p className="mt-2 text-amber-800">
-        <strong>브라우저에서 열기</strong>를 누르면 Safari 또는 Chrome으로 넘어갈 수 있습니다.
-        앱에 따라 동작하지 않을 수 있으니, 그때는 <strong>주소 복사</strong> 후 Safari·Chrome에 붙여넣어 주세요.
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={openInExternalBrowser}
-          className="rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-500"
-        >
-          브라우저에서 열기
-        </button>
-        <button
-          type="button"
-          onClick={copyUrl}
-          className="rounded-lg bg-amber-200 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-300"
-        >
-          {copied ? '✓ 복사됨!' : '주소 복사'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShow(false)}
-          className="text-xs underline text-amber-700 hover:text-amber-900"
-        >
-          안내 닫기
-        </button>
-      </div>
+      {noticeContent(copied, copyUrl, openInExternalBrowser, !standalone, () => setShow(false))}
     </div>
   )
 }

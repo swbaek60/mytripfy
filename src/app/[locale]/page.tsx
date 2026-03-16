@@ -30,6 +30,8 @@ export default async function Home({
     getTranslations({ locale, namespace: 'HomeSection' }),
   ])
 
+  const today = new Date().toISOString().split('T')[0]
+
   const [
     { count: postCount },
     { count: guideCount },
@@ -51,6 +53,7 @@ export default async function Home({
       .from('companion_posts')
       .select('destination_country')
       .eq('status', 'open')
+      .gte('end_date', today)
       .not('destination_country', 'is', null),
     supabase
       .from('profiles')

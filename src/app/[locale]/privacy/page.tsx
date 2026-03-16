@@ -89,8 +89,8 @@ export default async function PrivacyPage({
         <div className="mt-10 bg-gray-100 rounded-2xl p-5 sm:p-6 text-sm text-gray-600 leading-relaxed">
           <p className="font-semibold text-gray-800 mb-1">{t('contactTitle')}</p>
           <p>{t('contactBody')}</p>
-          <a href="mailto:support@mytripfy.com" className="inline-block mt-2 text-blue-600 hover:underline font-medium">
-            support@mytripfy.com
+          <a href="mailto:swbaek60@gmail.com" className="inline-block mt-2 text-blue-600 hover:underline font-medium">
+            swbaek60@gmail.com
           </a>
         </div>
 

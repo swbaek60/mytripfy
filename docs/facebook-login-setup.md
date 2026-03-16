@@ -156,6 +156,35 @@
 3. **앱 시크릿** 옆 **표시**를 눌러 값을 확인한 뒤 복사해 둡니다.  
    → 나중에 Supabase에 넣을 때 정확히 입력해야 합니다.
 
+#### Namespace 란? 뭘 넣으면 되나요?
+
+**Namespace**는 Meta 앱을 구분하는 **고유 문자열**입니다. (예전에는 앱 캔버스 주소 `https://apps.facebook.com/여기/` 에 쓰였고, 지금도 기본 설정에서 넣는 경우가 있습니다.)
+
+- **규칙:** **소문자 영문, 숫자, 하이픈(-)** 만 사용. **길이:** 최소 7자, 최대 20자. 전 세계에서 유일해야 해서 이미 쓰인 이름은 사용할 수 없습니다.
+- **mytripfy 앱이라면 예시:** `mytripfy` (7자), `mytripfy-web`, `mytripfy-login`, `mytripfy-travel` 처럼 **서비스명-용도** 조합을 추천. 이미 사용 중이면 다른 접미사를 붙여 보세요.
+- 저장 후 Meta가 검토할 수 있으며 승인까지 최대 24시간 걸릴 수 있습니다. Facebook 로그인만 쓰는 웹이라면 Namespace가 필수로 안 나올 수도 있고, 나와도 위 규칙대로만 넣으면 됩니다.
+
+#### User data deletion – Data deletion instructions URL vs callback URL
+
+Meta는 앱이 사용자 데이터를 삭제할 수 있도록 **둘 중 하나**를 제공하라고 합니다.
+
+| 항목 | 의미 | 추천 |
+|------|--------|------|
+| **Data deletion instructions URL** | 사용자에게 **“데이터 삭제를 어떻게 요청하는지”** 설명하는 **웹 페이지** 주소. (예: 개인정보처리방침, 계정 삭제 방법, 연락처) | **이걸 선택하는 것을 추천.** 구현이 쉽고, 이미 개인정보처리방침 페이지가 있으면 그 URL만 넣으면 됨. |
+| **Data deletion callback URL** | 사용자가 Facebook 설정에서 “앱 데이터 삭제 요청”을 누르면 **Meta가 POST 요청을 보내는 API 주소**. 서버에서 signed request를 파싱해 해당 사용자 데이터를 삭제하고, `{ url, confirmation_code }` JSON을 반환해야 함. | 자동화된 삭제를 원할 때만 구현. 백엔드 개발 필요. |
+
+**mytripfy처럼 웹만 쓰는 경우:**
+
+1. **Data deletion instructions URL** 을 선택합니다.
+2. **URL**에는 **개인정보처리방침 페이지**를 넣습니다.  
+   - 예: `https://mytripfy.com/privacy`  
+   - (또는 `https://mytripfy.com/ko/privacy` 등 로케일 포함 URL. Meta는 보통 하나의 대표 URL만 요구하므로 `https://mytripfy.com/privacy` 로 두면 됨.)
+3. 해당 페이지에 **“계정·개인정보 삭제 요청 방법”**이 있으면 충분합니다.  
+   - 이미 “계정 및 개인정보 삭제 요청”, “support@mytripfy.com으로 문의” 등이 적혀 있으므로 그대로 사용 가능.
+
+**Data deletion callback URL** 을 쓰려면:  
+- HTTPS API 엔드포인트를 만들고, Meta가 보내는 `signed_request`를 앱 시크릿으로 검증한 뒤, 해당 Facebook 사용자 ID에 매핑된 계정/데이터를 삭제(또는 삭제 예약)하고, `{ "url": "상태 확인 URL", "confirmation_code": "영숫자 코드" }` 를 JSON으로 반환해야 합니다. 필요하면 별도로 구현하면 됩니다.
+
 ---
 
 ## 5단계: Supabase에 Facebook Provider 설정

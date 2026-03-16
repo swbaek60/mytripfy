@@ -513,6 +513,9 @@ export default async function Home({
             <div className="flex flex-col gap-0.5">
               <span>© 2026 mytripfy.com · {s('allRightsReserved')}</span>
               <span>{s('footerRightsContact')}</span>
+              <Link href={`/${locale}/privacy`} className="hover:text-white transition-colors mt-0.5 underline underline-offset-2">
+                {s('privacyPolicy')}
+              </Link>
             </div>
             <span className="shrink-0">{s('footerMadeFor')}</span>
           </div>

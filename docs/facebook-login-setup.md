@@ -274,7 +274,10 @@ Meta는 앱이 사용자 데이터를 삭제할 수 있도록 **둘 중 하나**
    - 배포 후 `https://mytripfy.com`(또는 사용 도메인)에서 동일하게 테스트합니다.
 3. **리디렉트 오류**가 나오면  
    - Supabase **Authentication** → **URL Configuration**에서  
-     **Redirect URLs**에 `https://mytripfy.com/**`, `http://localhost:3000/**` 등이 포함돼 있는지 확인합니다.
+     **Redirect URLs**에 `https://mytripfy.com/**`, `http://localhost:3000/**` 등이 포함돼 있는지 확인합니다.  
+   - **팝업 로그인**이 되려면 반드시 **사이트 콜백 URL**이 허용돼야 합니다:  
+     `https://www.mytripfy.com/auth/callback` (운영), `http://localhost:3000/auth/callback` (로컬).  
+     이 주소가 없으면 로그인 후 새 창이 `/en#_=_` 등으로 열린 채로 남을 수 있습니다.
 
 ---
 

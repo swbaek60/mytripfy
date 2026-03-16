@@ -22,12 +22,14 @@ export default function FacebookLoginButton({ locale }: Props) {
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type !== 'FACEBOOK_AUTH_COMPLETE') return
+      const allowedOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+      if (allowedOrigin && event.origin !== allowedOrigin) return
       cleanup()
       if (event.data.success) {
         router.push(`/${event.data.locale || locale}`)
         router.refresh()
       } else {
-        router.push(`/${locale}/login?message=Could not authenticate user`)
+        router.push(`/${locale}/login?message=Login+was+interrupted.+Please+try+again.`)
       }
     }
     window.addEventListener('message', handler)

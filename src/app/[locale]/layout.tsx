@@ -6,6 +6,7 @@ import {getMessages} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import { CurrencyProvider } from '@/context/CurrencyContext';
+import OAuthPopupHandler from '@/components/OAuthPopupHandler';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -96,6 +97,7 @@ export default async function LocaleLayout({
     >
       <NextIntlClientProvider locale={locale} messages={messages}>
         <CurrencyProvider>
+          <OAuthPopupHandler locale={locale} />
           {children}
         </CurrencyProvider>
       </NextIntlClientProvider>

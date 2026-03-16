@@ -6,11 +6,12 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const fallbackLocale = searchParams.get('locale') || 'en'
-
   const cookieStore = await cookies()
-  const cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[] = []
+  // URL의 locale이 Supabase 리다이렉트로 빠질 수 있음 → 로그인 직전에 저장한 쿠키 사용
+  const savedLocale = cookieStore.get('mytripfy_fb_locale')?.value
+  const fallbackLocale = searchParams.get('locale') || (savedLocale ? decodeURIComponent(savedLocale) : null) || 'en'
 
+  const cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[] = []
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -80,5 +81,15 @@ function buildRedirect(
     : `${origin}/${locale}/login?message=Could+not+authenticate+user`
   const response = NextResponse.redirect(dest)
   applySessionCookies(response, cookiesToSet, origin)
+  // 사용한 locale 쿠키 삭제 (1회용)
+  const url = new URL(origin)
+  const domain = url.hostname === 'localhost' ? undefined : `.${url.hostname.replace(/^www\./, '')}`
+  response.cookies.set('mytripfy_fb_locale', '', {
+    path: '/',
+    maxAge: 0,
+    secure: origin.startsWith('https://'),
+    sameSite: 'lax',
+    ...(domain && { domain }),
+  })
   return response
 }

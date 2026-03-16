@@ -17,7 +17,15 @@ export default function FacebookLoginButton({ locale }: Props) {
       const res = await fetch(`/api/auth/facebook-url?locale=${locale}`)
       const json = await res.json()
       if (!json.url) throw new Error('No URL')
-      window.location.href = json.url
+      // Supabase 리다이렉트 시 query가 빠질 수 있어, 콜백에서 쓰일 locale을 쿠키로 저장
+      document.cookie = `mytripfy_fb_locale=${encodeURIComponent(locale)}; path=/; max-age=300; samesite=lax`
+      // form submit + target=_self 로 같은 탭 이동 보장 (모바일에서 새 탭/인앱 열림 방지)
+      const form = document.createElement('form')
+      form.method = 'GET'
+      form.action = json.url
+      form.target = '_self'
+      document.body.appendChild(form)
+      form.submit()
     } catch {
       setLoading(false)
     }

@@ -113,6 +113,8 @@ export async function signInWithFacebook(formData: FormData) {
     provider: 'facebook',
     options: {
       redirectTo: `${getOrigin()}/auth/callback?locale=${locale}`,
+      // 모바일에서 'Continue as' 클릭 시 Facebook 앱으로 넘어가는 현상 완화: 전체 페이지 플로우 유지
+      queryParams: { display: 'page' },
     },
   })
 

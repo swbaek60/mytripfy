@@ -332,7 +332,8 @@
     "loginBtn": "登录",
     "signupBtn": "注册",
     "haveAccount": "已有账号？",
-    "noAccount": "还没有账号？"
+    "noAccount": "还没有账号？",
+    "mobileFacebookTip": "若打开的是 Facebook 应用，请选择「在浏览器中打开」或在 Safari/Chrome 中重试。"
   },
   "ChallengesPage": {
     "subtitle": "16个类别·每类100项·体验世界最好的",

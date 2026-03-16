@@ -301,7 +301,8 @@
     "loginBtn": "Inloggen",
     "signupBtn": "Registreren",
     "haveAccount": "Heb je al een account?",
-    "noAccount": "Heb je nog geen account?"
+    "noAccount": "Heb je nog geen account?",
+    "mobileFacebookTip": "Opent de Facebook-app, kies dan \"Openen in browser\" of probeer het in Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

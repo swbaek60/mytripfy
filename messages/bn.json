@@ -301,7 +301,8 @@
     "loginBtn": "লগ ইন",
     "signupBtn": "সাইন আপ",
     "haveAccount": "ইতিমধ্যে একটি অ্যাকাউন্ট আছে?",
-    "noAccount": "কোনো অ্যাকাউন্ট নেই?"
+    "noAccount": "কোনো অ্যাকাউন্ট নেই?",
+    "mobileFacebookTip": "On mobile, if the Facebook app opens, choose \"Open in browser\" or try in Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

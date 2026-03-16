@@ -301,7 +301,8 @@
     "loginBtn": "Giriş yap",
     "signupBtn": "Kayıt ol",
     "haveAccount": "Zaten hesabınız var mı?",
-    "noAccount": "Hesabınız yok mu?"
+    "noAccount": "Hesabınız yok mu?",
+    "mobileFacebookTip": "Facebook uygulaması açılırsa \"Tarayıcıda aç\"ı seçin veya Safari/Chrome'da deneyin."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

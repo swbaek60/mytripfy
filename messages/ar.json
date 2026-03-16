@@ -301,7 +301,8 @@
     "loginBtn": "تسجيل الدخول",
     "signupBtn": "إنشاء حساب",
     "haveAccount": "هل لديك حساب بالفعل؟",
-    "noAccount": "ليس لديك حساب؟"
+    "noAccount": "ليس لديك حساب؟",
+    "mobileFacebookTip": "إذا فتح تطبيق فيسبوك، اختر \"فتح في المتصفح\" أو جرّب في Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

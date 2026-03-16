@@ -301,7 +301,8 @@
     "loginBtn": "लॉग इन",
     "signupBtn": "साइन अप",
     "haveAccount": "पहले से खाता है?",
-    "noAccount": "खाता नहीं है?"
+    "noAccount": "खाता नहीं है?",
+    "mobileFacebookTip": "अगर Facebook ऐप खुले तो \"ब्राउज़र में खोलें\" चुनें या Safari/Chrome में कोशिश करें।"
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

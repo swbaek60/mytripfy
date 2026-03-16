@@ -301,7 +301,8 @@
     "loginBtn": "Logga in",
     "signupBtn": "Registrera",
     "haveAccount": "Har du redan ett konto?",
-    "noAccount": "Har du inget konto?"
+    "noAccount": "Har du inget konto?",
+    "mobileFacebookTip": "Om Facebook-appen öppnas, välj \"Öppna i webbläsare\" eller försök i Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

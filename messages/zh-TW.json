@@ -301,7 +301,8 @@
     "loginBtn": "登入",
     "signupBtn": "註冊",
     "haveAccount": "已有帳號？",
-    "noAccount": "還沒有帳號？"
+    "noAccount": "還沒有帳號？",
+    "mobileFacebookTip": "若開啟的是 Facebook 應用程式，請選擇「在瀏覽器中開啟」或在 Safari/Chrome 中重試。"
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

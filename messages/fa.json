@@ -301,7 +301,8 @@
     "loginBtn": "ورود",
     "signupBtn": "ثبت‌نام",
     "haveAccount": "قبلاً حساب دارید؟",
-    "noAccount": "حساب ندارید؟"
+    "noAccount": "حساب ندارید؟",
+    "mobileFacebookTip": "On mobile, if the Facebook app opens, choose \"Open in browser\" or try in Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

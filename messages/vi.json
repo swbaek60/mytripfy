@@ -301,7 +301,8 @@
     "loginBtn": "Đăng nhập",
     "signupBtn": "Đăng ký",
     "haveAccount": "Đã có tài khoản?",
-    "noAccount": "Chưa có tài khoản?"
+    "noAccount": "Chưa có tài khoản?",
+    "mobileFacebookTip": "Nếu mở ứng dụng Facebook, chọn \"Mở trong trình duyệt\" hoặc thử trên Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

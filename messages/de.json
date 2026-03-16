@@ -332,7 +332,8 @@
     "loginBtn": "Anmelden",
     "signupBtn": "Registrieren",
     "haveAccount": "Hast du bereits ein Konto?",
-    "noAccount": "Noch kein Konto?"
+    "noAccount": "Noch kein Konto?",
+    "mobileFacebookTip": "Öffnet sich die Facebook-App, wählen Sie \"Im Browser öffnen\" oder versuchen Sie es in Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Kategorien · je 100 · Erlebe das Beste der Welt",

@@ -337,7 +337,8 @@
     "loginBtn": "로그인",
     "signupBtn": "회원가입",
     "haveAccount": "이미 계정이 있으신가요?",
-    "noAccount": "계정이 없으신가요?"
+    "noAccount": "계정이 없으신가요?",
+    "mobileFacebookTip": "모바일에서 Facebook 앱이 열리면 '브라우저에서 열기'를 선택하거나, Safari/Chrome에서 이 페이지를 연 뒤 다시 시도해 주세요."
   },
   "ChallengesPage": {
     "hallOfFame": "명예의 전당",

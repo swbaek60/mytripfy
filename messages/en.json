@@ -337,7 +337,8 @@
     "loginBtn": "Log in",
     "signupBtn": "Sign up",
     "haveAccount": "Already have an account?",
-    "noAccount": "Don't have an account?"
+    "noAccount": "Don't have an account?",
+    "mobileFacebookTip": "On mobile, if the Facebook app opens instead of continuing here, choose \"Open in browser\" or open this page in Safari/Chrome and try again."
   },
   "ChallengesPage": {
     "subtitle": "16 categories · 100 in each · Experience the world's best",

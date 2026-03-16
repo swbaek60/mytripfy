@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+Thumbs.db
+android/build/
+android/.gradle/
+android/app/build/
+android/captures/
+android/.idea/
+ios/App/build/
+ios/App/Pods/
+*.jks
+*.keystore

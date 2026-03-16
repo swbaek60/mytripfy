@@ -301,7 +301,8 @@
     "loginBtn": "Увійти",
     "signupBtn": "Зареєструватися",
     "haveAccount": "Вже є обліковий запис?",
-    "noAccount": "Немає облікового запису?"
+    "noAccount": "Немає облікового запису?",
+    "mobileFacebookTip": "Якщо відкриється додаток Facebook, оберіть «Відкрити в браузері» або спробуйте в Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

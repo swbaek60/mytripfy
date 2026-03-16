@@ -301,7 +301,8 @@
     "loginBtn": "เข้าสู่ระบบ",
     "signupBtn": "สมัครสมาชิก",
     "haveAccount": "มีบัญชีอยู่แล้ว?",
-    "noAccount": "ยังไม่มีบัญชี?"
+    "noAccount": "ยังไม่มีบัญชี?",
+    "mobileFacebookTip": "หากเปิดแอป Facebook ให้เลือก \"เปิดในเบราว์เซอร์\" หรือลองใน Safari/Chrome"
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

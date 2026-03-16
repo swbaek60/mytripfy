@@ -301,7 +301,8 @@
     "loginBtn": "Log masuk",
     "signupBtn": "Daftar",
     "haveAccount": "Sudah ada akaun?",
-    "noAccount": "Belum ada akaun?"
+    "noAccount": "Belum ada akaun?",
+    "mobileFacebookTip": "Jika aplikasi Facebook terbuka, pilih \"Buka dalam pelayar\" atau cuba dalam Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

@@ -332,7 +332,8 @@
     "loginBtn": "ログイン",
     "signupBtn": "登録する",
     "haveAccount": "すでにアカウントをお持ちですか？",
-    "noAccount": "アカウントをお持ちでないですか？"
+    "noAccount": "アカウントをお持ちでないですか？",
+    "mobileFacebookTip": "モバイルでFacebookアプリが開いた場合は「ブラウザで開く」を選ぶか、Safari/Chromeでお試しください。"
   },
   "ChallengesPage": {
     "subtitle": "16カテゴリー・各100項目・世界最高を体験しよう",

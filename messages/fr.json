@@ -332,7 +332,8 @@
     "loginBtn": "Se connecter",
     "signupBtn": "S'inscrire",
     "haveAccount": "Vous avez déjà un compte ?",
-    "noAccount": "Pas encore de compte ?"
+    "noAccount": "Pas encore de compte ?",
+    "mobileFacebookTip": "Si l'app Facebook s'ouvre, choisissez \"Ouvrir dans le navigateur\" ou réessayez dans Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 catégories · 100 par catégorie · Vivez le meilleur du monde",

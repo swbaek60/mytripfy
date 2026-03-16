@@ -301,7 +301,8 @@
     "loginBtn": "Войти",
     "signupBtn": "Зарегистрироваться",
     "haveAccount": "Уже есть аккаунт?",
-    "noAccount": "Нет аккаунта?"
+    "noAccount": "Нет аккаунта?",
+    "mobileFacebookTip": "Если откроется приложение Facebook, выберите «Открыть в браузере» или попробуйте в Safari/Chrome."
   },
   "ChallengesPage": {
     "subtitle": "16 Categories · 100 each · Experience the world's best",

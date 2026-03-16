@@ -1,15 +1,44 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Props {
   locale: string
 }
 
+const POPUP_NAME = 'mytripfy_oauth'
+
+function isMobile(): boolean {
+  if (typeof window === 'undefined') return false
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0 && window.innerWidth < 1024)
+}
+
 export default function FacebookLoginButton({ locale }: Props) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  const handleOAuthMessage = useCallback(
+    (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return
+      if (event.data?.type === 'mytripfy_oauth_done' && event.data?.locale) {
+        window.removeEventListener('message', handleOAuthMessage)
+        window.location.href = `/${event.data.locale}`
+      }
+      if (event.data?.type === 'FACEBOOK_AUTH_COMPLETE' && event.data?.success === false) {
+        window.removeEventListener('message', handleOAuthMessage)
+        setLoading(false)
+      }
+    },
+    []
+  )
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('message', handleOAuthMessage)
+    }
+  }, [handleOAuthMessage])
 
   async function handleClick() {
     if (loading) return
@@ -21,15 +50,45 @@ export default function FacebookLoginButton({ locale }: Props) {
       if (!res.ok) {
         const msg = json?.error || json?.message || 'Could not start Facebook login.'
         router.push(`/${locale}/login?message=${encodeURIComponent(msg)}`)
+        setLoading(false)
         return
       }
       if (!json.url) {
         router.push(`/${locale}/login?message=${encodeURIComponent(json?.error || 'Could not get login URL.')}`)
+        setLoading(false)
         return
       }
-      // form submit 시 쿼리 스트링(provider, apikey 등)이 빠져 400이 나는 경우가 있어, location 이동으로 통일
+
       document.cookie = `mytripfy_fb_locale=${encodeURIComponent(locale)}; path=/; max-age=300; samesite=lax`
-      window.location.href = json.url
+      const mobile = isMobile()
+
+      if (mobile) {
+        // 모바일: trip.com처럼 새 창에서 OAuth → 콜백에서 postMessage 후 창 닫기 → 여기서 수신 후 /locale 이동
+        try {
+          sessionStorage.setItem('mytripfy_oauth_locale', locale)
+          window.addEventListener('message', handleOAuthMessage)
+          const w = window.open(json.url, POPUP_NAME, 'noopener,noreferrer,width=500,height=600')
+          if (!w) {
+            sessionStorage.removeItem('mytripfy_oauth_locale')
+            window.removeEventListener('message', handleOAuthMessage)
+            window.location.href = json.url
+          } else {
+            // 팝업이 열린 동안 로딩 유지, 닫으면 해제
+            const tid = setInterval(() => {
+              if (w.closed) {
+                clearInterval(tid)
+                window.removeEventListener('message', handleOAuthMessage)
+                setLoading(false)
+              }
+            }, 300)
+          }
+        } catch {
+          window.location.href = json.url
+        }
+      } else {
+        // 데스크톱: 같은 탭에서 이동 (쿼리 스트링 유지를 위해 location.href)
+        window.location.href = json.url
+      }
     } catch {
       setLoading(false)
       router.push(`/${locale}/login?message=Could+not+start+Facebook+login.`)

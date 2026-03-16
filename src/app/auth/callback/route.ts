@@ -2,11 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-/** OAuth 콜백: 항상 "닫기 HTML"을 반환합니다.
- * - 팝업/새 탭에서 열렸으면 (window.opener 있음) → postMessage 후 창 닫기 (트립닷컴처럼)
- * - 같은 탭이면 → location으로 이동
- * Supabase/Facebook 리다이렉트가 query를 제거할 수 있어, popup=1에 의존하지 않습니다.
- */
+/** OAuth 콜백: 세션 설정 후 /{locale} 또는 /{locale}/login 으로 리다이렉트 (모바일·데스크탑 동일) */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -34,12 +30,12 @@ export async function GET(request: Request) {
   )
 
   if (!code) {
-    return buildClosingHtml(false, fallbackLocale, cookiesToSet, origin)
+    return buildRedirect(false, fallbackLocale, cookiesToSet, origin)
   }
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (error || !data.user) {
-    return buildClosingHtml(false, fallbackLocale, cookiesToSet, origin)
+    return buildRedirect(false, fallbackLocale, cookiesToSet, origin)
   }
 
   const { data: profile } = await supabase
@@ -49,7 +45,7 @@ export async function GET(request: Request) {
     .single()
   const redirectLocale = (profile?.preferred_locale as string) || fallbackLocale
 
-  return buildClosingHtml(true, redirectLocale, cookiesToSet, origin)
+  return buildRedirect(true, redirectLocale, cookiesToSet, origin)
 }
 
 function applySessionCookies(
@@ -73,36 +69,16 @@ function applySessionCookies(
   })
 }
 
-/** 트립닷컴처럼: 팝업이면 postMessage 후 바로 닫기, 같은 탭이면 location 이동 */
-function buildClosingHtml(
+function buildRedirect(
   success: boolean,
   locale: string,
   cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[],
   origin: string
 ) {
-  const redirectPath = success ? `/${locale}` : `/${locale}/login?message=Could+not+authenticate+user`
-  const html = `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Signing in...</title></head>
-<body>
-<script>
-(function() {
-  var msg = { type: 'FACEBOOK_AUTH_COMPLETE', success: ${success}, locale: '${locale}' };
-  if (window.opener) {
-    try { window.opener.postMessage(msg, '${origin}'); } catch (e) {}
-    window.close();
-  } else {
-    window.location.replace('${origin}${redirectPath}');
-  }
-})();
-</script>
-<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:#666;">Signing in...</p>
-</body>
-</html>`
-
-  const response = new NextResponse(html, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  })
+  const dest = success
+    ? `${origin}/${locale}`
+    : `${origin}/${locale}/login?message=Could+not+authenticate+user`
+  const response = NextResponse.redirect(dest)
   applySessionCookies(response, cookiesToSet, origin)
   return response
 }

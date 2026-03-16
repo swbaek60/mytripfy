@@ -7,10 +7,12 @@ export async function GET(request: Request) {
   const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
 
   const supabase = await createClient()
+  const redirectTo = `${origin}/auth/callback?locale=${locale}`
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'facebook',
     options: {
-      redirectTo: `${origin}/auth/callback?locale=${locale}&popup=1`,
+      redirectTo,
       queryParams: { display: 'page' },
       skipBrowserRedirect: true,
     },

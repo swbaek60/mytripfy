@@ -1,53 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface Props {
   locale: string
 }
 
-function isMobile(): boolean {
-  if (typeof navigator === 'undefined') return false
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-}
-
 export default function FacebookLoginButton({ locale }: Props) {
-  const router = useRouter()
-  const popupRef = useRef<Window | null>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [loading, setLoading] = useState(false)
-
-  // postMessage 수신: 팝업/새 탭에서 OAuth 완료 신호를 받으면 페이지 이동
-  useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      if (event.data?.type !== 'FACEBOOK_AUTH_COMPLETE') return
-      const allowedOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-      if (allowedOrigin && event.origin !== allowedOrigin) return
-      cleanup()
-      if (event.data.success) {
-        // 선택한 언어 유지: 콜백의 locale은 Supabase 리다이렉트에서 빠질 수 있으므로 부모(현재 페이지) locale 사용
-        router.push(`/${locale}`)
-        router.refresh()
-      } else {
-        router.push(`/${locale}/login?message=Login+was+interrupted.+Please+try+again.`)
-      }
-    }
-    window.addEventListener('message', handler)
-    return () => window.removeEventListener('message', handler)
-  }, [locale, router])
-
-  function cleanup() {
-    setLoading(false)
-    if (pollRef.current) {
-      clearInterval(pollRef.current)
-      pollRef.current = null
-    }
-    if (popupRef.current && !popupRef.current.closed) {
-      popupRef.current.close()
-    }
-    popupRef.current = null
-  }
 
   async function handleClick() {
     if (loading) return
@@ -57,42 +17,9 @@ export default function FacebookLoginButton({ locale }: Props) {
       const res = await fetch(`/api/auth/facebook-url?locale=${locale}`)
       const json = await res.json()
       if (!json.url) throw new Error('No URL')
-
-      if (isMobile()) {
-        // 모바일: 새 탭으로 열기 (팝업은 모바일에서 차단됨)
-        // 새 탭에서 OAuth 완료 후 postMessage로 알림
-        const newTab = window.open(json.url, '_blank', 'noopener')
-        popupRef.current = newTab
-
-        // 새 탭이 닫히면 로딩 해제
-        pollRef.current = setInterval(() => {
-          if (newTab?.closed) {
-            cleanup()
-          }
-        }, 500)
-      } else {
-        // 데스크탑: 팝업으로 열기
-        const width = 600
-        const height = 700
-        const left = window.screenX + (window.outerWidth - width) / 2
-        const top = window.screenY + (window.outerHeight - height) / 2
-        const popup = window.open(
-          json.url,
-          'facebook-oauth',
-          `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-        )
-        popupRef.current = popup
-
-        // 팝업이 닫히면 로딩 해제
-        pollRef.current = setInterval(() => {
-          if (popup?.closed) {
-            cleanup()
-          }
-        }, 500)
-      }
+      window.location.href = json.url
     } catch {
       setLoading(false)
-      router.push(`/${locale}/login?message=Could not authenticate user`)
     }
   }
 

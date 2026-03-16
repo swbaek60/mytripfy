@@ -52,8 +52,8 @@ captures/
 # Comment next line if keeping position of elements in Navigation Editor is relevant for you
 .idea/navEditor.xml
 
-# Keystore files
-# Uncomment the following lines if you do not want to check your keystore files in.
+# Keystore files (릴리스 서명용 키스토어는 백업해 두고 저장소에는 올리지 마세요)
+mytripfy-release.keystore
 #*.jks
 #*.keystore
 

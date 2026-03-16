@@ -3,6 +3,17 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.mytripfy.app"
     compileSdk rootProject.ext.compileSdkVersion
+    signingConfigs {
+        release {
+            def keystoreFile = file("${rootProject.projectDir}/mytripfy-release.keystore")
+            if (keystoreFile.exists()) {
+                storeFile keystoreFile
+                storePassword "mytripfy"
+                keyAlias "mytripfy"
+                keyPassword "mytripfy"
+            }
+        }
+    }
     defaultConfig {
         applicationId "com.mytripfy.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -20,6 +31,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

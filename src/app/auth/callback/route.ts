@@ -2,16 +2,15 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-/** OAuth 콜백: exchangeCodeForSession 후 쿠키를 리다이렉트 응답에 명시적으로 붙여서
- * Next.js Route Handler에서 세션 쿠키가 빠지는 문제를 방지합니다.
- *
- * popup=1 파라미터가 있으면 팝업/새 탭 모드: 세션 설정 후 postMessage로 부모 창에 알리고 닫힘.
+/** OAuth 콜백: 항상 "닫기 HTML"을 반환합니다.
+ * - 팝업/새 탭에서 열렸으면 (window.opener 있음) → postMessage 후 창 닫기 (트립닷컴처럼)
+ * - 같은 탭이면 → location으로 이동
+ * Supabase/Facebook 리다이렉트가 query를 제거할 수 있어, popup=1에 의존하지 않습니다.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const fallbackLocale = searchParams.get('locale') || 'en'
-  const isPopup = searchParams.get('popup') === '1'
 
   const cookieStore = await cookies()
   const cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[] = []
@@ -35,14 +34,12 @@ export async function GET(request: Request) {
   )
 
   if (!code) {
-    if (isPopup) return buildPopupResponse(false, fallbackLocale, cookiesToSet, origin)
-    return NextResponse.redirect(`${origin}/${fallbackLocale}/login?message=Could not authenticate user`)
+    return buildClosingHtml(false, fallbackLocale, cookiesToSet, origin)
   }
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (error || !data.user) {
-    if (isPopup) return buildPopupResponse(false, fallbackLocale, cookiesToSet, origin)
-    return NextResponse.redirect(`${origin}/${fallbackLocale}/login?message=Could not authenticate user`)
+    return buildClosingHtml(false, fallbackLocale, cookiesToSet, origin)
   }
 
   const { data: profile } = await supabase
@@ -52,12 +49,7 @@ export async function GET(request: Request) {
     .single()
   const redirectLocale = (profile?.preferred_locale as string) || fallbackLocale
 
-  if (isPopup) return buildPopupResponse(true, redirectLocale, cookiesToSet, origin)
-
-  const redirectUrl = `${origin}/${redirectLocale}`
-  const response = NextResponse.redirect(redirectUrl)
-  applySessionCookies(response, cookiesToSet, origin)
-  return response
+  return buildClosingHtml(true, redirectLocale, cookiesToSet, origin)
 }
 
 function applySessionCookies(
@@ -81,32 +73,30 @@ function applySessionCookies(
   })
 }
 
-/** 팝업/새 탭 모드: postMessage로 부모 창에 결과를 알리고 자신을 닫는 HTML 반환 */
-function buildPopupResponse(
+/** 트립닷컴처럼: 팝업이면 postMessage 후 바로 닫기, 같은 탭이면 location 이동 */
+function buildClosingHtml(
   success: boolean,
   locale: string,
   cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[],
   origin: string
 ) {
+  const redirectPath = success ? `/${locale}` : `/${locale}/login?message=Could+not+authenticate+user`
   const html = `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Authenticating...</title></head>
+<head><meta charset="utf-8"><title>Signing in...</title></head>
 <body>
 <script>
-  (function() {
-    var msg = { type: 'FACEBOOK_AUTH_COMPLETE', success: ${success}, locale: '${locale}' };
-    if (window.opener) {
-      window.opener.postMessage(msg, '${origin}');
-      window.close();
-    } else {
-      // 새 탭에서 opener가 없는 경우 (모바일): 직접 이동
-      window.location.href = '${origin}/${locale}' + (${success} ? '' : '/login?message=Could+not+authenticate+user');
-    }
-  })();
+(function() {
+  var msg = { type: 'FACEBOOK_AUTH_COMPLETE', success: ${success}, locale: '${locale}' };
+  if (window.opener) {
+    try { window.opener.postMessage(msg, '${origin}'); } catch (e) {}
+    window.close();
+  } else {
+    window.location.replace('${origin}${redirectPath}');
+  }
+})();
 </script>
-<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:#666;">
-  Completing sign in...
-</p>
+<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:#666;">Signing in...</p>
 </body>
 </html>`
 

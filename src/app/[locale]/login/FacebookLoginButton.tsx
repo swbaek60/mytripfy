@@ -26,7 +26,8 @@ export default function FacebookLoginButton({ locale }: Props) {
       if (allowedOrigin && event.origin !== allowedOrigin) return
       cleanup()
       if (event.data.success) {
-        router.push(`/${event.data.locale || locale}`)
+        // 선택한 언어 유지: 콜백의 locale은 Supabase 리다이렉트에서 빠질 수 있으므로 부모(현재 페이지) locale 사용
+        router.push(`/${locale}`)
         router.refresh()
       } else {
         router.push(`/${locale}/login?message=Login+was+interrupted.+Please+try+again.`)

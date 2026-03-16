@@ -7,6 +7,15 @@ export function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false
   const ua = navigator.userAgent
   const lower = ua.toLowerCase()
+
+  // 모바일 일반 브라우저(Chrome, Safari 등)는 인앱으로 보지 않음 — 오탐 방지
+  // Android: Chrome 앱은 'Chrome/' 있고 WebView는 '; wv)' 포함
+  if (/android/i.test(ua) && /chrome\/[\d.]+/i.test(ua) && !/;\s*wv\)/i.test(ua)) return false
+  // iOS: Safari 앱은 'Safari/' 있고, 인앱 WebView는 fb_iab/fbav/instagram 등 별도 문자열 포함
+  if (/iphone|ipad|ipod/i.test(ua) && /safari\/[\d.]+/i.test(ua) && !/fb_iab|fbav|fban|fb_ios|fb4a|instagram|kakaotalk|line\/|line\s|naver|micromessenger|wechat/i.test(lower)) return false
+  // Samsung Internet, Firefox 모바일 등
+  if (/samsungbrowser\/[\d.]+/i.test(ua) || (/android/i.test(ua) && /firefox\/[\d.]+/i.test(ua))) return false
+
   return (
     lower.includes('kakaotalk') ||
     lower.includes('instagram') ||

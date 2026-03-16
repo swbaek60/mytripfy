@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   locale: string
@@ -8,6 +9,7 @@ interface Props {
 
 export default function FacebookLoginButton({ locale }: Props) {
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   async function handleClick() {
     if (loading) return
@@ -16,18 +18,21 @@ export default function FacebookLoginButton({ locale }: Props) {
     try {
       const res = await fetch(`/api/auth/facebook-url?locale=${locale}`)
       const json = await res.json()
-      if (!json.url) throw new Error('No URL')
-      // Supabase 리다이렉트 시 query가 빠질 수 있어, 콜백에서 쓰일 locale을 쿠키로 저장
+      if (!res.ok) {
+        const msg = json?.error || json?.message || 'Could not start Facebook login.'
+        router.push(`/${locale}/login?message=${encodeURIComponent(msg)}`)
+        return
+      }
+      if (!json.url) {
+        router.push(`/${locale}/login?message=${encodeURIComponent(json?.error || 'Could not get login URL.')}`)
+        return
+      }
+      // form submit 시 쿼리 스트링(provider, apikey 등)이 빠져 400이 나는 경우가 있어, location 이동으로 통일
       document.cookie = `mytripfy_fb_locale=${encodeURIComponent(locale)}; path=/; max-age=300; samesite=lax`
-      // form submit + target=_self 로 같은 탭 이동 보장 (모바일에서 새 탭/인앱 열림 방지)
-      const form = document.createElement('form')
-      form.method = 'GET'
-      form.action = json.url
-      form.target = '_self'
-      document.body.appendChild(form)
-      form.submit()
+      window.location.href = json.url
     } catch {
       setLoading(false)
+      router.push(`/${locale}/login?message=Could+not+start+Facebook+login.`)
     }
   }
 

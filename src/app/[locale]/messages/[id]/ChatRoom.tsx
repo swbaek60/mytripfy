@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,27 +47,29 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
   const [translating, setTranslating] = useState(false)
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
   const supabase = createClient()
   const levelInfo = getLevelInfo(otherProfile.travel_level || 1)
 
   // 입장 시 읽음 처리 → 배지 숫자 감소 (last_read_at + 메시지 알림 읽음)
+  // 완료 후 router.refresh()로 헤더 배지가 즉시 갱신되도록 함
   useEffect(() => {
     const now = new Date().toISOString()
-    supabase
-      .from('chat_participants')
-      .update({ last_read_at: now })
-      .eq('chat_id', chatId)
-      .eq('user_id', currentUserId)
-      .then(() => {})
-    supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', currentUserId)
-      .eq('type', 'message')
-      .eq('reference_type', 'user')
-      .eq('reference_id', otherProfile.id)
-      .then(() => {})
-  }, [chatId, currentUserId, otherProfile.id])
+    Promise.all([
+      supabase
+        .from('chat_participants')
+        .update({ last_read_at: now })
+        .eq('chat_id', chatId)
+        .eq('user_id', currentUserId),
+      supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', currentUserId)
+        .eq('type', 'message')
+        .eq('reference_type', 'user')
+        .eq('reference_id', otherProfile.id),
+    ]).then(() => router.refresh())
+  }, [chatId, currentUserId, otherProfile.id, router])
 
   // 실시간 메시지 구독 (Realtime 미동작 시 폴링으로 보완)
   useEffect(() => {

@@ -77,24 +77,54 @@ export default async function MessagePage({
   }
 
   if (!chatId) {
-    // 새 1:1 채팅방 생성 (항상 direct 타입)
-    const { data: newChat, error: chatError } = await admin
-      .from('chats')
-      .insert({ type: 'direct', is_group: false })
-      .select('id')
-      .single()
+    // 내가 속한 채팅방 중 상대방이 없는 1:1 채팅방이 있으면 재사용 (참여자 누락 복구)
+    if (myChatIds.length > 0) {
+      const { data: myDirectChats } = await admin
+        .from('chats')
+        .select('id, created_at')
+        .in('id', myChatIds)
+        .or('is_group.is.null,is_group.eq.false')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-    if (!newChat || chatError) {
-      console.error('Failed to create chat', chatError)
-      throw new Error('채팅방을 생성할 수 없습니다.')
+      if (myDirectChats?.id) {
+        chatId = myDirectChats.id
+        // 상대방이 참여자에 없으면 추가
+        await admin
+          .from('chat_participants')
+          .upsert({ chat_id: chatId, user_id: otherUserId }, { onConflict: 'chat_id,user_id', ignoreDuplicates: true })
+      }
     }
 
-    chatId = newChat.id
+    if (!chatId) {
+      // 새 1:1 채팅방 생성 (항상 direct 타입)
+      const { data: newChat, error: chatError } = await admin
+        .from('chats')
+        .insert({ type: 'direct', is_group: false })
+        .select('id')
+        .single()
 
-    await admin.from('chat_participants').insert([
-      { chat_id: chatId, user_id: user.id },
-      { chat_id: chatId, user_id: otherUserId },
-    ])
+      if (!newChat || chatError) {
+        console.error('Failed to create chat', chatError)
+        throw new Error('채팅방을 생성할 수 없습니다.')
+      }
+
+      chatId = newChat.id
+
+      await admin.from('chat_participants').insert([
+        { chat_id: chatId, user_id: user.id },
+        { chat_id: chatId, user_id: otherUserId },
+      ])
+    }
+  } else {
+    // 기존 채팅방이 있어도 상대방이 참여자에 없으면 추가 (누락 복구)
+    await admin
+      .from('chat_participants')
+      .upsert({ chat_id: chatId, user_id: otherUserId }, { onConflict: 'chat_id,user_id', ignoreDuplicates: true })
+    await admin
+      .from('chat_participants')
+      .upsert({ chat_id: chatId, user_id: user.id }, { onConflict: 'chat_id,user_id', ignoreDuplicates: true })
   }
 
   // 채팅방 입장 시 읽음 처리 (배지 숫자 즉시 0으로 반영되도록 서버에서 처리)

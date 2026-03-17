@@ -41,5 +41,23 @@ export async function GET(request: Request) {
       { status: 500 }
     )
   }
+
+  // redirect=1 이면 302로 바로 이동 (모바일에서 fetch 후 location 할당 시 새 창으로 뜨는 것 방지)
+  const doRedirect = searchParams.get('redirect') === '1'
+  if (doRedirect) {
+    const res = NextResponse.redirect(url, 302)
+    const isSecure = origin.startsWith('https://')
+    const host = new URL(origin).hostname
+    const domain = host === 'localhost' ? undefined : `.${host.replace(/^www\./, '')}`
+    res.cookies.set('mytripfy_fb_locale', encodeURIComponent(locale), {
+      path: '/',
+      maxAge: 300,
+      sameSite: 'lax',
+      secure: isSecure,
+      ...(domain && { domain }),
+    })
+    return res
+  }
+
   return NextResponse.json({ url })
 }

@@ -104,10 +104,19 @@ export default async function Home({
       <Header user={user} locale={locale} currentPath="/" />
 
       {/* ─── HERO (모바일·태블릿·데스크탑) ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 min-h-0 sm:min-h-[400px] flex items-center">
+      <section className="relative overflow-hidden min-h-0 sm:min-h-[400px] flex items-center">
+        {/* 메인 배경 이미지: 다양한 인종의 남녀가 함께 여행을 떠나는 밝은 이미지 */}
+        <div className="absolute inset-0">
+          <img
+            src="/hero-travel-together.jpg"
+            alt="Travel together - diverse friends smiling"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/75 via-slate-900/50 to-indigo-950/80 pointer-events-none" aria-hidden />
+        </div>
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-64 h-64 sm:w-96 sm:h-96 bg-blue-500/15 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/15 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-64 h-64 sm:w-96 sm:h-96 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 text-center">

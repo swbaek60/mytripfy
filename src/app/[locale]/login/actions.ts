@@ -74,50 +74,39 @@ export async function signup(formData: FormData) {
   redirect(`/${locale}/login?message=Check email to continue sign in process`)
 }
 
-export async function signInWithGoogle(formData: FormData) {
+export async function getOAuthUrl(provider: 'google' | 'apple' | 'facebook', locale: string): Promise<{ url?: string; error?: string }> {
   const supabase = await createClient()
+
+  const options: Parameters<typeof supabase.auth.signInWithOAuth>[0]['options'] = {
+    redirectTo: `${getOrigin()}/auth/callback?locale=${locale}`,
+  }
+  if (provider === 'google') {
+    options.queryParams = { access_type: 'offline', prompt: 'consent' }
+  }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({ provider, options })
+
+  if (error || !data.url) return { error: 'Could not authenticate user' }
+  return { url: data.url }
+}
+
+export async function signInWithGoogle(formData: FormData) {
   const locale = (formData.get('locale') as string) || 'en'
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${getOrigin()}/auth/callback?locale=${locale}`,
-      queryParams: { access_type: 'offline', prompt: 'consent' },
-    },
-  })
-
-  if (error || !data.url) redirect(`/${locale}/login?message=Could not authenticate user`)
-  redirect(data.url)
+  const { url, error } = await getOAuthUrl('google', locale)
+  if (error || !url) redirect(`/${locale}/login?message=Could not authenticate user`)
+  redirect(url!)
 }
 
 export async function signInWithApple(formData: FormData) {
-  const supabase = await createClient()
   const locale = (formData.get('locale') as string) || 'en'
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'apple',
-    options: {
-      redirectTo: `${getOrigin()}/auth/callback?locale=${locale}`,
-    },
-  })
-
-  if (error || !data.url) redirect(`/${locale}/login?message=Could not authenticate user`)
-  redirect(data.url)
+  const { url, error } = await getOAuthUrl('apple', locale)
+  if (error || !url) redirect(`/${locale}/login?message=Could not authenticate user`)
+  redirect(url!)
 }
 
 export async function signInWithFacebook(formData: FormData) {
-  const supabase = await createClient()
   const locale = (formData.get('locale') as string) || 'en'
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'facebook',
-    options: {
-      redirectTo: `${getOrigin()}/auth/callback?locale=${locale}`,
-      // 모바일에서 'Continue as' 클릭 시 Facebook 앱으로 넘어가는 현상 완화: 전체 페이지 플로우 유지
-      queryParams: { display: 'page' },
-    },
-  })
-
-  if (error || !data.url) redirect(`/${locale}/login?message=Could not authenticate user`)
-  redirect(data.url)
+  const { url, error } = await getOAuthUrl('facebook', locale)
+  if (error || !url) redirect(`/${locale}/login?message=Could not authenticate user`)
+  redirect(url!)
 }

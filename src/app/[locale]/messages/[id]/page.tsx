@@ -97,8 +97,13 @@ export default async function MessagePage({
     ])
   }
 
-  // 이 채팅방의 상대방이 보낸 메시지 알림 읽음 처리
-  // (채팅방을 열면 해당 발신자의 메시지 알림은 읽은 것으로 처리)
+  // 채팅방 입장 시 읽음 처리 (배지 숫자 즉시 0으로 반영되도록 서버에서 처리)
+  const now = new Date().toISOString()
+  await admin
+    .from('chat_participants')
+    .update({ last_read_at: now })
+    .eq('chat_id', chatId!)
+    .eq('user_id', user.id)
   await supabase
     .from('notifications')
     .update({ is_read: true })

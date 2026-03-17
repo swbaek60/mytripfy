@@ -53,6 +53,22 @@ export default async function GroupChatPage({
 
   if (!myParticipant) redirect(`/${locale}/companions`)
 
+  // 채팅방 입장 시 읽음 처리 (배지 숫자 즉시 0으로 반영되도록 서버에서 처리)
+  const now = new Date().toISOString()
+  await admin
+    .from('chat_participants')
+    .update({ last_read_at: now })
+    .eq('chat_id', chatId)
+    .eq('user_id', user.id)
+  await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', user.id)
+    .eq('type', 'message')
+    .eq('reference_type', 'group_chat')
+    .eq('reference_id', chatId)
+    .eq('is_read', false)
+
   const { data: participants } = await admin
     .from('chat_participants')
     .select('user_id, joined_at')

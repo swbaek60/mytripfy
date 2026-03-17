@@ -5,5 +5,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  transform: { '^.+\\.tsx?$': 'ts-jest' },
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!**/node_modules/**'],
+  setupFiles: ['<rootDir>/jest.setup.js'],
 };

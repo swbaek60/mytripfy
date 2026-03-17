@@ -83,6 +83,9 @@ export async function getOAuthUrl(provider: 'google' | 'apple' | 'facebook', loc
   if (provider === 'google') {
     options.queryParams = { access_type: 'offline', prompt: 'consent' }
   }
+  if (provider === 'facebook') {
+    options.queryParams = { display: 'page' }
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({ provider, options })
 

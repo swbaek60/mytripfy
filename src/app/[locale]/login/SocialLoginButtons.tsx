@@ -3,19 +3,27 @@
 import { useState, useTransition } from 'react'
 import { getOAuthUrl } from './actions'
 
+const POPUP_NAME = 'mytripfy_oauth'
+const POPUP_FEATURES = 'width=500,height=600,scrollbars=yes,resizable=yes'
+
+function isMobile(): boolean {
+  if (typeof window === 'undefined') return false
+  return (
+    window.matchMedia('(max-width: 768px)').matches ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  )
+}
+
 interface Props {
   locale: string
 }
 
 /**
- * 소셜 로그인 버튼 (Google / Apple / Facebook).
+ * 소셜 로그인 (Google / Apple / Facebook).
  *
- * Server Action에서 외부 URL로 redirect()하면 Next.js가 MPA navigation으로 처리해
- * 모바일 Chrome에서 새 탭이 열리는 버그가 있음 (Next.js issue #73536).
- *
- * 해결책: Server Action은 URL만 반환하고, 클라이언트에서 사용자 클릭 직후
- * window.location.href = url 로 이동. 이렇게 하면 사용자 제스처 컨텍스트 안에서
- * 같은 탭 이동이 보장됨.
+ * - 데스크톱: 같은 탭에서 OAuth (window.location.href).
+ * - 모바일: 팝업에서 OAuth → 로그인 후 팝업 닫고 부모 창 갱신 (쿠키 공유로 로그인 반영).
+ *   → 새 창이 열려도 로그인 후 창 닫기로 확실히 처리.
  */
 export default function SocialLoginButtons({ locale }: Props) {
   const [error, setError] = useState<string | null>(null)
@@ -23,13 +31,31 @@ export default function SocialLoginButtons({ locale }: Props) {
 
   const handleOAuth = (provider: 'google' | 'apple' | 'facebook') => {
     setError(null)
+    const usePopup = isMobile()
+
     startTransition(async () => {
       const { url, error: err } = await getOAuthUrl(provider, locale)
       if (err || !url) {
         setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
         return
       }
-      window.location.href = url
+
+      if (usePopup) {
+        const popup = window.open(url, POPUP_NAME, POPUP_FEATURES)
+        if (!popup) {
+          // 팝업 차단 시 같은 탭으로 폴백
+          window.location.href = url
+          return
+        }
+        const timer = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(timer)
+            window.location.reload()
+          }
+        }, 200)
+      } else {
+        window.location.href = url
+      }
     })
   }
 
@@ -41,7 +67,6 @@ export default function SocialLoginButtons({ locale }: Props) {
         </div>
       )}
 
-      {/* Google */}
       <button
         type="button"
         disabled={isPending}
@@ -54,12 +79,9 @@ export default function SocialLoginButtons({ locale }: Props) {
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
         </svg>
-        <span className="flex-1 text-center">
-          {isPending ? 'Signing in...' : 'Continue with Google'}
-        </span>
+        <span className="flex-1 text-center">{isPending ? 'Signing in...' : 'Continue with Google'}</span>
       </button>
 
-      {/* Apple */}
       <button
         type="button"
         disabled={isPending}
@@ -69,12 +91,9 @@ export default function SocialLoginButtons({ locale }: Props) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">
           <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.4c1.32.07 2.23.7 3 .75 1.14-.23 2.24-.89 3.46-.84 1.46.07 2.56.63 3.27 1.66-3.02 1.78-2.3 5.73.57 6.84-.55 1.5-1.27 3-2.3 4.47zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
         </svg>
-        <span className="flex-1 text-center">
-          {isPending ? 'Signing in...' : 'Continue with Apple'}
-        </span>
+        <span className="flex-1 text-center">{isPending ? 'Signing in...' : 'Continue with Apple'}</span>
       </button>
 
-      {/* Facebook */}
       <button
         type="button"
         disabled={isPending}
@@ -84,9 +103,7 @@ export default function SocialLoginButtons({ locale }: Props) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">
           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
         </svg>
-        <span className="flex-1 text-center">
-          {isPending ? 'Signing in...' : 'Continue with Facebook'}
-        </span>
+        <span className="flex-1 text-center">{isPending ? 'Signing in...' : 'Continue with Facebook'}</span>
       </button>
     </div>
   )

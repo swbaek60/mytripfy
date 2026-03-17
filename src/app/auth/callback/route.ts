@@ -53,8 +53,9 @@ function redirect(
   cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[],
   origin: string
 ) {
+  // 성공 시 /auth/callback/done으로 보냄 → 팝업이면 부모 갱신 후 닫기, 같은 탭이면 /locale로 이동
   const dest = success
-    ? `${origin}/${locale}`
+    ? `${origin}/auth/callback/done?locale=${encodeURIComponent(locale)}`
     : `${origin}/${locale}/login?message=Could+not+authenticate+user`
 
   const res = NextResponse.redirect(dest)

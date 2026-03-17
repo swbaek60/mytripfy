@@ -13,6 +13,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'mobile', use: { ...devices['Pixel 5'] } },
+    { name: 'desktop', use: { viewport: { width: 1280, height: 720 } } },
   ],
   webServer: process.env.CI ? undefined : {
     command: 'npm run dev',

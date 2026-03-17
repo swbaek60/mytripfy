@@ -6,13 +6,18 @@ import CountryFlag from '@/components/CountryFlag'
 import { routing } from '@/i18n/routing'
 import { updatePreferredLocale } from '@/app/[locale]/actions'
 
-// locale → country code (flagcdn용)
+// locale → country code (국기 표시용)
 const LOCALE_TO_COUNTRY: Record<string, string> = {
   ko: 'KR', ja: 'JP', zh: 'CN', 'zh-TW': 'TW',
   th: 'TH', vi: 'VN', id: 'ID', ms: 'MY', hi: 'IN', bn: 'BD',
   en: 'GB', fr: 'FR', de: 'DE', es: 'ES', it: 'IT', pt: 'PT', 'pt-BR': 'BR',
   nl: 'NL', sv: 'SE', pl: 'PL', ru: 'RU', uk: 'UA', tr: 'TR',
   ar: 'SA', fa: 'IR',
+}
+
+// compact 모드에서 표시할 짧은 코드 (전부 언어 코드 ISO 639-1)
+function getLocaleShortLabel(locale: string): string {
+  return locale.split('-')[0].toUpperCase()
 }
 
 // 대륙별로 정렬 (trip.com은 지역별, 우리는 언어 사용 인구순 + 지역 그룹)
@@ -164,7 +169,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
         )}
         {!iconOnly && !compact && <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>}
         {!iconOnly && compact
-          ? <span className="text-xs uppercase font-semibold">{LOCALE_TO_COUNTRY[currentLang.locale] ?? currentLocale.split('-')[0].toUpperCase()}</span>
+          ? <span className="text-xs uppercase font-semibold">{getLocaleShortLabel(currentLang.locale)}</span>
           : !iconOnly && <svg
               className={`w-3 h-3 transition-transform duration-200 text-gray-400 group-hover:text-blue-500 ${open ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor"

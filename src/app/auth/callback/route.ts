@@ -6,12 +6,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const cookieStore = await cookies()
-
-  const savedLocale = cookieStore.get('mytripfy_fb_locale')?.value
-  const locale =
-    searchParams.get('locale') ||
-    (savedLocale ? decodeURIComponent(savedLocale) : null) ||
-    'en'
+  const locale = searchParams.get('locale') || 'en'
 
   const cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[] = []
   const supabase = createServerClient(
@@ -53,9 +48,8 @@ function redirect(
   cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[],
   origin: string
 ) {
-  // 성공 시 /auth/callback/done으로 보냄 → 팝업이면 부모 갱신 후 닫기, 같은 탭이면 /locale로 이동
   const dest = success
-    ? `${origin}/auth/callback/done?locale=${encodeURIComponent(locale)}`
+    ? `${origin}/${locale}`
     : `${origin}/${locale}/login?message=Could+not+authenticate+user`
 
   const res = NextResponse.redirect(dest)
@@ -75,15 +69,5 @@ function redirect(
       ...(domain && { domain }),
     })
   })
-
-  // locale 쿠키 삭제
-  res.cookies.set('mytripfy_fb_locale', '', {
-    path: '/',
-    maxAge: 0,
-    secure: isSecure,
-    sameSite: 'lax',
-    ...(domain && { domain }),
-  })
-
   return res
 }

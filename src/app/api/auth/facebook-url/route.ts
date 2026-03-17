@@ -42,15 +42,10 @@ export async function GET(request: Request) {
     )
   }
 
-  // redirect=1 이면 200 + HTML로 같은 탭에서 location.replace (모바일에서 302 시 새 창으로 뜨는 경우 방지)
+  // redirect=1 이면 302로 바로 이동 (중간 HTML 없이 같은 탭에서 리다이렉트)
   const doRedirect = searchParams.get('redirect') === '1'
   if (doRedirect) {
-    const urlEsc = url.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Redirecting...</title></head><body><p>Redirecting...</p><script>var u="${urlEsc}";location.replace(u);</script></body></html>`
-    const res = new NextResponse(html, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    })
+    const res = NextResponse.redirect(url, 302)
     const isSecure = origin.startsWith('https://')
     const host = new URL(origin).hostname
     const domain = host === 'localhost' ? undefined : `.${host.replace(/^www\./, '')}`

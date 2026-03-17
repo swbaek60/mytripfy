@@ -5,14 +5,16 @@ interface Props {
 }
 
 /**
- * 같은 탭 이동: 링크 클릭 → /api/auth/facebook-url → 200 HTML에서 location.replace( Supabase URL ).
- * (모바일에서 302 또는 form submit이 새 창으로 열리는 현상 방지)
+ * 같은 탭 이동: 링크 클릭 → /api/auth/facebook-url → 302 리다이렉트로 Supabase OAuth.
+ * target="_self" 로 모바일에서도 새 창 방지.
  */
 export default function FacebookLoginButton({ locale }: Props) {
   const href = `/api/auth/facebook-url?locale=${encodeURIComponent(locale)}&redirect=1`
   return (
     <a
       href={href}
+      target="_self"
+      rel="noopener noreferrer"
       className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border-2 border-[#1877F2] bg-[#1877F2] hover:bg-[#166FE5] transition-all font-semibold text-white text-sm shadow-sm no-underline"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">

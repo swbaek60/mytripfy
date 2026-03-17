@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+const LOCALE_COOKIE = 'mytripfy_oauth_locale'
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const cookieStore = await cookies()
-  const locale = searchParams.get('locale') || 'en'
+
+  const fromQuery = searchParams.get('locale')
+  const fromCookie = cookieStore.get(LOCALE_COOKIE)?.value
+  const locale = fromQuery || (fromCookie ? decodeURIComponent(fromCookie) : null) || 'en'
 
   const cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[] = []
   const supabase = createServerClient(
@@ -53,7 +58,6 @@ function redirect(
     : `${origin}/${locale}/login?message=Could+not+authenticate+user`
 
   const res = NextResponse.redirect(dest)
-
   const isSecure = origin.startsWith('https://')
   const hostname = new URL(origin).hostname
   const domain = hostname === 'localhost' ? undefined : `.${hostname.replace(/^www\./, '')}`
@@ -69,5 +73,7 @@ function redirect(
       ...(domain && { domain }),
     })
   })
+
+  res.cookies.set(LOCALE_COOKIE, '', { path: '/', maxAge: 0, secure: isSecure, sameSite: 'lax', ...(domain && { domain }) })
   return res
 }

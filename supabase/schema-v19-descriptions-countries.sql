@@ -207,3 +207,5 @@ UPDATE challenges SET description_en = 'New Zealand offers Fiordland, Hobbit cou
 UPDATE challenges SET description_en = 'Canada combines Niagara, Rocky Mountains, Yukon aurora, Quebec old city, and whale watching. Wilderness and multicultural cities. Selected for our World 100 as the world''s second-largest and most polite destination.' WHERE category = 'countries' AND title_en = 'Canada';
 
 UPDATE challenges SET description_en = 'The United States offers Grand Canyon, NYC, Yellowstone, Route 66, Hawaii, and national parks. Fifty states of variety and iconic landmarks. Selected for our World 100 as the world''s most diverse and iconic superpower destination.' WHERE category = 'countries' AND title_en = 'United States';
+
+UPDATE challenges SET description_en = 'The Philippines is 7,000 islands: Palawan''s limestone lagoons, Boracay sunsets, Cebu diving, and Manila''s mix of colonial and modern. Spanish heritage, Banaue rice terraces, and Tubbataha Reef define a nation of warmth and variety. Selected for our World 100 as Southeast Asia''s most island-rich and welcoming destination.' WHERE category = 'countries' AND title_en = 'Philippines';

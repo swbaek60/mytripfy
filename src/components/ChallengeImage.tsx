@@ -3396,6 +3396,7 @@ const COUNTRIES_DIRECT_IMAGES: Record<string, string> = {
   'Cape Verde': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Flag_of_Cape_Verde.svg/640px-Flag_of_Cape_Verde.svg.png',
   Croatia: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Flag_of_Croatia.svg/640px-Flag_of_Croatia.svg.png',
   Cuba: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Flag_of_Cuba.svg/640px-Flag_of_Cuba.svg.png',
+  'Hong Kong': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Flag_of_Hong_Kong.svg/640px-Flag_of_Hong_Kong.svg.png',
   Hungary: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Flag_of_Hungary.svg/640px-Flag_of_Hungary.svg.png',
   Israel: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Flag_of_Israel.svg/640px-Flag_of_Israel.svg.png',
   Jamaica: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Flag_of_Jamaica.svg/640px-Flag_of_Jamaica.svg.png',

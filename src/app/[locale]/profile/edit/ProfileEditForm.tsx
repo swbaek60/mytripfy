@@ -114,7 +114,7 @@ export default function ProfileEditForm({
     const basePayload = {
       id: userId,
       full_name: fullName,
-      gender,
+      gender: gender || null,
       birth_year: birthYear || null,
       nationality,
       bio,

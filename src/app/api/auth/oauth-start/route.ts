@@ -63,8 +63,8 @@ export async function GET(request: Request) {
   const url = data.url
 
   if (isMobileUserAgent(request)) {
-    const safeUrl = JSON.stringify(url)
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Redirecting...</title></head><body><p>Redirecting...</p><script>(function(){var u=${safeUrl};if(window.top!==window.self){window.top.location.replace(u);}else{window.location.replace(u);}})();</script></body></html>`
+    const actionEsc = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Redirecting...</title></head><body><p>Redirecting...</p><form id="g" method="GET" action="${actionEsc}" target="_self"></form><script>(function(){var f=document.getElementById("g");if(window.top!==window.self){f.target="_top";}f.submit();})();</script></body></html>`
     const res = new NextResponse(html, {
       status: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },

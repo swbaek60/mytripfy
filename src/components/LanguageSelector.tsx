@@ -164,7 +164,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
         )}
         {!iconOnly && !compact && <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>}
         {!iconOnly && compact
-          ? <span className="text-xs uppercase font-semibold">{currentLocale.split('-')[0]}</span>
+          ? <span className="text-xs uppercase font-semibold">{LOCALE_TO_COUNTRY[currentLang.locale] ?? currentLocale.split('-')[0].toUpperCase()}</span>
           : !iconOnly && <svg
               className={`w-3 h-3 transition-transform duration-200 text-gray-400 group-hover:text-blue-500 ${open ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor"

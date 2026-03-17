@@ -1,44 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Props {
   locale: string
 }
 
-const POPUP_NAME = 'mytripfy_oauth'
-
-function isMobile(): boolean {
-  if (typeof window === 'undefined') return false
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-    (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0 && window.innerWidth < 1024)
-}
-
 export default function FacebookLoginButton({ locale }: Props) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-
-  const handleOAuthMessage = useCallback(
-    (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return
-      if (event.data?.type === 'mytripfy_oauth_done' && event.data?.locale) {
-        window.removeEventListener('message', handleOAuthMessage)
-        window.location.href = `/${event.data.locale}`
-      }
-      if (event.data?.type === 'FACEBOOK_AUTH_COMPLETE' && event.data?.success === false) {
-        window.removeEventListener('message', handleOAuthMessage)
-        setLoading(false)
-      }
-    },
-    []
-  )
-
-  useEffect(() => {
-    return () => {
-      window.removeEventListener('message', handleOAuthMessage)
-    }
-  }, [handleOAuthMessage])
 
   async function handleClick() {
     if (loading) return
@@ -60,35 +31,8 @@ export default function FacebookLoginButton({ locale }: Props) {
       }
 
       document.cookie = `mytripfy_fb_locale=${encodeURIComponent(locale)}; path=/; max-age=300; samesite=lax`
-      const mobile = isMobile()
-
-      if (mobile) {
-        // 모바일: trip.com처럼 새 창에서 OAuth → 콜백에서 postMessage 후 창 닫기 → 여기서 수신 후 /locale 이동
-        try {
-          sessionStorage.setItem('mytripfy_oauth_locale', locale)
-          window.addEventListener('message', handleOAuthMessage)
-          const w = window.open(json.url, POPUP_NAME, 'noopener,noreferrer,width=500,height=600')
-          if (!w) {
-            sessionStorage.removeItem('mytripfy_oauth_locale')
-            window.removeEventListener('message', handleOAuthMessage)
-            window.location.href = json.url
-          } else {
-            // 팝업이 열린 동안 로딩 유지, 닫으면 해제
-            const tid = setInterval(() => {
-              if (w.closed) {
-                clearInterval(tid)
-                window.removeEventListener('message', handleOAuthMessage)
-                setLoading(false)
-              }
-            }, 300)
-          }
-        } catch {
-          window.location.href = json.url
-        }
-      } else {
-        // 데스크톱: 같은 탭에서 이동 (쿼리 스트링 유지를 위해 location.href)
-        window.location.href = json.url
-      }
+      // 모바일·데스크톱 모두 같은 탭에서 이동 (팝업은 Android에서 window.opener가 null이 되는 문제가 있어 사용 안 함)
+      window.location.href = json.url
     } catch {
       setLoading(false)
       router.push(`/${locale}/login?message=Could+not+start+Facebook+login.`)

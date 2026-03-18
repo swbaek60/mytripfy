@@ -1,6 +1,6 @@
 /**
  * 소셜 로그인: form GET + target="_self"만 사용. 같은 탭 유지, locale 유지.
- * 갤럭시/Android Chrome 포함 모바일·데스크톱 검증.
+ * oauth-start는 이제 모든 UA(모바일·데스크톱)에서 200 HTML을 반환.
  */
 import { test, expect } from '@playwright/test'
 
@@ -14,10 +14,8 @@ test.describe('Facebook login UI', () => {
     let popupOpened = false
     context.on('page', () => { popupOpened = true })
 
-    await Promise.all([
-      page.waitForURL((u) => !u.pathname.includes('/login') || u.pathname.includes('oauth-start'), { timeout: 15000 }).catch(() => {}),
-      btn.click(),
-    ])
+    await btn.click()
+    await page.waitForTimeout(2500)
 
     expect(popupOpened, '새 창이 열리면 안 됨').toBe(false)
     expect(context.pages().length, '페이지 1개만 유지').toBe(1)
@@ -59,13 +57,14 @@ test.describe('OAuth start API', () => {
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 
-  test('데스크톱 User-Agent 시 302 + locale 쿠키', async ({ request }) => {
+  test('데스크톱 User-Agent 시도 200 HTML + locale 쿠키 (새 창 방지 통일)', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ja', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36' },
-      maxRedirects: 0,
     })
-    expect(res.status()).toBe(302)
-    expect(res.headers()['location']).toMatch(/supabase\.co|facebook\.com/)
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    expect(body).toContain('form')
+    expect(body).toContain('target="_self"')
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 })
@@ -83,7 +82,7 @@ test.describe('모바일 뷰포트 (갤럭시 등)', () => {
     context.on('page', () => { newPageOpened = true })
 
     await btn.click()
-    await page.waitForTimeout(2000)
+    await page.waitForTimeout(2500)
 
     expect(newPageOpened, '모바일에서 새 창이 열리면 안 됨').toBe(false)
     expect(context.pages().length, '페이지 수 유지').toBe(pageCountBefore)

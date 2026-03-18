@@ -99,13 +99,47 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  // 모바일: 302로 외부(Supabase→Facebook) 보내면 갤럭시 Chrome/Firefox에서 새 탭이 뜨는 경우가 있음.
-  // 같은 탭 유지를 위해 우리 도메인 중간 페이지(/auth/oauth-go)로 보낸 뒤, 그 페이지에서 location.replace()로 이동.
+  // 모바일: 302 응답 자체가 일부 기기(갤럭시 등)에서 새 탭으로 열리는 경우가 있음.
+  // 302 없이 200 HTML + form으로 /auth/oauth-go로 이동한 뒤, oauth-go에서 form으로 Supabase로 이동.
   const ua = request.headers.get('user-agent') || ''
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
   if (isMobile) {
     const nextUrl = Buffer.from(data.url, 'utf-8').toString('base64url')
-    const res = NextResponse.redirect(`${origin}/auth/oauth-go`, 302)
+    const oauthGoUrl = `${origin}/auth/oauth-go`
+    const oauthGoAttr = oauthGoUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <base target="_self">
+  <title>Redirecting…</title>
+  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#64748b;font-size:14px}</style>
+</head>
+<body>
+  <p>Redirecting…</p>
+  <form id="oauthForm" method="GET" action="${oauthGoAttr}" target="_self"></form>
+  <script>
+    (function () {
+      var form = document.getElementById('oauthForm');
+      try {
+        if (window.top !== window.self) form.target = '_top';
+        form.submit();
+      } catch (e) {
+        form.submit();
+      }
+    })();
+  </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0;url=${oauthGoAttr}" />
+    <a href="${oauthGoAttr}" target="_self">Continue</a>
+  </noscript>
+</body>
+</html>`
+    const res = new NextResponse(html, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
     setLocaleCookie(res, locale, origin)
     res.cookies.set(OAUTH_NEXT_COOKIE, nextUrl, {
       ...getCookieOpts(origin),

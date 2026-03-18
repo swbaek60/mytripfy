@@ -30,16 +30,17 @@ const DESKTOP_UAS = [
 // ──────────────────────────────────────────────
 // API: 모바일 → 302, 데스크톱 → 200 HTML + form
 // ──────────────────────────────────────────────
-test.describe('API – oauth-start: 모바일 UA는 302 → /auth/oauth-go', () => {
+test.describe('API – oauth-start: 모바일 UA는 200 HTML + form(/auth/oauth-go)', () => {
   for (const provider of ['google', 'facebook', 'apple'] as const) {
     for (const { label, ua } of MOBILE_UAS) {
-      test(`[${provider}] ${label} → 302 to oauth-go`, async ({ request }) => {
+      test(`[${provider}] ${label} → 200 + oauthForm to oauth-go`, async ({ request }) => {
         const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
           headers: { 'User-Agent': ua },
-          maxRedirects: 0,
         })
-        expect(res.status(), `${provider} / ${label}`).toBe(302)
-        expect(res.headers()['location']).toMatch(/\/auth\/oauth-go/)
+        expect(res.status(), `${provider} / ${label}`).toBe(200)
+        const body = await res.text()
+        expect(body).toContain('oauthForm')
+        expect(body).toContain('/auth/oauth-go')
         expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
       })
     }
@@ -64,13 +65,13 @@ test.describe('API – oauth-start: 데스크톱 UA는 200 HTML + form', () => {
 })
 
 test.describe('API – locale 쿠키', () => {
-  test('모바일 (ko) → 302 to oauth-go + locale 쿠키', async ({ request }) => {
+  test('모바일 (ko) → 200 + form to oauth-go + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=ko', {
       headers: { 'User-Agent': UA.androidChrome },
-      maxRedirects: 0,
     })
-    expect(res.status()).toBe(302)
-    expect(res.headers()['location']).toMatch(/\/auth\/oauth-go/)
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    expect(body).toContain('/auth/oauth-go')
     expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
   })
   test('데스크톱 (en) → 200 + locale 쿠키', async ({ request }) => {

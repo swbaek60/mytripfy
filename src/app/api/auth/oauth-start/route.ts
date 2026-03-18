@@ -24,17 +24,18 @@ function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
 
 /**
  * location.replace()로 OAuth URL로 이동하는 HTML 응답을 반환.
- * - form GET submit은 action URL의 쿼리스트링을 버리기 때문에 사용하지 않음.
- * - location.replace()는 새 탭/창을 열지 않고 현재 탭에서 이동.
- * - window.top.location으로 iframe(인앱 브라우저) 탈출.
+ * - 같은 탭에서만 이동하도록, window.location.replace 사용 (새 창/탭 없음).
+ * - 모바일(특히 페이스북)에서 동일 탭 유지를 위해 base target="_self" 명시.
  */
 function buildHtmlRedirect(url: string): string {
-  const urlEsc = url.replace(/'/g, "\\'")
+  const urlEsc = url.replace(/'/g, "\\'").replace(/</g, '\\u003c')
+  const urlAttr = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <base target="_self">
   <title>Redirecting…</title>
   <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#64748b;font-size:14px}</style>
 </head>
@@ -44,8 +45,7 @@ function buildHtmlRedirect(url: string): string {
     (function () {
       var url = '${urlEsc}';
       try {
-        // iframe(인앱 브라우저) 안에 있으면 최상위 탭에서 이동
-        if (window.top && window.top !== window.self) {
+        if (window.top !== window.self) {
           window.top.location.replace(url);
         } else {
           window.location.replace(url);
@@ -56,8 +56,8 @@ function buildHtmlRedirect(url: string): string {
     })();
   </script>
   <noscript>
-    <meta http-equiv="refresh" content="0;url=${url}" />
-    <a href="${url}">Click here to continue</a>
+    <meta http-equiv="refresh" content="0;url=${urlAttr}" />
+    <a href="${urlAttr}" target="_self">Continue</a>
   </noscript>
 </body>
 </html>`

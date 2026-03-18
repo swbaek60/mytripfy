@@ -174,19 +174,19 @@ test.describe('데스크톱 UI – 소셜 버튼 클릭 시 새 창 없음', () 
 })
 
 // ──────────────────────────────────────────────
-// 로그인 페이지 – 소셜 버튼 (같은 창 이동, form 아님)
+// 로그인 페이지 – 소셜 form (target=_self, 같은 창)
 // ──────────────────────────────────────────────
-test.describe('로그인 페이지 – 소셜 버튼', () => {
-  test('Google/Apple/Facebook 버튼이 있고 oauth-start 링크/폼 target=_blank 없음', async ({ page }) => {
+test.describe('로그인 페이지 – 소셜 form', () => {
+  test('Google/Apple/Facebook form: action=oauth-start, target=_self', async ({ page }) => {
     await page.goto('/en/login')
-    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with apple/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
-    const blank = page.locator('a[target="_blank"], form[target="_blank"]')
-    await expect(blank).toHaveCount(0)
+    for (const name of [/continue with google/i, /continue with apple/i, /continue with facebook/i]) {
+      const form = page.locator('form').filter({ has: page.getByRole('button', { name }) })
+      await expect(form).toHaveAttribute('action', /oauth-start/)
+      await expect(form).toHaveAttribute('target', '_self')
+    }
   })
 
-  test('Facebook 버튼 클릭 시 같은 창에서 oauth-start로 이동', async ({ page, context }) => {
+  test('Facebook 버튼 클릭 시 새 창 없이 같은 창에서만 이동', async ({ page, context }) => {
     await page.goto('/en/login')
     const btn = page.getByRole('button', { name: /continue with facebook/i })
     await expect(btn).toBeVisible()

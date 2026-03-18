@@ -49,12 +49,11 @@ test.describe('Navigation – 로그인 페이지', () => {
     await expect(page.getByRole('button', { name: /sign up|signup/i })).toBeVisible()
   })
 
-  test('소셜 로그인 버튼이 있고, 링크/폼에 target="_blank"가 없다', async ({ page }) => {
+  test('소셜 로그인 form의 action이 oauth-start이고 target이 _self이다', async ({ page }) => {
     await page.goto(`/${LOCALE}/login`)
-    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
-    const blankLinks = page.locator('a[target="_blank"], form[target="_blank"]')
-    await expect(blankLinks).toHaveCount(0)
+    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
+    await expect(form).toHaveAttribute('action', /oauth-start/)
+    await expect(form).toHaveAttribute('target', '_self')
   })
 })
 

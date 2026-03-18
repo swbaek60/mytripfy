@@ -4,21 +4,23 @@ import { createClient } from '@/utils/supabase/server'
 const PROVIDERS = ['google', 'apple', 'facebook'] as const
 type Provider = (typeof PROVIDERS)[number]
 const LOCALE_COOKIE = 'mytripfy_oauth_locale'
+const OAUTH_NEXT_COOKIE = 'mytripfy_oauth_next'
 
 function getOrigin() {
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
 }
 
-function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
+function getCookieOpts(origin: string) {
   const isSecure = origin.startsWith('https://')
   const hostname = new URL(origin).hostname
   const domain = hostname === 'localhost' ? undefined : `.${hostname.replace(/^www\./, '')}`
+  return { path: '/' as const, sameSite: 'lax' as const, secure: isSecure, ...(domain && { domain }) }
+}
+
+function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
   res.cookies.set(LOCALE_COOKIE, encodeURIComponent(locale), {
-    path: '/',
+    ...getCookieOpts(origin),
     maxAge: 300,
-    sameSite: 'lax',
-    secure: isSecure,
-    ...(domain && { domain }),
   })
 }
 
@@ -97,13 +99,19 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  // 모바일에서 form/submit도 새 탭이 뜨는 경우: 302로 직접 이동 (같은 탭 보장)
-  const useRedirect = searchParams.get('use_redirect') === '1'
+  // 모바일: 302로 외부(Supabase→Facebook) 보내면 갤럭시 Chrome/Firefox에서 새 탭이 뜨는 경우가 있음.
+  // 같은 탭 유지를 위해 우리 도메인 중간 페이지(/auth/oauth-go)로 보낸 뒤, 그 페이지에서 location.replace()로 이동.
   const ua = request.headers.get('user-agent') || ''
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
-  if (useRedirect || isMobile) {
-    const res = NextResponse.redirect(data.url, 302)
+  if (isMobile) {
+    const nextUrl = Buffer.from(data.url, 'utf-8').toString('base64url')
+    const res = NextResponse.redirect(`${origin}/auth/oauth-go`, 302)
     setLocaleCookie(res, locale, origin)
+    res.cookies.set(OAUTH_NEXT_COOKIE, nextUrl, {
+      ...getCookieOpts(origin),
+      maxAge: 60,
+      httpOnly: true,
+    })
     return res
   }
 

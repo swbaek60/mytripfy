@@ -16,22 +16,23 @@ test.describe('API – 공개 엔드포인트', () => {
     expect(body.rates).toHaveProperty('USD')
   })
 
-  test('GET /api/auth/oauth-start?provider=google (모바일 UA) 는 302를 반환한다', async ({ request }) => {
+  test('GET /api/auth/oauth-start (모바일 UA) 는 302로 /auth/oauth-go를 반환한다', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
       maxRedirects: 0,
     })
     expect(res.status()).toBe(302)
-    expect(res.headers()['location']).toMatch(/supabase|google/)
+    expect(res.headers()['location']).toMatch(/\/auth\/oauth-go/)
+    expect(res.headers()['set-cookie']).toBeDefined()
   })
 
-  test('GET /api/auth/oauth-start?provider=facebook (모바일 UA) 는 302를 반환한다', async ({ request }) => {
+  test('GET /api/auth/oauth-start?provider=facebook (모바일 UA) 는 302로 /auth/oauth-go', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
       maxRedirects: 0,
     })
     expect(res.status()).toBe(302)
-    expect(res.headers()['location']).toMatch(/supabase|facebook/)
+    expect(res.headers()['location']).toMatch(/\/auth\/oauth-go/)
   })
 
   test('GET /api/auth/oauth-start?provider=google (데스크톱 UA) 는 200 HTML + form을 반환한다', async ({ request }) => {
@@ -61,6 +62,26 @@ test.describe('API – 공개 엔드포인트', () => {
     })
     expect(res.status()).toBe(302)
     expect(res.headers()['location']).toContain('/login')
+  })
+
+  test('GET /auth/oauth-go (쿠키 없음) 는 로그인으로 리다이렉트(302/307)', async ({ request }) => {
+    const res = await request.get('/auth/oauth-go', { maxRedirects: 0 })
+    expect([302, 307]).toContain(res.status())
+    expect(res.headers()['location']).toMatch(/\/login/)
+  })
+
+  test('GET /auth/oauth-go (유효한 mytripfy_oauth_next 쿠키) 는 200 HTML + location.replace', async ({ request }) => {
+    const url = 'https://example.supabase.co/auth/v1/authorize?provider=facebook'
+    const cookieValue = Buffer.from(url, 'utf-8').toString('base64url')
+    const res = await request.get('/auth/oauth-go', {
+      headers: { Cookie: `mytripfy_oauth_next=${cookieValue}` },
+    })
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    expect(body).toContain('location.replace')
+    expect(body).toContain('Redirecting')
+    expect(body).toContain('target="_self"')
+    expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_next')
   })
 })
 

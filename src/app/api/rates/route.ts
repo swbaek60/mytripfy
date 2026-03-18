@@ -17,10 +17,11 @@ function withTimeout<T>(promise: Promise<T>, ms: number) {
 export async function GET() {
   try {
     const supabase = await createClient()
+    const dbQuery = supabase
+      .from('exchange_rates')
+      .select('currency_code, rate_from_usd')
     const dbResult = await withTimeout(
-      supabase
-        .from('exchange_rates')
-        .select('currency_code, rate_from_usd'),
+      Promise.resolve(dbQuery),
       DB_TIMEOUT_MS
     )
 

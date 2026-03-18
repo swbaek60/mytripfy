@@ -37,14 +37,17 @@ export async function GET(request: Request) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (error || !data.user) return fail()
 
-  const { data: profile } = await supabase
+  // OAuth 로그인 시 사용한 언어를 프로필에 저장 (어떤 언어로 연결했는지 반영)
+  await supabase
     .from('profiles')
-    .select('preferred_locale')
+    .update({
+      preferred_locale: locale,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', data.user.id)
-    .single()
-  const redirectLocale = (profile?.preferred_locale as string) || locale
 
-  return redirect(true, redirectLocale, cookiesToSet, origin)
+  // 저장한 locale로 리다이렉트 (동일 언어 유지)
+  return redirect(true, locale, cookiesToSet, origin)
 }
 
 function redirect(

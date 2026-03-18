@@ -23,15 +23,13 @@ function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
 }
 
 /**
- * HTML form submit 방식으로 OAuth URL로 이동하는 응답을 반환.
- * - target="_self" + window.top 탈출 로직으로 새 창/탭이 절대 열리지 않음.
- * - 데스크톱·모바일·인앱브라우저 모두 동일하게 처리.
+ * location.replace()로 OAuth URL로 이동하는 HTML 응답을 반환.
+ * - form GET submit은 action URL의 쿼리스트링을 버리기 때문에 사용하지 않음.
+ * - location.replace()는 새 탭/창을 열지 않고 현재 탭에서 이동.
+ * - window.top.location으로 iframe(인앱 브라우저) 탈출.
  */
 function buildHtmlRedirect(url: string): string {
-  const actionEsc = url
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
+  const urlEsc = url.replace(/'/g, "\\'")
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -42,15 +40,25 @@ function buildHtmlRedirect(url: string): string {
 </head>
 <body>
   <p>Redirecting…</p>
-  <form id="g" method="GET" action="${actionEsc}" target="_self"></form>
   <script>
     (function () {
-      var f = document.getElementById('g');
-      // iframe 탈출 (인앱 브라우저 등)
-      if (window.top !== window.self) { f.target = '_top'; }
-      f.submit();
+      var url = '${urlEsc}';
+      try {
+        // iframe(인앱 브라우저) 안에 있으면 최상위 탭에서 이동
+        if (window.top && window.top !== window.self) {
+          window.top.location.replace(url);
+        } else {
+          window.location.replace(url);
+        }
+      } catch (e) {
+        window.location.replace(url);
+      }
     })();
   </script>
+  <noscript>
+    <meta http-equiv="refresh" content="0;url=${url}" />
+    <a href="${url}">Click here to continue</a>
+  </noscript>
 </body>
 </html>`
 }

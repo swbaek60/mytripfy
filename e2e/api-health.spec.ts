@@ -19,8 +19,8 @@ test.describe('API – 공개 엔드포인트', () => {
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
-    expect(body).toContain('form')
-    expect(body).toContain('target="_self"')
+    expect(body).toContain('location.replace')
+    expect(body).toContain('provider=google')
     expect(body).toContain('supabase')
   })
 
@@ -30,8 +30,8 @@ test.describe('API – 공개 엔드포인트', () => {
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
-    expect(body).toContain('form')
-    expect(body).toContain('target="_self"')
+    expect(body).toContain('location.replace')
+    expect(body).toContain('provider=google')
   })
 
   test('GET /api/auth/oauth-start?provider=facebook (모바일 UA) 는 200 HTML을 반환한다', async ({ request }) => {
@@ -40,8 +40,8 @@ test.describe('API – 공개 엔드포인트', () => {
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
-    expect(body).toContain('form')
-    expect(body).toContain('target="_self"')
+    expect(body).toContain('location.replace')
+    expect(body).toContain('provider=facebook')
     expect(body).toContain('supabase')
   })
 
@@ -51,8 +51,8 @@ test.describe('API – 공개 엔드포인트', () => {
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
-    expect(body).toContain('form')
-    expect(body).toContain('target="_self"')
+    expect(body).toContain('location.replace')
+    expect(body).toContain('provider=apple')
   })
 
   test('잘못된 provider 는 로그인 페이지로 리다이렉트한다', async ({ request }) => {

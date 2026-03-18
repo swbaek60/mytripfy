@@ -34,16 +34,18 @@ test.describe('API – oauth-start: 모든 provider × UA 조합', () => {
 
   for (const provider of providers) {
     for (const { label, ua } of uaEntries) {
-      test(`[${provider}] ${label} → 200 HTML + form target="_self"`, async ({ request }) => {
+      test(`[${provider}] ${label} → 200 HTML + location.replace`, async ({ request }) => {
         const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
           headers: { 'User-Agent': ua },
         })
         expect(res.status(), `${provider} / ${label} 상태 코드`).toBe(200)
         const body = await res.text()
-        expect(body, 'form 태그 포함').toContain('<form')
-        expect(body, 'target="_self" 포함').toContain('target="_self"')
+        // location.replace() 방식으로 이동 (form submit 쿼리 손실 없음)
+        expect(body, 'location.replace 포함').toContain('location.replace')
+        expect(body, `provider=${provider} URL 포함`).toContain(`provider=${provider}`)
         expect(body, 'supabase URL 포함').toContain('supabase')
-        // 새 창을 여는 target="_blank" 가 없어야 함
+        // 새 창/탭을 여는 코드가 없어야 함
+        expect(body, 'window.open 없음').not.toContain('window.open')
         expect(body, 'target="_blank" 없음').not.toContain('target="_blank"')
       })
     }

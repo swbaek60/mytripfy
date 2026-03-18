@@ -1,73 +1,83 @@
 /**
  * 모바일 소셜 로그인 E2E 테스트
- * - 모든 소셜 버튼(Google/Apple/Facebook)이 새 창/탭을 열지 않고 같은 탭에서 이동하는지 검증
- * - 다양한 모바일 브라우저 UA 및 뷰포트 커버
- * - API 레벨에서 200 HTML + form submit 방식 검증
+ * - 모바일 UA → oauth-start는 302 (같은 탭 보장), 데스크톱 → 200 HTML + form submit
+ * - 각종 모바일 브라우저(Chrome/Firefox/Safari/Samsung) 뷰포트에서 버튼 클릭 시 새 창 없음 검증
  */
-import { test, expect, devices } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
-// ──────────────────────────────────────────────
-// 공통 UA 상수
-// ──────────────────────────────────────────────
 const UA = {
-  androidChrome: 'Mozilla/5.0 (Linux; Android 15; SM-S931B Build/UP1A.231005.007) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
+  androidChrome: 'Mozilla/5.0 (Linux; Android 15; SM-S931B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
   iphoneSafari: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
   samsungBrowser: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/24.0 Chrome/117.0.0.0 Mobile Safari/537.36',
+  androidFirefox: 'Mozilla/5.0 (Android 15; Mobile; rv:131.0) Gecko/131.0 Firefox/131.0',
   desktopChrome: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   desktopSafari: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
   iphoneChrome: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/131.0.0.0 Mobile/15E148 Safari/604.1',
 }
 
-// ──────────────────────────────────────────────
-// API 레벨: 모든 provider × UA 조합 검증
-// ──────────────────────────────────────────────
-test.describe('API – oauth-start: 모든 provider × UA 조합', () => {
-  const providers = ['google', 'facebook', 'apple'] as const
-  const uaEntries = [
-    { label: 'Android Chrome', ua: UA.androidChrome },
-    { label: 'iPhone Safari', ua: UA.iphoneSafari },
-    { label: 'Samsung Browser', ua: UA.samsungBrowser },
-    { label: 'Desktop Chrome', ua: UA.desktopChrome },
-    { label: 'Desktop Safari', ua: UA.desktopSafari },
-    { label: 'iPhone Chrome', ua: UA.iphoneChrome },
-  ]
+const MOBILE_UAS = [
+  { label: 'Android Chrome', ua: UA.androidChrome },
+  { label: 'iPhone Safari', ua: UA.iphoneSafari },
+  { label: 'Samsung Browser', ua: UA.samsungBrowser },
+  { label: 'Android Firefox', ua: UA.androidFirefox },
+  { label: 'iPhone Chrome', ua: UA.iphoneChrome },
+]
+const DESKTOP_UAS = [
+  { label: 'Desktop Chrome', ua: UA.desktopChrome },
+  { label: 'Desktop Safari', ua: UA.desktopSafari },
+]
 
-  for (const provider of providers) {
-    for (const { label, ua } of uaEntries) {
-      test(`[${provider}] ${label} → 200 HTML + location.replace`, async ({ request }) => {
+// ──────────────────────────────────────────────
+// API: 모바일 → 302, 데스크톱 → 200 HTML + form
+// ──────────────────────────────────────────────
+test.describe('API – oauth-start: 모바일 UA는 302', () => {
+  for (const provider of ['google', 'facebook', 'apple'] as const) {
+    for (const { label, ua } of MOBILE_UAS) {
+      test(`[${provider}] ${label} → 302`, async ({ request }) => {
         const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
           headers: { 'User-Agent': ua },
+          maxRedirects: 0,
         })
-        expect(res.status(), `${provider} / ${label} 상태 코드`).toBe(200)
-        const body = await res.text()
-        // location.replace() 방식으로 이동 (form submit 쿼리 손실 없음)
-        expect(body, 'location.replace 포함').toContain('location.replace')
-        expect(body, `provider=${provider} URL 포함`).toContain(`provider=${provider}`)
-        expect(body, 'supabase URL 포함').toContain('supabase')
-        // 새 창/탭을 여는 코드가 없어야 함
-        expect(body, 'window.open 없음').not.toContain('window.open')
-        expect(body, 'target="_blank" 없음').not.toContain('target="_blank"')
+        expect(res.status(), `${provider} / ${label}`).toBe(302)
+        expect(res.headers()['location']).toMatch(/supabase/)
+        expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
       })
     }
   }
+})
 
-  test('locale 쿠키가 응답에 포함된다 (ko)', async ({ request }) => {
+test.describe('API – oauth-start: 데스크톱 UA는 200 HTML + form', () => {
+  for (const provider of ['google', 'facebook', 'apple'] as const) {
+    for (const { label, ua } of DESKTOP_UAS) {
+      test(`[${provider}] ${label} → 200 + oauthForm`, async ({ request }) => {
+        const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
+          headers: { 'User-Agent': ua },
+        })
+        expect(res.status()).toBe(200)
+        const body = await res.text()
+        expect(body).toContain('oauthForm')
+        expect(body).toContain('target="_self"')
+        expect(body).not.toContain('target="_blank"')
+      })
+    }
+  }
+})
+
+test.describe('API – locale 쿠키', () => {
+  test('모바일 (ko) → 302 + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=ko', {
       headers: { 'User-Agent': UA.androidChrome },
+      maxRedirects: 0,
     })
-    expect(res.status()).toBe(200)
-    const setCookie = res.headers()['set-cookie'] ?? ''
-    expect(setCookie).toContain('mytripfy_oauth_locale')
-    expect(setCookie).toContain('ko')
+    expect(res.status()).toBe(302)
+    expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
   })
-
-  test('locale 쿠키가 응답에 포함된다 (en, 데스크톱)', async ({ request }) => {
+  test('데스크톱 (en) → 200 + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': UA.desktopChrome },
     })
     expect(res.status()).toBe(200)
-    const setCookie = res.headers()['set-cookie'] ?? ''
-    expect(setCookie).toContain('mytripfy_oauth_locale')
+    expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
   })
 })
 
@@ -133,6 +143,31 @@ test.describe('Samsung Browser UI – 소셜 버튼 클릭 시 새 창 없음', 
 
   for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
     test(`[Samsung Browser] ${provider} 버튼 탭 → 새 창 없음`, async ({ page, context }) => {
+      await page.goto('/en/login')
+      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
+      await expect(btn).toBeVisible()
+
+      let popupOpened = false
+      context.on('page', () => { popupOpened = true })
+
+      await btn.click()
+      await page.waitForTimeout(2500)
+
+      expect(popupOpened, `${provider}: 새 창이 열리면 안 됨`).toBe(false)
+      expect(context.pages().length, '페이지 1개만 유지').toBe(1)
+    })
+  }
+})
+
+test.describe('Android Firefox UI – 소셜 버튼 클릭 시 새 창 없음', () => {
+  test.use({
+    viewport: { width: 412, height: 915 },
+    isMobile: true,
+    userAgent: UA.androidFirefox,
+  })
+
+  for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
+    test(`[Android Firefox] ${provider} 버튼 탭 → 새 창 없음`, async ({ page, context }) => {
       await page.goto('/en/login')
       const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
       await expect(btn).toBeVisible()

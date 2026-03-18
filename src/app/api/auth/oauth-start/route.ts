@@ -23,12 +23,11 @@ function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
 }
 
 /**
- * location.replace()로 OAuth URL로 이동하는 HTML 응답을 반환.
- * - 같은 탭에서만 이동하도록, window.location.replace 사용 (새 창/탭 없음).
- * - 모바일(특히 페이스북)에서 동일 탭 유지를 위해 base target="_self" 명시.
+ * OAuth URL로 같은 탭 이동: form GET + target="_self" + 자동 submit.
+ * 모바일 Chrome/Firefox 등에서 location.replace()가 새 탭으로 열리는 문제를 피하기 위해
+ * form 제출로 이동 (다른 사이트들에서 사용하는 방식).
  */
 function buildHtmlRedirect(url: string): string {
-  const urlEsc = url.replace(/'/g, "\\'").replace(/</g, '\\u003c')
   const urlAttr = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
   return `<!DOCTYPE html>
 <html>
@@ -41,17 +40,17 @@ function buildHtmlRedirect(url: string): string {
 </head>
 <body>
   <p>Redirecting…</p>
+  <form id="oauthForm" method="GET" action="${urlAttr}" target="_self"></form>
   <script>
     (function () {
-      var url = '${urlEsc}';
+      var form = document.getElementById('oauthForm');
       try {
         if (window.top !== window.self) {
-          window.top.location.replace(url);
-        } else {
-          window.location.replace(url);
+          form.target = '_top';
         }
+        form.submit();
       } catch (e) {
-        window.location.replace(url);
+        form.submit();
       }
     })();
   </script>
@@ -96,6 +95,16 @@ export async function GET(request: Request) {
   if (error || !data.url) {
     console.error('[oauth-start] Supabase error:', error?.message, 'provider:', provider)
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
+  }
+
+  // 모바일에서 form/submit도 새 탭이 뜨는 경우: 302로 직접 이동 (같은 탭 보장)
+  const useRedirect = searchParams.get('use_redirect') === '1'
+  const ua = request.headers.get('user-agent') || ''
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+  if (useRedirect || isMobile) {
+    const res = NextResponse.redirect(data.url, 302)
+    setLocaleCookie(res, locale, origin)
+    return res
   }
 
   const html = buildHtmlRedirect(data.url)

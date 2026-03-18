@@ -1,13 +1,14 @@
 /**
- * 소셜 로그인: form GET + target="_self"만 사용. 같은 탭 유지, locale 유지.
- * oauth-start는 이제 모든 UA(모바일·데스크톱)에서 200 HTML + location.replace()를 반환.
+ * 소셜 로그인: form GET + target="_self". 모바일은 oauth-start가 302로 같은 탭 이동.
  */
 import { test, expect } from '@playwright/test'
+
+const MOBILE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
 
 test.describe('Facebook login UI', () => {
   test('버튼 클릭 시 새 창 없이 같은 탭에서만 이동한다', async ({ page, context }) => {
     await page.goto('/en/login')
-
     const btn = page.getByRole('button', { name: /continue with facebook/i })
     await expect(btn).toBeVisible()
 
@@ -31,41 +32,33 @@ test.describe('Facebook login UI', () => {
 })
 
 test.describe('OAuth start API', () => {
-  test('모바일 User-Agent 시 200 HTML + location.replace + locale 쿠키', async ({ request }) => {
+  test('모바일 User-Agent 시 302 + locale 쿠키 (같은 탭 이동)', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' },
+      headers: { 'User-Agent': MOBILE_UA },
+      maxRedirects: 0,
     })
-    expect(res.status()).toBe(200)
-    const body = await res.text()
-    // location.replace() 방식 확인
-    expect(body).toContain('location.replace')
-    expect(body).toContain('supabase')
-    // form submit 방식 쿼리 손실 없음 확인 (provider= 가 URL에 포함)
-    expect(body).toContain('provider=facebook')
-    const setCookie = res.headers()['set-cookie']
-    expect(setCookie).toBeDefined()
-    expect(setCookie).toContain('mytripfy_oauth_locale')
-  })
-
-  test('갤럭시 S25 Chrome User-Agent 시 200 HTML + location.replace', async ({ request }) => {
-    const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; SM-S931B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.0.0 Mobile Safari/537.36' },
-    })
-    expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('location.replace')
-    expect(body).toContain('provider=facebook')
+    expect(res.status()).toBe(302)
+    expect(res.headers()['location']).toMatch(/supabase|facebook/)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 
-  test('데스크톱 User-Agent 시도 200 HTML + location.replace (새 창 방지 통일)', async ({ request }) => {
+  test('갤럭시 S25 Chrome (모바일) 시 302', async ({ request }) => {
+    const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; SM-S931B) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36' },
+      maxRedirects: 0,
+    })
+    expect(res.status()).toBe(302)
+    expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
+  })
+
+  test('데스크톱 User-Agent 시 200 HTML + form submit', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ja', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36' },
+      headers: { 'User-Agent': DESKTOP_UA },
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
-    expect(body).toContain('location.replace')
-    expect(body).toContain('provider=facebook')
+    expect(body).toContain('oauthForm')
+    expect(body).toContain('target="_self"')
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 })

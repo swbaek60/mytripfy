@@ -47,7 +47,9 @@
 | 시나리오 | 기대 |
 |----------|------|
 | 로그인 페이지 진입 | 이메일/비밀번호 필드, 로그인·회원가입·소셜 버튼 표시 |
-| 소셜 버튼 클릭 (Facebook) | 새 창 미오픈, 같은 탭에서 oauth-start 또는 OAuth로 이동 |
+| 소셜 버튼 클릭 (Google/Apple/Facebook) | 새 창 미오픈, 같은 탭에서만 이동 |
+| **모바일** (Chrome/Firefox/Safari/Samsung 등) | oauth-start가 **302**로 Supabase로 리다이렉트 → 같은 탭 보장 |
+| **데스크톱** | oauth-start가 200 HTML + form 자동 submit (target=_self) |
 | GET /api/auth/oauth-start?provider=facebook&locale=en | 모바일 UA → 200 HTML (form submit), 데스크톱 UA → 302 |
 | GET /api/auth/oauth-start?provider=invalid | 302 → /en/login?message=Invalid+provider |
 | 콜백 (코드 없음) | 실패 리다이렉트 처리 |

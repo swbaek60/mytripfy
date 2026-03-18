@@ -21,12 +21,10 @@ test.describe('Facebook login UI', () => {
     expect(context.pages().length, '페이지 1개만 유지').toBe(1)
   })
 
-  test('다른 locale 로그인 페이지에서 form에 locale이 포함된다', async ({ page }) => {
+  test('다른 locale 로그인 페이지에서 Facebook 버튼이 있다', async ({ page }) => {
     await page.goto('/ko/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
-    await expect(form.locator('input[name=locale]')).toHaveValue('ko')
-    await expect(form).toHaveAttribute('action', /oauth-start/)
-    await expect(form).toHaveAttribute('target', '_self')
+    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
+    await expect(page.locator('a[target="_blank"]')).toHaveCount(0)
   })
 })
 

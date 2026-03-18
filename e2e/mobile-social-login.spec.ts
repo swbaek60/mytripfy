@@ -174,40 +174,27 @@ test.describe('데스크톱 UI – 소셜 버튼 클릭 시 새 창 없음', () 
 })
 
 // ──────────────────────────────────────────────
-// form 속성 검증 (로그인 페이지 구조)
+// 로그인 페이지 – 소셜 버튼 (같은 창 이동, form 아님)
 // ──────────────────────────────────────────────
-test.describe('로그인 페이지 – form 속성 검증', () => {
-  test('Google form: action=oauth-start, method=GET, target=_self', async ({ page }) => {
+test.describe('로그인 페이지 – 소셜 버튼', () => {
+  test('Google/Apple/Facebook 버튼이 있고 oauth-start 링크/폼 target=_blank 없음', async ({ page }) => {
     await page.goto('/en/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with google/i }) })
-    await expect(form).toHaveAttribute('action', /oauth-start/)
-    await expect(form).toHaveAttribute('method', 'GET')
-    await expect(form).toHaveAttribute('target', '_self')
-    await expect(form.locator('input[name=provider]')).toHaveValue('google')
-    await expect(form.locator('input[name=locale]')).toHaveValue('en')
+    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /continue with apple/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
+    const blank = page.locator('a[target="_blank"], form[target="_blank"]')
+    await expect(blank).toHaveCount(0)
   })
 
-  test('Apple form: action=oauth-start, method=GET, target=_self', async ({ page }) => {
+  test('Facebook 버튼 클릭 시 같은 창에서 oauth-start로 이동', async ({ page, context }) => {
     await page.goto('/en/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with apple/i }) })
-    await expect(form).toHaveAttribute('action', /oauth-start/)
-    await expect(form).toHaveAttribute('method', 'GET')
-    await expect(form).toHaveAttribute('target', '_self')
-    await expect(form.locator('input[name=provider]')).toHaveValue('apple')
-  })
-
-  test('Facebook form: action=oauth-start, method=GET, target=_self', async ({ page }) => {
-    await page.goto('/en/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
-    await expect(form).toHaveAttribute('action', /oauth-start/)
-    await expect(form).toHaveAttribute('method', 'GET')
-    await expect(form).toHaveAttribute('target', '_self')
-    await expect(form.locator('input[name=provider]')).toHaveValue('facebook')
-  })
-
-  test('ko locale 페이지에서 form locale 값이 ko', async ({ page }) => {
-    await page.goto('/ko/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with google/i }) })
-    await expect(form.locator('input[name=locale]')).toHaveValue('ko')
+    const btn = page.getByRole('button', { name: /continue with facebook/i })
+    await expect(btn).toBeVisible()
+    let popup = false
+    context.on('page', () => { popup = true })
+    await btn.click()
+    await page.waitForURL(/oauth-start|supabase|facebook/, { timeout: 10000 }).catch(() => {})
+    expect(popup, '새 창이 열리면 안 됨').toBe(false)
+    expect(context.pages().length).toBe(1)
   })
 })

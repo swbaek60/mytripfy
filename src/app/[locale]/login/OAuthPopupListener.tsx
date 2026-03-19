@@ -15,8 +15,8 @@ const STORAGE_TTL_MS = 2 * 60 * 1000
  * - oauth_retry: exchange가 새 탭에서 실패 → 이 탭이 콜백 URL로 이동해 재시도
  * - oauth_complete: 성공 → pickupUrl로 이동해 세션 쿠키를 받은 뒤 홈으로
  *
- * 모바일에서 백그라운드 탭이 메시지를 못 받을 수 있으므로, 탭이 다시 보일 때(visibilitychange)와
- * 마운트 시 localStorage를 확인해 retry/pickup URL이 있으면 해당 URL로 이동합니다.
+ * 'storage' 이벤트: 콜백 탭이 localStorage에 쓰면 이 탭(로그인 탭)에서 즉시 감지해 이동하므로,
+ * 사용자가 탭을 전환하지 않아도 자동으로 진행됩니다. (모바일에서 핵심)
  */
 function readStorageFallback(origin: string): boolean {
   try {
@@ -80,6 +80,13 @@ export default function OAuthPopupListener() {
 
     readStorageFallback(origin)
 
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY_RETRY || e.key === STORAGE_KEY_PICKUP) {
+        readStorageFallback(origin)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
         readStorageFallback(origin)
@@ -101,6 +108,7 @@ export default function OAuthPopupListener() {
 
     return () => {
       clearInterval(poll)
+      window.removeEventListener('storage', onStorage)
       document.removeEventListener('visibilitychange', onVisibility)
       channel?.close()
     }

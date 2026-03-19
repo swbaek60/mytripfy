@@ -87,45 +87,6 @@ ${hiddenInputs}
 }
 
 /**
- * 이미 쿼리 포함된 전체 URL로 GET form 한 번만 제출하는 HTML.
- * 모바일에서 서버 302 → 외부 도메인 시 새 탭이 열리는 브라우저를 피하기 위해,
- * 200 응답 후 클라이언트에서 form submit으로 이동할 때 사용.
- */
-function buildHtmlFormToFullUrl(fullUrl: string): string {
-  const actionEsc = esc(fullUrl)
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <base target="_self">
-  <title>Redirecting…</title>
-  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#64748b;font-size:14px}</style>
-</head>
-<body>
-  <p>Redirecting…</p>
-  <form id="oauthForm" method="GET" action="${actionEsc}" target="_self">
-  </form>
-  <script>
-    (function () {
-      var form = document.getElementById('oauthForm');
-      try {
-        if (window.top !== window.self) form.target = '_top';
-        form.submit();
-      } catch (e) {
-        form.submit();
-      }
-    })();
-  </script>
-  <noscript>
-    <meta http-equiv="refresh" content="0;url=${actionEsc}" />
-    <a href="${actionEsc}" target="_self">Continue</a>
-  </noscript>
-</body>
-</html>`
-}
-
-/**
  * GET /api/auth/oauth-start?provider=...&locale=...
  *
  * 1) Supabase에서 authorize URL을 받아서
@@ -182,35 +143,8 @@ export async function GET(request: NextRequest) {
 
   console.log('[oauth-start] supabase url:', data.url.slice(0, 80) + '…')
 
-  // 모바일 + Facebook: 302로 외부(Facebook) 보내면 Chrome/Firefox 등에서 새 탭이 열리는 경우가 있음.
-  // 200 + 우리 페이지에서 form GET으로 Facebook에 제출하면 같은 탭으로 유지되는 경우가 많음.
-  if (provider === 'facebook' && mobile) {
-    let facebookUrl: string | null = null
-    try {
-      const authRes = await fetch(data.url, {
-        method: 'GET',
-        redirect: 'manual',
-        headers: { Accept: 'text/html,application/xhtml+xml' },
-      })
-      const location = authRes.headers.get('location')
-      const isRedirect = authRes.status >= 300 && authRes.status < 400
-      if (isRedirect && location && (location.includes('facebook.com') || location.includes('fb.com'))) {
-        facebookUrl = location.startsWith('http') ? location : new URL(location, data.url).toString()
-        console.log('[oauth-start] mobile facebook: 200 + form to provider:', facebookUrl.slice(0, 60) + '…')
-      }
-    } catch (e) {
-      console.warn('[oauth-start] mobile facebook fetch failed:', e)
-    }
-    const targetUrl = facebookUrl ?? data.url
-    const html = buildHtmlFormToFullUrl(targetUrl)
-    const res = new NextResponse(html, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    })
-    setLocaleCookie(res, locale, origin)
-    return res
-  }
-
+  // 모바일 + Facebook: 서버에서 Facebook URL을 fetch해 form으로 제출하면 Facebook에서 Invalid App ID가 뜨는 경우가 있음.
+  // 데스크톱과 동일하게 Supabase authorize URL로 form 제출 후, Supabase가 Facebook으로 리다이렉트하도록 함.
   const html = buildHtmlRedirect(data.url)
   const res = new NextResponse(html, {
     status: 200,

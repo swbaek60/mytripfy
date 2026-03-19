@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { randomBytes, createHash } from 'crypto'
+import { randomUUID } from 'crypto'
+import { setVerifier } from '@/app/auth/oauth-verifier-store'
 
 const PROVIDERS = ['google', 'apple', 'facebook'] as const
 type Provider = (typeof PROVIDERS)[number]
@@ -120,9 +122,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Invalid+provider`, 302)
   }
 
+  const flowId = randomUUID()
+  const { codeVerifier, codeChallenge: serverChallenge } = generateServerPkce()
+  setVerifier(flowId, codeVerifier)
+
   const supabase = await createClient()
   const options: Parameters<typeof supabase.auth.signInWithOAuth>[0]['options'] = {
-    redirectTo: `${origin}/auth/callback?locale=${locale}`,
+    redirectTo: `${origin}/auth/callback?locale=${locale}&flow_id=${flowId}`,
     skipBrowserRedirect: true,
   }
   if (provider === 'google') {
@@ -135,8 +141,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  // 항상 서버 PKCE 사용: 이 응답을 받는 탭에 verifier 쿠키가 설정되므로, 콜백이 새 탭이어도 같은 브라우저면 쿠키 전송됨
-  const { codeVerifier, codeChallenge: serverChallenge } = generateServerPkce()
   const u = new URL(data.url)
   u.searchParams.set('code_challenge', serverChallenge)
   u.searchParams.set('code_challenge_method', 'S256')

@@ -3,16 +3,25 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { randomUUID } from 'crypto'
 import { setPickupToken } from '../oauth-pickup-store'
+import { getAndDeleteVerifier } from '../oauth-verifier-store'
 import type { StoredCookie } from '../oauth-pickup-store'
 
 const LOCALE_COOKIE = 'mytripfy_oauth_locale'
 const PKCE_VERIFIER_COOKIE = 'mytripfy_pkce_verifier'
 const BROADCAST_CHANNEL = 'mytripfy_oauth'
 
+const exchangeWithVerifier = (
+  supabase: ReturnType<typeof createServerClient>,
+  code: string,
+  verifier: string
+): Promise<{ data: { user: unknown } | null; error: unknown }> =>
+  (supabase.auth as { exchangeCodeForSession: (a: string, b?: string) => Promise<{ data: { user: unknown }; error: unknown }> }).exchangeCodeForSession(code, verifier)
+
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const { searchParams, origin } = url
   const code = searchParams.get('code')
+  const flowId = searchParams.get('flow_id')
   const cookieStore = await cookies()
 
   const fromQuery = searchParams.get('locale')
@@ -40,22 +49,21 @@ export async function GET(request: Request) {
     return buildRedirect(false, locale, cookiesToSet, origin)
   }
 
+  // PKCE: verifier는 flow_id(서버 저장) 또는 쿠키에서. 있으면 첫 시도부터 사용해 한 번에 성공.
+  const verifierFromFlow = flowId ? getAndDeleteVerifier(flowId) : null
+  const verifierFromCookie = cookieStore.get(PKCE_VERIFIER_COOKIE)?.value
+  const verifier = verifierFromFlow ?? verifierFromCookie ?? null
+
   let data: { user: unknown } | null = null
   let error: unknown = null
-  const first = await supabase.auth.exchangeCodeForSession(code)
-  data = first.data
-  error = first.error
-
-  if (error || !data?.user) {
-    // 모바일 새 탭: 우리가 설정한 PKCE verifier 쿠키가 있으면 그걸로 exchange 시도
-    const verifierFromCookie = cookieStore.get(PKCE_VERIFIER_COOKIE)?.value
-    if (verifierFromCookie) {
-      const second = await (supabase.auth as { exchangeCodeForSession: (a: string, b?: string) => Promise<{ data: { user: unknown }; error: unknown }> }).exchangeCodeForSession(code, verifierFromCookie)
-      if (second.data?.user && !second.error) {
-        data = second.data
-        error = null
-      }
-    }
+  if (verifier) {
+    const result = await exchangeWithVerifier(supabase, code, verifier)
+    data = result.data
+    error = result.error
+  } else {
+    const first = await supabase.auth.exchangeCodeForSession(code)
+    data = first.data
+    error = first.error
   }
 
   if (error || !data?.user) {
@@ -137,10 +145,11 @@ const VERIFIER_STORAGE_KEY = 'mytripfy_oauth_code_verifier'
  * 1) localStorage에 code_verifier가 있으면(클라이언트 PKCE) 이 탭에서 바로 POST /api/auth/exchange로 완료.
  * 2) 없으면 BroadcastChannel + localStorage로 다른 탭에 콜백 URL 전달 (기존 폴백).
  */
-function buildRetryHtml(fullCallbackUrl: string, _locale: string, origin: string): NextResponse {
+function buildRetryHtml(fullCallbackUrl: string, locale: string, origin: string): NextResponse {
   const channel = BROADCAST_CHANNEL
   const urlB64 = Buffer.from(fullCallbackUrl, 'utf-8').toString('base64')
   const exchangeUrl = `${origin}/api/auth/exchange`
+  const loginHref = `${origin}/${locale}/login`
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -151,13 +160,16 @@ function buildRetryHtml(fullCallbackUrl: string, _locale: string, origin: string
   .box{max-width:360px}
   .msg{margin-top:12px;line-height:1.5;color:#64748b}
   .hint{margin-top:20px;font-size:13px;color:#94a3b8}
-  .loading{color:#64748b;margin-top:12px}</style>
+  .loading{color:#64748b;margin-top:12px}
+  .link{margin-top:24px;display:inline-block;color:#0ea5e9;text-decoration:none;font-weight:500}
+  .link:hover{text-decoration:underline}</style>
 </head>
 <body data-url="${urlB64}" data-exchange="${exchangeUrl.replace(/"/g, '&quot;')}">
   <div class="box">
     <div style="font-size:2.5rem">↩️</div>
     <p class="msg"><strong>Almost there</strong><br><span id="status">Completing sign-in…</span></p>
     <p class="hint" id="hint" style="display:none">You can close this tab after switching.</p>
+    <a id="loginLink" class="link" href="${loginHref.replace(/"/g, '&quot;')}" style="display:none">Try again from login page</a>
   </div>
   <script>
     (function () {
@@ -172,8 +184,10 @@ function buildRetryHtml(fullCallbackUrl: string, _locale: string, origin: string
       function fallback() {
         var status = document.getElementById("status");
         var hint = document.getElementById("hint");
+        var loginLink = document.getElementById("loginLink");
         if (status) status.textContent = "Switch back to the tab where you started login. Sign-in will complete there.";
         if (hint) hint.style.display = "block";
+        if (loginLink) loginLink.style.display = "inline-block";
         try {
           localStorage.setItem("${STORAGE_KEY_RETRY}", url);
           localStorage.setItem("${STORAGE_KEY_RETRY_TS}", String(Date.now()));

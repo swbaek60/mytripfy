@@ -1,11 +1,28 @@
 /**
  * API Health: 주요 GET 엔드포인트 검증.
- * oauth-start: 모바일 UA → 302 (같은 탭 보장), 데스크톱 → 200 HTML + form submit.
+ * oauth-start: 모든 환경에서 200 HTML + form submit.
+ * 핵심: form method="GET"은 action URL 쿼리를 무시하므로
+ *       쿼리 파라미터를 hidden input으로 분해해 전달하는지 검증.
  */
 import { test, expect } from '@playwright/test'
 
 const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 15; SM-S931B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36'
 const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
+
+/** oauth-start 응답 HTML에서 form의 구조가 올바른지 검증 */
+async function assertOAuthForm(body: string, expectedProvider: string) {
+  // form 존재 확인
+  expect(body).toContain('id="oauthForm"')
+  expect(body).toContain('method="GET"')
+  expect(body).toContain('target="_self"')
+  // action에는 쿼리 없는 Supabase authorize URL (쿼리는 hidden input으로)
+  expect(body).toMatch(/action="https?:\/\/[^"]+\/auth\/v1\/authorize"/)
+  // provider가 hidden input으로 분해됐는지 확인 (핵심)
+  expect(body).toContain(`name="provider" value="${expectedProvider}"`)
+  // 기타 필수 PKCE 파라미터도 hidden input으로 존재
+  expect(body).toContain('name="code_challenge"')
+  expect(body).toContain('name="redirect_to"')
+}
 
 test.describe('API – 공개 엔드포인트', () => {
   test('GET /api/rates 는 200을 반환한다', async ({ request }) => {
@@ -16,50 +33,49 @@ test.describe('API – 공개 엔드포인트', () => {
     expect(body.rates).toHaveProperty('USD')
   })
 
-  test('GET /api/auth/oauth-start (모바일 UA) 는 200 HTML + form으로 oauth 시작', async ({ request }) => {
+  test('oauth-start?provider=google (모바일) → 200 + provider hidden input', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toMatch(/auth\/v1\/authorize/i)
+    await assertOAuthForm(await res.text(), 'google')
     expect(res.headers()['set-cookie']).toBeDefined()
   })
 
-  test('GET /api/auth/oauth-start?provider=facebook (모바일 UA) 는 200 HTML + form으로 oauth 시작', async ({ request }) => {
+  test('oauth-start?provider=facebook (모바일) → 200 + provider hidden input', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toMatch(/auth\/v1\/authorize/i)
+    await assertOAuthForm(await res.text(), 'facebook')
   })
 
-  test('GET /api/auth/oauth-start?provider=google (데스크톱 UA) 는 200 HTML + form을 반환한다', async ({ request }) => {
+  test('oauth-start?provider=google (데스크톱) → 200 + provider hidden input', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=en', {
       headers: { 'User-Agent': DESKTOP_UA },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toContain('form')
-    expect(body).toContain('target="_self"')
+    await assertOAuthForm(await res.text(), 'google')
   })
 
-  test('GET /api/auth/oauth-start?provider=apple (데스크톱 UA) 는 200 HTML + form을 반환한다', async ({ request }) => {
+  test('oauth-start?provider=apple (데스크톱) → 200 + provider hidden input', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=apple&locale=en', {
       headers: { 'User-Agent': DESKTOP_UA },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toContain('target="_self"')
+    await assertOAuthForm(await res.text(), 'apple')
   })
 
   test('잘못된 provider 는 로그인 페이지로 리다이렉트한다', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=twitter&locale=en', {
+      maxRedirects: 0,
+    })
+    expect(res.status()).toBe(302)
+    expect(res.headers()['location']).toContain('/login')
+  })
+
+  test('provider 없으면 로그인 페이지로 리다이렉트한다', async ({ request }) => {
+    const res = await request.get('/api/auth/oauth-start?locale=en', {
       maxRedirects: 0,
     })
     expect(res.status()).toBe(302)
@@ -73,7 +89,7 @@ test.describe('API – 공개 엔드포인트', () => {
   })
 
   test('GET /auth/oauth-go (유효한 mytripfy_oauth_next 쿠키) 는 200 HTML + form submit', async ({ request }) => {
-    const url = 'https://example.supabase.co/auth/v1/authorize?provider=facebook'
+    const url = 'https://example.supabase.co/auth/v1/authorize?provider=facebook&redirect_to=x&code_challenge=y&code_challenge_method=s256'
     const cookieValue = Buffer.from(url, 'utf-8').toString('base64url')
     const res = await request.get('/auth/oauth-go', {
       headers: { Cookie: `mytripfy_oauth_next=${cookieValue}` },
@@ -81,7 +97,6 @@ test.describe('API – 공개 엔드포인트', () => {
     expect(res.status()).toBe(200)
     const body = await res.text()
     expect(body).toContain('oauthForm')
-    expect(body).toContain('form.submit()')
     expect(body).toContain('Redirecting')
     expect(body).toContain('target="_self"')
     expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_next')

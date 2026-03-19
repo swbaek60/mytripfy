@@ -1,10 +1,25 @@
 /**
- * 소셜 로그인: form GET + target="_self". 모바일은 oauth-start가 302로 같은 탭 이동.
+ * Facebook / Google 소셜 로그인: form GET + target="_self".
+ * 핵심 검증: form method="GET"은 action URL 쿼리를 무시하므로
+ *            provider 등 모든 파라미터를 hidden input으로 분해해 전달해야 함.
  */
 import { test, expect } from '@playwright/test'
 
-const MOBILE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+const MOBILE_UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+const MOBILE_UA_GALAXY = 'Mozilla/5.0 (Linux; Android 15; SM-S931B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36'
 const DESKTOP_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
+
+/** oauth-start 응답이 hidden input 방식인지 검증 */
+async function assertProviderHiddenInput(body: string, provider: string) {
+  expect(body).toContain('id="oauthForm"')
+  // action에 쿼리 없는 base URL (쿼리가 action에 있으면 form GET이 날려버림)
+  expect(body).toMatch(/action="https?:\/\/[^?&"]+\/auth\/v1\/authorize"/)
+  // provider가 hidden input으로 전달됨 (핵심)
+  expect(body).toContain(`name="provider" value="${provider}"`)
+  // PKCE 파라미터도 hidden input으로
+  expect(body).toContain('name="code_challenge"')
+  expect(body).toContain('name="redirect_to"')
+}
 
 test.describe('Facebook login UI', () => {
   test('버튼 클릭 시 새 창 없이 같은 탭에서만 이동한다', async ({ page, context }) => {
@@ -31,37 +46,39 @@ test.describe('Facebook login UI', () => {
   })
 })
 
-test.describe('OAuth start API', () => {
-  test('모바일 User-Agent 시 200 HTML + Supabase authorize form + locale 쿠키', async ({ request }) => {
+test.describe('OAuth start API – provider hidden input 검증', () => {
+  test('iPhone Safari (모바일) facebook → 200 + provider hidden input + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
-      headers: { 'User-Agent': MOBILE_UA },
+      headers: { 'User-Agent': MOBILE_UA_IPHONE },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toMatch(/auth\/v1\/authorize/i)
+    await assertProviderHiddenInput(await res.text(), 'facebook')
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 
-  test('갤럭시 S25 Chrome (모바일) 시 200 HTML + Supabase authorize form', async ({ request }) => {
+  test('갤럭시 S25 Chrome (모바일) facebook → 200 + provider hidden input', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; SM-S931B) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36' },
+      headers: { 'User-Agent': MOBILE_UA_GALAXY },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toMatch(/auth\/v1\/authorize/i)
+    await assertProviderHiddenInput(await res.text(), 'facebook')
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 
-  test('데스크톱 User-Agent 시 200 HTML + form submit', async ({ request }) => {
+  test('갤럭시 S25 Chrome (모바일) google → 200 + provider hidden input', async ({ request }) => {
+    const res = await request.get('/api/auth/oauth-start?provider=google&locale=en', {
+      headers: { 'User-Agent': MOBILE_UA_GALAXY },
+    })
+    expect(res.status()).toBe(200)
+    await assertProviderHiddenInput(await res.text(), 'google')
+  })
+
+  test('데스크톱 facebook → 200 + provider hidden input', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ja', {
       headers: { 'User-Agent': DESKTOP_UA },
     })
     expect(res.status()).toBe(200)
-    const body = await res.text()
-    expect(body).toContain('oauthForm')
-    expect(body).toContain('target="_self"')
+    await assertProviderHiddenInput(await res.text(), 'facebook')
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 })

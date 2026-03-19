@@ -30,17 +30,22 @@ const DESKTOP_UAS = [
 // ──────────────────────────────────────────────
 // API: 모바일 → 302, 데스크톱 → 200 HTML + form
 // ──────────────────────────────────────────────
-test.describe('API – oauth-start: 모바일 UA는 200 HTML + Supabase authorize form', () => {
+test.describe('API – oauth-start: 모바일 UA는 200 HTML + provider hidden input', () => {
   for (const provider of ['google', 'facebook', 'apple'] as const) {
     for (const { label, ua } of MOBILE_UAS) {
-      test(`[${provider}] ${label} → 200 + oauthForm to Supabase authorize`, async ({ request }) => {
+      test(`[${provider}] ${label} → 200 + provider="${provider}" hidden input`, async ({ request }) => {
         const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
           headers: { 'User-Agent': ua },
         })
         expect(res.status(), `${provider} / ${label}`).toBe(200)
         const body = await res.text()
-        expect(body).toContain('oauthForm')
-        expect(body).toMatch(/auth\/v1\/authorize/i)
+        // form 존재 확인
+        expect(body).toContain('id="oauthForm"')
+        // action에 쿼리 없는 base URL (핵심: provider가 hidden input으로 들어가야 함)
+        expect(body).toMatch(/action="https?:\/\/[^"]+\/auth\/v1\/authorize"/)
+        // provider가 hidden input으로 분해됐는지 확인 (form GET 쿼리 누락 방지)
+        expect(body).toContain(`name="provider" value="${provider}"`)
+        expect(body).toContain('name="code_challenge"')
         expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
       })
     }

@@ -4,7 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 const PROVIDERS = ['google', 'apple', 'facebook'] as const
 type Provider = (typeof PROVIDERS)[number]
 const LOCALE_COOKIE = 'mytripfy_oauth_locale'
-const OAUTH_NEXT_COOKIE = 'mytripfy_oauth_next'
 
 function getOrigin() {
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
@@ -24,13 +23,30 @@ function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
   })
 }
 
+function esc(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 /**
- * OAuth URL로 같은 탭 이동: form GET + target="_self" + 자동 submit.
- * 모바일 Chrome/Firefox 등에서 location.replace()가 새 탭으로 열리는 문제를 피하기 위해
- * form 제출로 이동 (다른 사이트들에서 사용하는 방식).
+ * Supabase authorize URL의 쿼리 파라미터를 모두 hidden input으로 분해해 form에 넣습니다.
+ *
+ * 주의: form method="GET"은 action URL의 쿼리를 무시하고 form 필드만 전송합니다.
+ * 따라서 action에는 base URL(경로만), 쿼리는 모두 hidden input으로 넣어야 합니다.
  */
-function buildHtmlRedirect(url: string): string {
-  const urlAttr = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+function buildHtmlRedirect(supabaseUrl: string): string {
+  const parsed = new URL(supabaseUrl)
+  // action에는 쿼리 제거한 base만 (scheme+host+path)
+  const actionBase = `${parsed.protocol}//${parsed.host}${parsed.pathname}`
+  const actionEsc = esc(actionBase)
+
+  // 쿼리 파라미터를 hidden input으로 변환
+  const hiddenInputs = Array.from(parsed.searchParams.entries())
+    .map(([k, v]) => `  <input type="hidden" name="${esc(k)}" value="${esc(v)}" />`)
+    .join('\n')
+
+  // noscript용 전체 URL
+  const fullUrlEsc = esc(supabaseUrl)
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -42,14 +58,14 @@ function buildHtmlRedirect(url: string): string {
 </head>
 <body>
   <p>Redirecting…</p>
-  <form id="oauthForm" method="GET" action="${urlAttr}" target="_self"></form>
+  <form id="oauthForm" method="GET" action="${actionEsc}" target="_self">
+${hiddenInputs}
+  </form>
   <script>
     (function () {
       var form = document.getElementById('oauthForm');
       try {
-        if (window.top !== window.self) {
-          form.target = '_top';
-        }
+        if (window.top !== window.self) form.target = '_top';
         form.submit();
       } catch (e) {
         form.submit();
@@ -57,8 +73,8 @@ function buildHtmlRedirect(url: string): string {
     })();
   </script>
   <noscript>
-    <meta http-equiv="refresh" content="0;url=${urlAttr}" />
-    <a href="${urlAttr}" target="_self">Continue</a>
+    <meta http-equiv="refresh" content="0;url=${fullUrlEsc}" />
+    <a href="${fullUrlEsc}" target="_self">Continue</a>
   </noscript>
 </body>
 </html>`
@@ -67,26 +83,34 @@ function buildHtmlRedirect(url: string): string {
 /**
  * GET /api/auth/oauth-start?provider=...&locale=...
  *
- * 모든 환경(데스크톱/모바일/인앱브라우저)에서 HTML form submit으로 OAuth 시작.
- * 302 redirect를 쓰지 않으므로 브라우저가 새 탭을 여는 일이 없음.
+ * 1) Supabase에서 authorize URL을 받아서
+ * 2) 그 URL을 form hidden input으로 분해해 자동 submit
+ *
+ * form method="GET"에서 action URL 쿼리가 사라지는 브라우저 동작을 피하기 위해
+ * 쿼리 파라미터를 hidden input으로 분해해서 전달합니다.
  */
 export async function GET(request: NextRequest) {
-  // nextUrl.searchParams 우선, 비면 request.url에서 파싱 (프록시/배포 환경에서 쿼리 누락 방지)
-  let searchParams = request.nextUrl.searchParams
-  if (!searchParams.get('provider') && request.url) {
+  // nextUrl.searchParams 우선, 없으면 request.url 직접 파싱 (프록시 환경 대비)
+  const nextParams = request.nextUrl.searchParams
+  let searchParams = nextParams
+  if (!nextParams.has('provider')) {
     try {
-      const url = new URL(request.url)
-      if (url.search) searchParams = url.searchParams
+      searchParams = new URL(request.url).searchParams
     } catch {
       /* ignore */
     }
   }
-  const providerRaw = searchParams.get('provider')
-  const provider = (typeof providerRaw === 'string' ? providerRaw.trim().toLowerCase() : '') as Provider | ''
-  const locale = searchParams.get('locale')?.trim() || 'en'
+
+  const providerRaw = searchParams.get('provider') ?? ''
+  const provider = providerRaw.trim().toLowerCase() as Provider | ''
+  const locale = (searchParams.get('locale') ?? 'en').trim() || 'en'
   const origin = getOrigin()
 
+  // 서버 로그: 실제로 어떤 값이 들어오는지 확인
+  console.log('[oauth-start] provider=%o locale=%o url=%s', provider, locale, request.url)
+
   if (!provider || !PROVIDERS.includes(provider)) {
+    console.warn('[oauth-start] invalid provider:', JSON.stringify(providerRaw))
     return NextResponse.redirect(`${origin}/${locale}/login?message=Invalid+provider`, 302)
   }
 
@@ -109,9 +133,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  // 모바일에서 쿠키에 authorize URL을 통째로 담는 방식은(쿠키 길이 제한) 실제 기기에서 URL이 잘릴 수 있어
-  // provider 파라미터가 깨지는 케이스가 발생할 수 있습니다.
-  // 그래서 oauth-go 단계 없이 데스크톱과 동일하게 Supabase authorize URL로 바로 form submit 합니다.
+  console.log('[oauth-start] supabase url:', data.url.slice(0, 80) + '…')
+
   const html = buildHtmlRedirect(data.url)
   const res = new NextResponse(html, {
     status: 200,

@@ -59,7 +59,11 @@ export async function POST(req: NextRequest) {
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       console.error('contact-guide: AWS SES env vars missing (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)')
       return NextResponse.json(
-        { error: 'Email delivery failed', reason: 'AWS credentials missing (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)' },
+        {
+          error: 'Email delivery failed',
+          code: 'AWS_CREDENTIALS_MISSING',
+          ...(process.env.NODE_ENV === 'development' && { reason: 'AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY not set' }),
+        },
         { status: 500 }
       )
     }
@@ -72,11 +76,18 @@ export async function POST(req: NextRequest) {
     })
     if (!result.success) {
       const err = result.error as { name?: string; message?: string; Code?: string } | undefined
-      const reason = [err?.name || err?.Code, err?.message].filter(Boolean).join(': ')
+      const code = err?.name || err?.Code
+      const reason = [code, err?.message].filter(Boolean).join(': ')
       console.error('contact-guide: SES send failed', reason)
+
+      // In SES sandbox you can only send to verified addresses. MessageRejected usually means recipient not verified.
+      const isSandboxRecipient = code === 'MessageRejected' || (err?.message && /recipient|verify|sandbox/i.test(String(err.message)))
+      const errorCode = isSandboxRecipient ? 'SES_SANDBOX_RECIPIENT' : 'SES_SEND_FAILED'
+
       return NextResponse.json(
         {
           error: 'Email delivery failed',
+          code: errorCode,
           ...(process.env.NODE_ENV === 'development' && reason && { reason }),
         },
         { status: 500 }

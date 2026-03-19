@@ -59,7 +59,9 @@ export default function GuideContactModal({
         const msg = data?.error === 'Guide email not found'
           ? 'Unable to send: guide email is not set.'
           : data?.error === 'Email delivery failed'
-            ? (data?.reason ? `Email failed: ${data.reason}` : 'Email could not be sent. Please try again later.')
+            ? (data?.reason ? `Email failed: ${data.reason}` : data?.code === 'SES_SANDBOX_RECIPIENT'
+              ? 'Email could not be sent right now. Please try the in-app chat above instead.'
+              : 'Email could not be sent. Please try again later.')
             : data?.error || 'Something went wrong.'
         alert(msg)
         return

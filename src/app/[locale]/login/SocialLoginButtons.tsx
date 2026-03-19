@@ -1,6 +1,6 @@
 interface Props {
   locale: string
-  /** 서버에서 판별한 모바일 UA. 모바일일 때 Facebook은 form 대신 링크로 렌더해 같은 탭 이동을 유도 */
+  /** 서버에서 판별한 모바일 UA (로그인 페이지 레이아웃 등에서 사용 가능) */
   isMobile?: boolean
 }
 
@@ -9,27 +9,9 @@ const ACTION = '/api/auth/oauth-start'
 const btnBase =
   'w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 font-semibold text-sm shadow-sm text-center transition-all'
 
-/** 모바일 Facebook: form 제출이 일부 기기에서 새 탭을 여는 문제가 있어, 링크로만 이동 */
-function FacebookHref({ locale }: { locale: string }) {
-  const url = `${ACTION}?provider=facebook&locale=${encodeURIComponent(locale)}`
-  return (
-    <a
-      href={url}
-      target="_self"
-      rel="noopener noreferrer"
-      className={`${btnBase} border-[#1877F2] bg-[#1877F2] hover:bg-[#166FE5] text-white no-underline`}
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-      </svg>
-      <span className="flex-1">Continue with Facebook</span>
-    </a>
-  )
-}
-
 /**
  * 소셜 로그인: form GET + target="_self" (같은 탭).
- * 모바일 Facebook은 form 대신 <a target="_self">로 렌더해, oauth-start가 meta refresh로 넘기도록 함.
+ * 모바일 Facebook은 oauth-start에서 200 + form 자동 제출로 Facebook 이동해 새 탭 방지.
  */
 export default function SocialLoginButtons({ locale, isMobile = false }: Props) {
   return (
@@ -59,20 +41,16 @@ export default function SocialLoginButtons({ locale, isMobile = false }: Props) 
         </button>
       </form>
 
-      {isMobile ? (
-        <FacebookHref locale={locale} />
-      ) : (
-        <form method="GET" action={ACTION} target="_self" className="block">
-          <input type="hidden" name="provider" value="facebook" />
-          <input type="hidden" name="locale" value={locale} />
-          <button type="submit" className={`${btnBase} border-[#1877F2] bg-[#1877F2] hover:bg-[#166FE5] text-white`}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-            <span className="flex-1">Continue with Facebook</span>
-          </button>
-        </form>
-      )}
+      <form method="GET" action={ACTION} target="_self" className="block">
+        <input type="hidden" name="provider" value="facebook" />
+        <input type="hidden" name="locale" value={locale} />
+        <button type="submit" className={`${btnBase} border-[#1877F2] bg-[#1877F2] hover:bg-[#166FE5] text-white`}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <span className="flex-1">Continue with Facebook</span>
+        </button>
+      </form>
     </div>
   )
 }

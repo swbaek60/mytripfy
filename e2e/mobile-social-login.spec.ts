@@ -46,9 +46,10 @@ test.describe('API – oauth-start: 모바일 UA', () => {
         expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
 
         if (provider === 'facebook') {
-          expect(res.status(), `${provider} / ${label}`).toBe(302)
-          const loc = (res.headers()['location'] ?? '').toString()
-          expect(loc, `${provider} / ${label}`).toMatch(/\/auth\/v1\/authorize|facebook\.com|fb\.com/)
+          expect(res.status(), `${provider} / ${label}`).toBe(200)
+          const body = await res.text()
+          expect(body, `${provider} / ${label}`).toContain('id="oauthForm"')
+          expect(body, `${provider} / ${label}`).toMatch(/action="[^"]*(\/auth\/v1\/authorize|facebook\.com|fb\.com)/)
           return
         }
 
@@ -253,27 +254,14 @@ test.describe('로그인 페이지 – 소셜 form', () => {
       await expect(form).toHaveAttribute('action', /oauth-start/)
       await expect(form).toHaveAttribute('target', '_self')
     }
-    // Facebook: 데스크톱은 form, 모바일은 link
     const fbForm = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
-    const fbLink = page.locator('a[href*="oauth-start"][href*="facebook"]')
-    const hasForm = (await fbForm.count()) > 0
-    const hasLink = (await fbLink.count()) > 0
-    expect(hasForm || hasLink).toBe(true)
-    if (hasForm) {
-      await expect(fbForm.first()).toHaveAttribute('action', /oauth-start/)
-      await expect(fbForm.first()).toHaveAttribute('target', '_self')
-    }
-    if (hasLink) {
-      await expect(fbLink.first()).toHaveAttribute('href', /oauth-start.*facebook/)
-      await expect(fbLink.first()).toHaveAttribute('target', '_self')
-    }
+    await expect(fbForm.first()).toHaveAttribute('action', /oauth-start/)
+    await expect(fbForm.first()).toHaveAttribute('target', '_self')
   })
 
   test('Facebook 버튼 클릭 시 새 창 없이 같은 창에서만 이동', async ({ page, context }) => {
     await page.goto('/en/login')
-    const btn = page.getByRole('button', { name: /continue with facebook/i }).or(
-      page.getByRole('link', { name: /continue with facebook/i })
-    )
+    const btn = page.getByRole('button', { name: /continue with facebook/i })
     await expect(btn).toBeVisible()
     let popup = false
     context.on('page', () => { popup = true })

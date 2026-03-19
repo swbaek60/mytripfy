@@ -24,16 +24,8 @@ test.describe('Auth – 로그인 페이지', () => {
     await page.goto('/ko/login')
     await expect(page.getByText(/continue with facebook/i).first()).toBeVisible()
     const form = page.locator('form').filter({ has: page.locator('input[name=provider][value=facebook]') })
-    const link = page.locator('a[href*="provider=facebook"]')
-    const hasForm = (await form.count()) > 0
-    const hasLink = (await link.count()) > 0
-    expect(hasForm || hasLink).toBe(true)
-    if (hasForm) {
-      await expect(form.first().locator('input[name=locale]')).toHaveValue('ko')
-    }
-    if (hasLink) {
-      await expect(link.first()).toHaveAttribute('href', /locale=ko/)
-    }
+    await expect(form.first()).toHaveAttribute('action', /oauth-start/)
+    await expect(form.first().locator('input[name=locale]')).toHaveValue('ko')
   })
 })
 
@@ -54,14 +46,14 @@ test.describe('Auth – OAuth 시작 API', () => {
     expect(res.headers()['location']).toMatch(/login.*Invalid|Invalid.*provider/)
   })
 
-  test('모바일 UA 시 302 redirect와 locale 쿠키를 반환한다', async ({ request }) => {
+  test('모바일 UA 시 200 + form to provider와 locale 쿠키를 반환한다', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; wv) Chrome/131.0.0.0 Mobile Safari/537.36' },
-      maxRedirects: 0,
     })
-    expect(res.status()).toBe(302)
-    const loc = (res.headers()['location'] ?? '').toString()
-    expect(loc).toMatch(/\/auth\/v1\/authorize|facebook\.com|fb\.com/)
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    expect(body).toContain('id="oauthForm"')
+    expect(body).toMatch(/action="[^"]*(\/auth\/v1\/authorize|facebook\.com|fb\.com)/)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 })
@@ -71,9 +63,7 @@ test.describe('Auth – 소셜 버튼 클릭 시 새 창 미오픈', () => {
     await page.goto(`/${LOCALE}/login`)
     let popupOpened = false
     context.on('page', () => { popupOpened = true })
-    const fb = page.getByRole('button', { name: /continue with facebook/i }).or(
-      page.getByRole('link', { name: /continue with facebook/i })
-    )
+    const fb = page.getByRole('button', { name: /continue with facebook/i })
     await fb.click()
     await page.waitForTimeout(2000)
     expect(popupOpened).toBe(false)

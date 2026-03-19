@@ -1,6 +1,6 @@
 /**
  * 모바일 소셜 로그인 E2E 테스트
- * - 모바일 UA → oauth-start는 302 (같은 탭 보장), 데스크톱 → 200 HTML + form submit
+ * - 모바일/데스크톱 모두 oauth-start는 200 HTML + form submit
  * - 각종 모바일 브라우저(Chrome/Firefox/Safari/Samsung) 뷰포트에서 버튼 클릭 시 새 창 없음 검증
  */
 import { test, expect } from '@playwright/test'
@@ -30,17 +30,17 @@ const DESKTOP_UAS = [
 // ──────────────────────────────────────────────
 // API: 모바일 → 302, 데스크톱 → 200 HTML + form
 // ──────────────────────────────────────────────
-test.describe('API – oauth-start: 모바일 UA는 200 HTML + form(/auth/oauth-go)', () => {
+test.describe('API – oauth-start: 모바일 UA는 200 HTML + Supabase authorize form', () => {
   for (const provider of ['google', 'facebook', 'apple'] as const) {
     for (const { label, ua } of MOBILE_UAS) {
-      test(`[${provider}] ${label} → 200 + oauthForm to oauth-go`, async ({ request }) => {
+      test(`[${provider}] ${label} → 200 + oauthForm to Supabase authorize`, async ({ request }) => {
         const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
           headers: { 'User-Agent': ua },
         })
         expect(res.status(), `${provider} / ${label}`).toBe(200)
         const body = await res.text()
         expect(body).toContain('oauthForm')
-        expect(body).toContain('/auth/oauth-go')
+        expect(body).toMatch(/auth\/v1\/authorize/i)
         expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
       })
     }
@@ -65,13 +65,13 @@ test.describe('API – oauth-start: 데스크톱 UA는 200 HTML + form', () => {
 })
 
 test.describe('API – locale 쿠키', () => {
-  test('모바일 (ko) → 200 + form to oauth-go + locale 쿠키', async ({ request }) => {
+  test('모바일 (ko) → 200 + Supabase authorize form + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=ko', {
       headers: { 'User-Agent': UA.androidChrome },
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
-    expect(body).toContain('/auth/oauth-go')
+    expect(body).toMatch(/auth\/v1\/authorize/i)
     expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
   })
   test('데스크톱 (en) → 200 + locale 쿠키', async ({ request }) => {

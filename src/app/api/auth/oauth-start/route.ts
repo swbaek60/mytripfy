@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
 const PROVIDERS = ['google', 'apple', 'facebook'] as const
@@ -70,10 +70,20 @@ function buildHtmlRedirect(url: string): string {
  * 모든 환경(데스크톱/모바일/인앱브라우저)에서 HTML form submit으로 OAuth 시작.
  * 302 redirect를 쓰지 않으므로 브라우저가 새 탭을 여는 일이 없음.
  */
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const provider = searchParams.get('provider') as Provider | null
-  const locale = searchParams.get('locale') || 'en'
+export async function GET(request: NextRequest) {
+  // nextUrl.searchParams 우선, 비면 request.url에서 파싱 (프록시/배포 환경에서 쿼리 누락 방지)
+  let searchParams = request.nextUrl.searchParams
+  if (!searchParams.get('provider') && request.url) {
+    try {
+      const url = new URL(request.url)
+      if (url.search) searchParams = url.searchParams
+    } catch {
+      /* ignore */
+    }
+  }
+  const providerRaw = searchParams.get('provider')
+  const provider = (typeof providerRaw === 'string' ? providerRaw.trim().toLowerCase() : '') as Provider | ''
+  const locale = searchParams.get('locale')?.trim() || 'en'
   const origin = getOrigin()
 
   if (!provider || !PROVIDERS.includes(provider)) {
@@ -99,56 +109,9 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  // 모바일: 302 응답 자체가 일부 기기(갤럭시 등)에서 새 탭으로 열리는 경우가 있음.
-  // 302 없이 200 HTML + form으로 /auth/oauth-go로 이동한 뒤, oauth-go에서 form으로 Supabase로 이동.
-  const ua = request.headers.get('user-agent') || ''
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
-  if (isMobile) {
-    const nextUrl = Buffer.from(data.url, 'utf-8').toString('base64url')
-    const oauthGoUrl = `${origin}/auth/oauth-go`
-    const oauthGoAttr = oauthGoUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <base target="_self">
-  <title>Redirecting…</title>
-  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#64748b;font-size:14px}</style>
-</head>
-<body>
-  <p>Redirecting…</p>
-  <form id="oauthForm" method="GET" action="${oauthGoAttr}" target="_self"></form>
-  <script>
-    (function () {
-      var form = document.getElementById('oauthForm');
-      try {
-        if (window.top !== window.self) form.target = '_top';
-        form.submit();
-      } catch (e) {
-        form.submit();
-      }
-    })();
-  </script>
-  <noscript>
-    <meta http-equiv="refresh" content="0;url=${oauthGoAttr}" />
-    <a href="${oauthGoAttr}" target="_self">Continue</a>
-  </noscript>
-</body>
-</html>`
-    const res = new NextResponse(html, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    })
-    setLocaleCookie(res, locale, origin)
-    res.cookies.set(OAUTH_NEXT_COOKIE, nextUrl, {
-      ...getCookieOpts(origin),
-      maxAge: 60,
-      httpOnly: true,
-    })
-    return res
-  }
-
+  // 모바일에서 쿠키에 authorize URL을 통째로 담는 방식은(쿠키 길이 제한) 실제 기기에서 URL이 잘릴 수 있어
+  // provider 파라미터가 깨지는 케이스가 발생할 수 있습니다.
+  // 그래서 oauth-go 단계 없이 데스크톱과 동일하게 Supabase authorize URL로 바로 form submit 합니다.
   const html = buildHtmlRedirect(data.url)
   const res = new NextResponse(html, {
     status: 200,

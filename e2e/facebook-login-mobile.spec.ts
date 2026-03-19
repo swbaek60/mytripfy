@@ -32,25 +32,25 @@ test.describe('Facebook login UI', () => {
 })
 
 test.describe('OAuth start API', () => {
-  test('모바일 User-Agent 시 200 HTML + form(/auth/oauth-go) + locale 쿠키', async ({ request }) => {
+  test('모바일 User-Agent 시 200 HTML + Supabase authorize form + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
       headers: { 'User-Agent': MOBILE_UA },
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
     expect(body).toContain('oauthForm')
-    expect(body).toContain('/auth/oauth-go')
+    expect(body).toMatch(/auth\/v1\/authorize/i)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 
-  test('갤럭시 S25 Chrome (모바일) 시 200 HTML + form으로 oauth-go', async ({ request }) => {
+  test('갤럭시 S25 Chrome (모바일) 시 200 HTML + Supabase authorize form', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; SM-S931B) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36' },
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
     expect(body).toContain('oauthForm')
-    expect(body).toContain('/auth/oauth-go')
+    expect(body).toMatch(/auth\/v1\/authorize/i)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 

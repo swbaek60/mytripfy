@@ -16,25 +16,25 @@ test.describe('API – 공개 엔드포인트', () => {
     expect(body.rates).toHaveProperty('USD')
   })
 
-  test('GET /api/auth/oauth-start (모바일 UA) 는 200 HTML + form으로 /auth/oauth-go 이동', async ({ request }) => {
+  test('GET /api/auth/oauth-start (모바일 UA) 는 200 HTML + form으로 oauth 시작', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=google&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
     expect(body).toContain('oauthForm')
-    expect(body).toContain('/auth/oauth-go')
+    expect(body).toMatch(/auth\/v1\/authorize/i)
     expect(res.headers()['set-cookie']).toBeDefined()
   })
 
-  test('GET /api/auth/oauth-start?provider=facebook (모바일 UA) 는 200 HTML + form으로 oauth-go', async ({ request }) => {
+  test('GET /api/auth/oauth-start?provider=facebook (모바일 UA) 는 200 HTML + form으로 oauth 시작', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
     })
     expect(res.status()).toBe(200)
     const body = await res.text()
     expect(body).toContain('oauthForm')
-    expect(body).toContain('/auth/oauth-go')
+    expect(body).toMatch(/auth\/v1\/authorize/i)
   })
 
   test('GET /api/auth/oauth-start?provider=google (데스크톱 UA) 는 200 HTML + form을 반환한다', async ({ request }) => {

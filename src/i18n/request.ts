@@ -40,3 +40,9 @@ export default getRequestConfig(async ({requestLocale}) => {
     messages,
   };
 });
+
+/** getMessages() 실패 시 레이아웃에서 사용할 영문 폴백 */
+export async function getFallbackMessages(): Promise<Record<string, Record<string, string>>> {
+  const en = (await import('../../messages/en.json')).default as Record<string, Record<string, string>>;
+  return en ?? {};
+}

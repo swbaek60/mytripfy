@@ -17,7 +17,13 @@ export function getAdminClientSafe() {
 }
 
 export async function createClient() {
-  const cookieStore = await cookies()
+  let cookieStore: Awaited<ReturnType<typeof cookies>>
+  try {
+    cookieStore = await cookies()
+  } catch (e) {
+    console.error('Supabase createClient: cookies() failed', e)
+    cookieStore = { get: () => undefined, getAll: () => [], set: () => {}, delete: () => {} } as unknown as Awaited<ReturnType<typeof cookies>>
+  }
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,7 +31,7 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll?.() ?? []
         },
         setAll(cookiesToSet) {
           try {

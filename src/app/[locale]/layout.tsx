@@ -5,6 +5,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
+import {getFallbackMessages} from '@/i18n/request';
 import { CurrencyProvider } from '@/context/CurrencyContext';
 
 const geistSans = Geist({
@@ -87,12 +88,17 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  let messages: Record<string, unknown> = {};
+  let messages: Record<string, Record<string, string>>;
   try {
     const m = await getMessages();
-    messages = (m ?? {}) as Record<string, unknown>;
+    messages = (m ?? {}) as Record<string, Record<string, string>>;
   } catch (e) {
     console.error('[locale] layout getMessages error:', e);
+    try {
+      messages = await getFallbackMessages();
+    } catch {
+      messages = {};
+    }
   }
 
   return (

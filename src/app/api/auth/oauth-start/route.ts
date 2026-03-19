@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAdminClientSafe } from '@/utils/supabase/server'
 import { randomBytes, createHash } from 'crypto'
 import { randomUUID } from 'crypto'
-import { setVerifier } from '@/app/auth/oauth-verifier-store'
+import { setVerifier, setVerifierDb } from '@/app/auth/oauth-verifier-store'
 
 const PROVIDERS = ['google', 'apple', 'facebook'] as const
 type Provider = (typeof PROVIDERS)[number]
@@ -124,7 +124,12 @@ export async function GET(request: NextRequest) {
 
   const flowId = randomUUID()
   const { codeVerifier, codeChallenge: serverChallenge } = generateServerPkce()
-  setVerifier(flowId, codeVerifier)
+  const admin = getAdminClientSafe()
+  if (admin) {
+    await setVerifierDb(flowId, codeVerifier, admin)
+  } else {
+    setVerifier(flowId, codeVerifier)
+  }
 
   const supabase = await createClient()
   const options: Parameters<typeof supabase.auth.signInWithOAuth>[0]['options'] = {

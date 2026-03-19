@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { randomUUID } from 'crypto'
+import { getAdminClientSafe } from '@/utils/supabase/server'
 import { setPickupToken } from '../oauth-pickup-store'
-import { getAndDeleteVerifier } from '../oauth-verifier-store'
+import { getAndDeleteVerifier, getAndDeleteVerifierDb } from '../oauth-verifier-store'
 import type { StoredCookie } from '../oauth-pickup-store'
 
 const LOCALE_COOKIE = 'mytripfy_oauth_locale'
@@ -49,8 +50,11 @@ export async function GET(request: Request) {
     return buildRedirect(false, locale, cookiesToSet, origin)
   }
 
-  // PKCE: verifier는 flow_id(서버 저장) 또는 쿠키에서. 있으면 첫 시도부터 사용해 한 번에 성공.
-  const verifierFromFlow = flowId ? getAndDeleteVerifier(flowId) : null
+  // PKCE: verifier는 flow_id(DB 또는 메모리) 또는 쿠키에서. 있으면 첫 시도부터 사용해 한 번에 성공.
+  const admin = getAdminClientSafe()
+  const verifierFromFlow = flowId
+    ? (admin ? await getAndDeleteVerifierDb(flowId, admin) : getAndDeleteVerifier(flowId))
+    : null
   const verifierFromCookie = cookieStore.get(PKCE_VERIFIER_COOKIE)?.value
   const verifier = verifierFromFlow ?? verifierFromCookie ?? null
 

@@ -143,10 +143,27 @@ export async function GET(request: NextRequest) {
 
   console.log('[oauth-start] supabase url:', data.url.slice(0, 80) + '…')
 
-  // 모바일 + Facebook: 새 창에 m.facebook.com/privacy/consent/gdp/ 가 뜨는 경우가 있음.
-  // meta refresh(0;url=외부)가 일부 모바일에서 새 탭으로 열리는 것으로 추정되어,
-  // 같은 탭 이동을 위해 HTTP 302 리다이렉트만 사용 (HTML/JS 없음).
+  // 모바일 + Facebook: 우리 → Supabase → Facebook 리다이렉트 체인에서 브라우저가 새 탭을 여는 경우가 있음.
+  // 서버에서 Supabase authorize URL을 fetch해 최종 Facebook URL을 받아, 사용자에게 우리 → Facebook 302 한 번만 보냄.
   if (provider === 'facebook' && mobile) {
+    try {
+      const authRes = await fetch(data.url, {
+        method: 'GET',
+        redirect: 'manual',
+        headers: { Accept: 'text/html,application/xhtml+xml' },
+      })
+      const location = authRes.headers.get('location')
+      const isRedirect = authRes.status >= 300 && authRes.status < 400
+      if (isRedirect && location && (location.includes('facebook.com') || location.includes('fb.com'))) {
+        const redirectUrl = location.startsWith('http') ? location : new URL(location, data.url).toString()
+        console.log('[oauth-start] mobile facebook: redirecting directly to provider:', redirectUrl.slice(0, 60) + '…')
+        const res = NextResponse.redirect(redirectUrl, 302)
+        setLocaleCookie(res, locale, origin)
+        return res
+      }
+    } catch (e) {
+      console.warn('[oauth-start] mobile facebook direct redirect failed, fallback to supabase url:', e)
+    }
     const res = NextResponse.redirect(data.url, 302)
     setLocaleCookie(res, locale, origin)
     return res

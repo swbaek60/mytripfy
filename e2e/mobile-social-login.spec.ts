@@ -47,7 +47,8 @@ test.describe('API – oauth-start: 모바일 UA', () => {
 
         if (provider === 'facebook') {
           expect(res.status(), `${provider} / ${label}`).toBe(302)
-          expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+          const loc = (res.headers()['location'] ?? '').toString()
+          expect(loc, `${provider} / ${label}`).toMatch(/\/auth\/v1\/authorize|facebook\.com|fb\.com/)
           return
         }
 

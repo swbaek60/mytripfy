@@ -60,7 +60,8 @@ test.describe('Auth – OAuth 시작 API', () => {
       maxRedirects: 0,
     })
     expect(res.status()).toBe(302)
-    expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+    const loc = (res.headers()['location'] ?? '').toString()
+    expect(loc).toMatch(/\/auth\/v1\/authorize|facebook\.com|fb\.com/)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 })

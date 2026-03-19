@@ -42,13 +42,14 @@ test.describe('API – 공개 엔드포인트', () => {
     expect(res.headers()['set-cookie']).toBeDefined()
   })
 
-  test('oauth-start?provider=facebook (모바일) → 302 redirect to Supabase', async ({ request }) => {
+  test('oauth-start?provider=facebook (모바일) → 302 redirect (Supabase 또는 Facebook 직접)', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
       maxRedirects: 0,
     })
     expect(res.status()).toBe(302)
-    expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+    const loc = (res.headers()['location'] ?? '').toString()
+    expect(loc).toMatch(/\/auth\/v1\/authorize|facebook\.com|fb\.com/)
     expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
   })
 

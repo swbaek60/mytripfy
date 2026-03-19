@@ -21,10 +21,11 @@ async function assertProviderHiddenInput(body: string, provider: string) {
   expect(body).toContain('name="redirect_to"')
 }
 
-/** 모바일 Facebook: 302 redirect (같은 탭 이동 유도) */
-function assertRedirectToSupabase(res: { status: () => number; headers: () => Record<string, string> }) {
+/** 모바일 Facebook: 302 redirect (Supabase 또는 Facebook 직접, 같은 탭 이동 유도) */
+function assertRedirectToSupabaseOrFacebook(res: { status: () => number; headers: () => Record<string, string> }) {
   expect(res.status()).toBe(302)
-  expect((res.headers()['location'] ?? '').toString()).toMatch(/\/auth\/v1\/authorize/i)
+  const loc = (res.headers()['location'] ?? '').toString()
+  expect(loc).toMatch(/\/auth\/v1\/authorize|facebook\.com|fb\.com/)
   expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
 }
 
@@ -71,7 +72,7 @@ test.describe('OAuth start API – provider hidden input 검증', () => {
       headers: { 'User-Agent': MOBILE_UA_IPHONE },
       maxRedirects: 0,
     })
-    assertRedirectToSupabase(res)
+    assertRedirectToSupabaseOrFacebook(res)
   })
 
   test('갤럭시 S25 Chrome (모바일) facebook → 302 redirect', async ({ request }) => {
@@ -79,7 +80,7 @@ test.describe('OAuth start API – provider hidden input 검증', () => {
       headers: { 'User-Agent': MOBILE_UA_GALAXY },
       maxRedirects: 0,
     })
-    assertRedirectToSupabase(res)
+    assertRedirectToSupabaseOrFacebook(res)
   })
 
   test('갤럭시 S25 Chrome (모바일) google → 200 + provider hidden input', async ({ request }) => {

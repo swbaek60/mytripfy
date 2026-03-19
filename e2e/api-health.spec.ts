@@ -1,6 +1,6 @@
 /**
  * API Health: 주요 GET 엔드포인트 검증.
- * oauth-start: 모든 환경에서 200 HTML + form submit.
+ * oauth-start: (google/apple) 200 HTML + form submit, (facebook 모바일) 307 redirect.
  * 핵심: form method="GET"은 action URL 쿼리를 무시하므로
  *       쿼리 파라미터를 hidden input으로 분해해 전달하는지 검증.
  */
@@ -42,12 +42,15 @@ test.describe('API – 공개 엔드포인트', () => {
     expect(res.headers()['set-cookie']).toBeDefined()
   })
 
-  test('oauth-start?provider=facebook (모바일) → 200 + provider hidden input', async ({ request }) => {
+  test('oauth-start?provider=facebook (모바일) → 307 redirect to Supabase authorize', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA },
+      maxRedirects: 0,
     })
-    expect(res.status()).toBe(200)
-    await assertOAuthForm(await res.text(), 'facebook')
+    expect(res.status()).toBe(307)
+    expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+    // redirect 응답에서도 locale 쿠키가 설정돼야 함
+    expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
   })
 
   test('oauth-start?provider=google (데스크톱) → 200 + provider hidden input', async ({ request }) => {

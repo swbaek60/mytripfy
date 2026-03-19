@@ -21,6 +21,12 @@ async function assertProviderHiddenInput(body: string, provider: string) {
   expect(body).toContain('name="redirect_to"')
 }
 
+function assertRedirectToSupabaseAuthorize(res: any) {
+  expect(res.status()).toBe(307)
+  expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+  expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
+}
+
 test.describe('Facebook login UI', () => {
   test('버튼 클릭 시 새 창 없이 같은 탭에서만 이동한다', async ({ page, context }) => {
     await page.goto('/en/login')
@@ -47,22 +53,20 @@ test.describe('Facebook login UI', () => {
 })
 
 test.describe('OAuth start API – provider hidden input 검증', () => {
-  test('iPhone Safari (모바일) facebook → 200 + provider hidden input + locale 쿠키', async ({ request }) => {
+  test('iPhone Safari (모바일) facebook → 307 redirect + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
       headers: { 'User-Agent': MOBILE_UA_IPHONE },
+      maxRedirects: 0,
     })
-    expect(res.status()).toBe(200)
-    await assertProviderHiddenInput(await res.text(), 'facebook')
-    expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
+    assertRedirectToSupabaseAuthorize(res)
   })
 
-  test('갤럭시 S25 Chrome (모바일) facebook → 200 + provider hidden input', async ({ request }) => {
+  test('갤럭시 S25 Chrome (모바일) facebook → 307 redirect', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA_GALAXY },
+      maxRedirects: 0,
     })
-    expect(res.status()).toBe(200)
-    await assertProviderHiddenInput(await res.text(), 'facebook')
-    expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
+    assertRedirectToSupabaseAuthorize(res)
   })
 
   test('갤럭시 S25 Chrome (모바일) google → 200 + provider hidden input', async ({ request }) => {

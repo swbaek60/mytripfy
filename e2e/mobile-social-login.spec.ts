@@ -1,6 +1,7 @@
 /**
  * 모바일 소셜 로그인 E2E 테스트
- * - 모바일/데스크톱 모두 oauth-start는 200 HTML + form submit
+ * - 모바일에서 google/apple은 200 HTML + form submit
+ * - 모바일에서 facebook은 307 redirect (모바일 새 탭 이슈 대응)
  * - 각종 모바일 브라우저(Chrome/Firefox/Safari/Samsung) 뷰포트에서 버튼 클릭 시 새 창 없음 검증
  */
 import { test, expect } from '@playwright/test'
@@ -28,15 +29,28 @@ const DESKTOP_UAS = [
 ]
 
 // ──────────────────────────────────────────────
-// API: 모바일 → 302, 데스크톱 → 200 HTML + form
+// API: 모바일 UA
+// - google/apple: 200 HTML + provider hidden input
+// - facebook: 307 redirect(새 탭/팝업 이슈 대응)
 // ──────────────────────────────────────────────
-test.describe('API – oauth-start: 모바일 UA는 200 HTML + provider hidden input', () => {
+test.describe('API – oauth-start: 모바일 UA', () => {
   for (const provider of ['google', 'facebook', 'apple'] as const) {
     for (const { label, ua } of MOBILE_UAS) {
-      test(`[${provider}] ${label} → 200 + provider="${provider}" hidden input`, async ({ request }) => {
+      test(`[${provider}] ${label} → 네비게이션 방식 검증`, async ({ request }) => {
         const res = await request.get(`/api/auth/oauth-start?provider=${provider}&locale=en`, {
           headers: { 'User-Agent': ua },
+          maxRedirects: 0,
         })
+
+        // locale 쿠키는 공통으로 설정돼야 함
+        expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
+
+        if (provider === 'facebook') {
+          expect(res.status(), `${provider} / ${label}`).toBe(307)
+          expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+          return
+        }
+
         expect(res.status(), `${provider} / ${label}`).toBe(200)
         const body = await res.text()
         // form 존재 확인
@@ -46,7 +60,6 @@ test.describe('API – oauth-start: 모바일 UA는 200 HTML + provider hidden i
         // provider가 hidden input으로 분해됐는지 확인 (form GET 쿼리 누락 방지)
         expect(body).toContain(`name="provider" value="${provider}"`)
         expect(body).toContain('name="code_challenge"')
-        expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
       })
     }
   }

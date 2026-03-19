@@ -27,6 +27,12 @@ function esc(s: string) {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+function isMobileUserAgent(ua: string) {
+  // 모바일 브라우저에서 OAuth 이동 시 새 탭/팝업으로 취급되는 케이스가 있어,
+  // 특정 흐름을 모바일에서만 다르게 처리합니다.
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua)
+}
+
 /**
  * Supabase authorize URL의 쿼리 파라미터를 모두 hidden input으로 분해해 form에 넣습니다.
  *
@@ -105,6 +111,8 @@ export async function GET(request: NextRequest) {
   const provider = providerRaw.trim().toLowerCase() as Provider | ''
   const locale = (searchParams.get('locale') ?? 'en').trim() || 'en'
   const origin = getOrigin()
+  const ua = request.headers.get('user-agent') ?? ''
+  const mobile = isMobileUserAgent(ua)
 
   // 서버 로그: 실제로 어떤 값이 들어오는지 확인
   console.log('[oauth-start] provider=%o locale=%o url=%s', provider, locale, request.url)
@@ -134,6 +142,14 @@ export async function GET(request: NextRequest) {
   }
 
   console.log('[oauth-start] supabase url:', data.url.slice(0, 80) + '…')
+
+  // 모바일 + Facebook에서만 "200 HTML + JS submit" 방식이 새 탭으로 취급되는 케이스가 보고됨.
+  // 이 경우 form.submit() 대신 HTTP Redirect로 즉시 이동해 같은 탭 네비게이션으로 유도합니다.
+  if (provider === 'facebook' && mobile) {
+    const res = NextResponse.redirect(data.url, 307)
+    setLocaleCookie(res, locale, origin)
+    return res
+  }
 
   const html = buildHtmlRedirect(data.url)
   const res = new NextResponse(html, {

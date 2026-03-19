@@ -39,12 +39,13 @@ test.describe('Auth – OAuth 시작 API', () => {
     expect(res.headers()['location']).toMatch(/login.*Invalid|Invalid.*provider/)
   })
 
-  test('모바일 UA 시 200 HTML과 locale 쿠키를 반환한다', async ({ request }) => {
+  test('모바일 UA 시 307 redirect와 locale 쿠키를 반환한다', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; wv) Chrome/131.0.0.0 Mobile Safari/537.36' },
+      maxRedirects: 0,
     })
-    expect(res.status()).toBe(200)
-    expect(await res.text()).toContain('form')
+    expect(res.status()).toBe(307)
+    expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
 })

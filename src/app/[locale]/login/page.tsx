@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { login, signup } from './actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -5,6 +6,10 @@ import Logo from '@/components/Logo'
 import LoginInAppGate from './LoginInAppGate'
 import SocialLoginButtons from './SocialLoginButtons'
 import { getTranslations } from 'next-intl/server'
+
+function isMobileUserAgent(ua: string) {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua)
+}
 
 export default async function LoginPage({
   params,
@@ -16,6 +21,9 @@ export default async function LoginPage({
   const { locale } = await params
   const { message } = await searchParams
   const t = await getTranslations({ locale, namespace: 'Auth' })
+  const headersList = await headers()
+  const ua = headersList.get('user-agent') ?? ''
+  const isMobile = isMobileUserAgent(ua)
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-12">
@@ -35,7 +43,7 @@ export default async function LoginPage({
             <div className="px-8 py-8 space-y-5">
 
               {/* ── Social Login Buttons ── */}
-              <SocialLoginButtons locale={locale} />
+              <SocialLoginButtons locale={locale} isMobile={isMobile} />
 
             {/* Divider */}
             <div className="flex items-center gap-3">

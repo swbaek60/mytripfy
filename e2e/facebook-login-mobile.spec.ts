@@ -21,16 +21,20 @@ async function assertProviderHiddenInput(body: string, provider: string) {
   expect(body).toContain('name="redirect_to"')
 }
 
-function assertRedirectToSupabaseAuthorize(res: any) {
-  expect(res.status()).toBe(307)
-  expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
+/** 모바일 Facebook: 302 redirect (같은 탭 이동 유도) */
+function assertRedirectToSupabase(res: { status: () => number; headers: () => Record<string, string> }) {
+  expect(res.status()).toBe(302)
+  expect((res.headers()['location'] ?? '').toString()).toMatch(/\/auth\/v1\/authorize/i)
   expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
 }
 
 test.describe('Facebook login UI', () => {
-  test('버튼 클릭 시 새 창 없이 같은 탭에서만 이동한다', async ({ page, context }) => {
+  test('Facebook 클릭 시 새 창 없이 같은 탭에서만 이동한다', async ({ page, context }) => {
     await page.goto('/en/login')
-    const btn = page.getByRole('button', { name: /continue with facebook/i })
+    // 데스크톱: button, 모바일: link
+    const btn = page.getByRole('button', { name: /continue with facebook/i }).or(
+      page.getByRole('link', { name: /continue with facebook/i })
+    )
     await expect(btn).toBeVisible()
 
     let popupOpened = false
@@ -43,30 +47,39 @@ test.describe('Facebook login UI', () => {
     expect(context.pages().length, '페이지 1개만 유지').toBe(1)
   })
 
-  test('다른 locale 로그인 페이지에서 form에 locale이 포함된다', async ({ page }) => {
+  test('다른 locale 로그인 페이지에서 Facebook에 locale이 포함된다', async ({ page }) => {
     await page.goto('/ko/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
-    await expect(form.locator('input[name=locale]')).toHaveValue('ko')
-    await expect(form).toHaveAttribute('action', /oauth-start/)
-    await expect(form).toHaveAttribute('target', '_self')
+    await expect(page.getByText(/continue with facebook/i).first()).toBeVisible()
+    const form = page.locator('form').filter({ has: page.locator('input[name=provider][value=facebook]') })
+    const link = page.locator('a[href*="provider=facebook"]')
+    const hasForm = (await form.count()) > 0
+    const hasLink = (await link.count()) > 0
+    expect(hasForm || hasLink).toBe(true)
+    if (hasForm) {
+      await expect(form.first().locator('input[name=locale]')).toHaveValue('ko')
+      await expect(form.first()).toHaveAttribute('action', /oauth-start/)
+    }
+    if (hasLink) {
+      await expect(link.first()).toHaveAttribute('href', /locale=ko/)
+    }
   })
 })
 
 test.describe('OAuth start API – provider hidden input 검증', () => {
-  test('iPhone Safari (모바일) facebook → 307 redirect + locale 쿠키', async ({ request }) => {
+  test('iPhone Safari (모바일) facebook → 302 redirect + locale 쿠키', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
       headers: { 'User-Agent': MOBILE_UA_IPHONE },
       maxRedirects: 0,
     })
-    assertRedirectToSupabaseAuthorize(res)
+    assertRedirectToSupabase(res)
   })
 
-  test('갤럭시 S25 Chrome (모바일) facebook → 307 redirect', async ({ request }) => {
+  test('갤럭시 S25 Chrome (모바일) facebook → 302 redirect', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=en', {
       headers: { 'User-Agent': MOBILE_UA_GALAXY },
       maxRedirects: 0,
     })
-    assertRedirectToSupabaseAuthorize(res)
+    assertRedirectToSupabase(res)
   })
 
   test('갤럭시 S25 Chrome (모바일) google → 200 + provider hidden input', async ({ request }) => {
@@ -92,7 +105,9 @@ test.describe('모바일 뷰포트 (갤럭시 등)', () => {
 
   test('Facebook 버튼 탭 시 새 창이 열리지 않는다', async ({ page, context }) => {
     await page.goto('/en/login')
-    const btn = page.getByRole('button', { name: /continue with facebook/i })
+    const btn = page.getByRole('button', { name: /continue with facebook/i }).or(
+      page.getByRole('link', { name: /continue with facebook/i })
+    )
     await expect(btn).toBeVisible()
 
     const pageCountBefore = context.pages().length

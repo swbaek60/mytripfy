@@ -9,16 +9,31 @@ test.describe('Auth – 로그인 페이지', () => {
   test('로그인 페이지에 이메일·소셜 요소가 표시된다', async ({ page }) => {
     await page.goto(`/${LOCALE}/login`)
     await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
+    // Facebook: 데스크톱은 button, 모바일은 link
+    await expect(
+      page.getByRole('button', { name: /continue with facebook/i }).or(
+        page.getByRole('link', { name: /continue with facebook/i })
+      )
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: /continue with apple/i })).toBeVisible()
     await expect(page.getByPlaceholder(/email|@/i)).toBeVisible()
     await expect(page.getByPlaceholder(/password|•••/i)).toBeVisible()
   })
 
-  test('다른 locale(ko) 로그인 페이지에서 form에 locale=ko가 포함된다', async ({ page }) => {
+  test('다른 locale(ko) 로그인 페이지에서 Facebook에 locale=ko가 포함된다', async ({ page }) => {
     await page.goto('/ko/login')
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
-    await expect(form.locator('input[name=locale]')).toHaveValue('ko')
+    await expect(page.getByText(/continue with facebook/i).first()).toBeVisible()
+    const form = page.locator('form').filter({ has: page.locator('input[name=provider][value=facebook]') })
+    const link = page.locator('a[href*="provider=facebook"]')
+    const hasForm = (await form.count()) > 0
+    const hasLink = (await link.count()) > 0
+    expect(hasForm || hasLink).toBe(true)
+    if (hasForm) {
+      await expect(form.first().locator('input[name=locale]')).toHaveValue('ko')
+    }
+    if (hasLink) {
+      await expect(link.first()).toHaveAttribute('href', /locale=ko/)
+    }
   })
 })
 
@@ -39,12 +54,12 @@ test.describe('Auth – OAuth 시작 API', () => {
     expect(res.headers()['location']).toMatch(/login.*Invalid|Invalid.*provider/)
   })
 
-  test('모바일 UA 시 307 redirect와 locale 쿠키를 반환한다', async ({ request }) => {
+  test('모바일 UA 시 302 redirect와 locale 쿠키를 반환한다', async ({ request }) => {
     const res = await request.get('/api/auth/oauth-start?provider=facebook&locale=ko', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 15; wv) Chrome/131.0.0.0 Mobile Safari/537.36' },
       maxRedirects: 0,
     })
-    expect(res.status()).toBe(307)
+    expect(res.status()).toBe(302)
     expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
     expect(res.headers()['set-cookie']).toContain('mytripfy_oauth_locale')
   })
@@ -55,7 +70,10 @@ test.describe('Auth – 소셜 버튼 클릭 시 새 창 미오픈', () => {
     await page.goto(`/${LOCALE}/login`)
     let popupOpened = false
     context.on('page', () => { popupOpened = true })
-    await page.getByRole('button', { name: /continue with facebook/i }).click()
+    const fb = page.getByRole('button', { name: /continue with facebook/i }).or(
+      page.getByRole('link', { name: /continue with facebook/i })
+    )
+    await fb.click()
     await page.waitForTimeout(2000)
     expect(popupOpened).toBe(false)
     expect(context.pages().length).toBe(1)

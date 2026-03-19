@@ -1,7 +1,7 @@
 /**
  * 모바일 소셜 로그인 E2E 테스트
  * - 모바일에서 google/apple은 200 HTML + form submit
- * - 모바일에서 facebook은 307 redirect (모바일 새 탭 이슈 대응)
+ * - 모바일에서 facebook은 302 redirect (같은 탭 이동 유도)
  * - 각종 모바일 브라우저(Chrome/Firefox/Safari/Samsung) 뷰포트에서 버튼 클릭 시 새 창 없음 검증
  */
 import { test, expect } from '@playwright/test'
@@ -31,7 +31,7 @@ const DESKTOP_UAS = [
 // ──────────────────────────────────────────────
 // API: 모바일 UA
 // - google/apple: 200 HTML + provider hidden input
-// - facebook: 307 redirect(새 탭/팝업 이슈 대응)
+// - facebook: 302 redirect
 // ──────────────────────────────────────────────
 test.describe('API – oauth-start: 모바일 UA', () => {
   for (const provider of ['google', 'facebook', 'apple'] as const) {
@@ -46,7 +46,7 @@ test.describe('API – oauth-start: 모바일 UA', () => {
         expect((res.headers()['set-cookie'] ?? '').toString()).toContain('mytripfy_oauth_locale')
 
         if (provider === 'facebook') {
-          expect(res.status(), `${provider} / ${label}`).toBe(307)
+          expect(res.status(), `${provider} / ${label}`).toBe(302)
           expect(res.headers()['location']).toMatch(/\/auth\/v1\/authorize/i)
           return
         }
@@ -114,7 +114,9 @@ test.describe('모바일 UI – 소셜 버튼 클릭 시 새 창 없음', () => 
   for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
     test(`[iPhone Safari] ${provider} 버튼 탭 → 새 창 없음`, async ({ page, context }) => {
       await page.goto('/en/login')
-      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
+      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') }).or(
+        page.getByRole('link', { name: new RegExp(`continue with ${provider}`, 'i') })
+      )
       await expect(btn).toBeVisible()
 
       let popupOpened = false
@@ -139,7 +141,9 @@ test.describe('Android Chrome UI – 소셜 버튼 클릭 시 새 창 없음', (
   for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
     test(`[Android Chrome] ${provider} 버튼 탭 → 새 창 없음`, async ({ page, context }) => {
       await page.goto('/en/login')
-      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
+      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') }).or(
+        page.getByRole('link', { name: new RegExp(`continue with ${provider}`, 'i') })
+      )
       await expect(btn).toBeVisible()
 
       let popupOpened = false
@@ -164,7 +168,9 @@ test.describe('Samsung Browser UI – 소셜 버튼 클릭 시 새 창 없음', 
   for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
     test(`[Samsung Browser] ${provider} 버튼 탭 → 새 창 없음`, async ({ page, context }) => {
       await page.goto('/en/login')
-      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
+      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') }).or(
+        page.getByRole('link', { name: new RegExp(`continue with ${provider}`, 'i') })
+      )
       await expect(btn).toBeVisible()
 
       let popupOpened = false
@@ -189,7 +195,9 @@ test.describe('Android Firefox UI – 소셜 버튼 클릭 시 새 창 없음', 
   for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
     test(`[Android Firefox] ${provider} 버튼 탭 → 새 창 없음`, async ({ page, context }) => {
       await page.goto('/en/login')
-      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
+      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') }).or(
+        page.getByRole('link', { name: new RegExp(`continue with ${provider}`, 'i') })
+      )
       await expect(btn).toBeVisible()
 
       let popupOpened = false
@@ -213,7 +221,12 @@ test.describe('데스크톱 UI – 소셜 버튼 클릭 시 새 창 없음', () 
   for (const provider of ['Google', 'Apple', 'Facebook'] as const) {
     test(`[Desktop] ${provider} 버튼 클릭 → 새 창 없음`, async ({ page, context }) => {
       await page.goto('/en/login')
-      const btn = page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
+      // Facebook: 서버가 모바일로 인식하면 link로 렌더됨
+      const btn = provider === 'Facebook'
+        ? page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') }).or(
+            page.getByRole('link', { name: new RegExp(`continue with ${provider}`, 'i') })
+          )
+        : page.getByRole('button', { name: new RegExp(`continue with ${provider}`, 'i') })
       await expect(btn).toBeVisible()
 
       let popupOpened = false
@@ -232,18 +245,34 @@ test.describe('데스크톱 UI – 소셜 버튼 클릭 시 새 창 없음', () 
 // 로그인 페이지 – 소셜 form (target=_self, 같은 창)
 // ──────────────────────────────────────────────
 test.describe('로그인 페이지 – 소셜 form', () => {
-  test('Google/Apple/Facebook form: action=oauth-start, target=_self', async ({ page }) => {
+  test('Google/Apple/Facebook: oauth-start 연결 및 target=_self', async ({ page }) => {
     await page.goto('/en/login')
-    for (const name of [/continue with google/i, /continue with apple/i, /continue with facebook/i]) {
+    for (const name of [/continue with google/i, /continue with apple/i]) {
       const form = page.locator('form').filter({ has: page.getByRole('button', { name }) })
       await expect(form).toHaveAttribute('action', /oauth-start/)
       await expect(form).toHaveAttribute('target', '_self')
+    }
+    // Facebook: 데스크톱은 form, 모바일은 link
+    const fbForm = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
+    const fbLink = page.locator('a[href*="oauth-start"][href*="facebook"]')
+    const hasForm = (await fbForm.count()) > 0
+    const hasLink = (await fbLink.count()) > 0
+    expect(hasForm || hasLink).toBe(true)
+    if (hasForm) {
+      await expect(fbForm.first()).toHaveAttribute('action', /oauth-start/)
+      await expect(fbForm.first()).toHaveAttribute('target', '_self')
+    }
+    if (hasLink) {
+      await expect(fbLink.first()).toHaveAttribute('href', /oauth-start.*facebook/)
+      await expect(fbLink.first()).toHaveAttribute('target', '_self')
     }
   })
 
   test('Facebook 버튼 클릭 시 새 창 없이 같은 창에서만 이동', async ({ page, context }) => {
     await page.goto('/en/login')
-    const btn = page.getByRole('button', { name: /continue with facebook/i })
+    const btn = page.getByRole('button', { name: /continue with facebook/i }).or(
+      page.getByRole('link', { name: /continue with facebook/i })
+    )
     await expect(btn).toBeVisible()
     let popup = false
     context.on('page', () => { popup = true })

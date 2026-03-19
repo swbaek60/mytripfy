@@ -143,10 +143,11 @@ export async function GET(request: NextRequest) {
 
   console.log('[oauth-start] supabase url:', data.url.slice(0, 80) + '…')
 
-  // 모바일 + Facebook에서만 "200 HTML + JS submit" 방식이 새 탭으로 취급되는 케이스가 보고됨.
-  // 이 경우 form.submit() 대신 HTTP Redirect로 즉시 이동해 같은 탭 네비게이션으로 유도합니다.
+  // 모바일 + Facebook: 새 창에 m.facebook.com/privacy/consent/gdp/ 가 뜨는 경우가 있음.
+  // meta refresh(0;url=외부)가 일부 모바일에서 새 탭으로 열리는 것으로 추정되어,
+  // 같은 탭 이동을 위해 HTTP 302 리다이렉트만 사용 (HTML/JS 없음).
   if (provider === 'facebook' && mobile) {
-    const res = NextResponse.redirect(data.url, 307)
+    const res = NextResponse.redirect(data.url, 302)
     setLocaleCookie(res, locale, origin)
     return res
   }

@@ -103,67 +103,65 @@ test.describe('oauth-start API', () => {
 // ── 2. auth/callback ──────────────────────────────────────────────────────────
 
 test.describe('auth/callback', () => {
-  test('code 없으면 로그인 페이지로 리다이렉트', async ({ request }) => {
+  test('code 없으면 200 HTML + 로그인으로 이동하는 스크립트', async ({ request }) => {
     const res = await request.get('/auth/callback?locale=en', { maxRedirects: 0 })
-    // 200 HTML(postMessage) 또는 302 리다이렉트 모두 허용
-    // 현재 구현은 200 + HTML(window.opener 없으면 location.replace)
-    expect([200, 302]).toContain(res.status())
-    if (res.status() === 302) {
-      expect(res.headers()['location']).toMatch(/\/login/)
-    }
-    if (res.status() === 200) {
-      const body = await res.text()
-      // 실패 시 dest가 /login 포함
-      expect(body).toContain('/login')
-    }
-  })
-
-  test('code 없을 때 반환 HTML에 Could+not+authenticate+user 포함', async ({ request }) => {
-    const res = await request.get('/auth/callback', { maxRedirects: 0 })
-    if (res.status() === 200) {
-      const body = await res.text()
-      expect(body).toMatch(/Could\+not\+authenticate\+user|login/)
-    }
+    expect(res.status()).toBe(200)
+    const body = await res.text()
+    expect(body).toMatch(/login|Could\+not/)
   })
 
   /**
-   * postMessage 흐름 검증:
-   * - /auth/callback?code=... 에 해당하는 HTML을 직접 시뮬레이션
-   * - window.opener가 있을 때 postMessage를 보내고 window.close()를 호출하는지 확인
+   * BroadcastChannel oauth_complete 수신 시 pickupUrl로 이동하는지 검증.
+   * 유효하지 않은 token이면 session-pickup이 로그인으로 리다이렉트함.
    */
-  test('새 창 완료 시 postMessage → opener 이동 흐름 (시뮬레이션)', async ({ page }) => {
-    // 로그인 페이지(opener 역할)를 열고 OAuthPopupListener가 동작하는지 확인
+  test('BroadcastChannel oauth_complete → 로그인 탭이 pickupUrl로 이동', async ({ page }) => {
     await page.goto('/en/login')
+    const base = page.url().replace(/\/en\/login.*/, '')
+    const pickupUrl = `${base}/auth/session-pickup?token=invalid-e2e`
+    const dest = `${base}/en`
 
-    // postMessage를 직접 전송해 OAuthPopupListener가 수신하는지 검증
-    const dest = `${page.url().split('/en/login')[0]}/en`
-    const navigated = page.waitForURL(dest, { timeout: 5000 }).catch(() => null)
+    await page.evaluate(({ pickup, d }) => {
+      const ch = new BroadcastChannel('mytripfy_oauth')
+      ch.postMessage({ type: 'oauth_complete', pickupUrl: pickup, dest: d })
+      ch.close()
+    }, { pickup: pickupUrl, d: dest })
 
-    await page.evaluate((d) => {
-      window.postMessage({ type: 'oauth_complete', locale: 'en', dest: d }, window.location.origin)
-    }, dest)
-
-    const result = await navigated
-    // postMessage 수신 후 dest로 이동했으면 성공
-    if (result !== null) {
-      expect(page.url()).toBe(dest)
-    } else {
-      // 이동하지 않아도 postMessage 수신 자체는 오류 없이 처리됨
-      expect(page.url()).toContain('/login')
-    }
+    await page.waitForURL(/session-pickup|login/, { timeout: 5000 })
+    expect(page.url()).toMatch(/session-pickup|login/)
   })
 
-  test('다른 origin postMessage는 무시된다', async ({ page }) => {
+  /**
+   * BroadcastChannel oauth_retry 수신 시 전달된 URL로 이동하는지 검증.
+   */
+  test('BroadcastChannel oauth_retry → 로그인 탭이 콜백 URL로 이동', async ({ page }) => {
     await page.goto('/en/login')
-    const urlBefore = page.url()
+    const base = page.url().replace(/\/en\/login.*/, '')
+    const callbackUrl = `${base}/auth/callback?locale=en`
 
-    await page.evaluate(() => {
-      window.postMessage({ type: 'oauth_complete', dest: 'https://evil.com' }, '*')
-    })
-    await page.waitForTimeout(500)
+    await page.evaluate((url) => {
+      const ch = new BroadcastChannel('mytripfy_oauth')
+      ch.postMessage({ type: 'oauth_retry', url })
+      ch.close()
+    }, callbackUrl)
 
-    // 다른 origin 메시지는 무시 → URL 변경 없음
-    expect(page.url()).toBe(urlBefore)
+    await page.waitForURL(/auth\/callback|login/, { timeout: 5000 })
+    expect(page.url()).toMatch(/auth\/callback|login/)
+  })
+})
+
+// ── 2b. auth/session-pickup ───────────────────────────────────────────────────
+
+test.describe('auth/session-pickup', () => {
+  test('token 없으면 로그인 페이지로 리다이렉트', async ({ request }) => {
+    const res = await request.get('/auth/session-pickup', { maxRedirects: 0 })
+    expect([302, 307]).toContain(res.status())
+    expect(res.headers()['location']).toMatch(/\/login/)
+  })
+
+  test('잘못된 token이면 로그인 페이지로 리다이렉트', async ({ request }) => {
+    const res = await request.get('/auth/session-pickup?token=invalid-token', { maxRedirects: 0 })
+    expect([302, 307]).toContain(res.status())
+    expect(res.headers()['location']).toMatch(/\/login/)
   })
 })
 

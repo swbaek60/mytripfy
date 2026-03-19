@@ -2,6 +2,7 @@ import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import Header from '@/components/Header'
 import { createClient } from '@/utils/supabase/server'
+import type { User } from '@supabase/supabase-js'
 import Logo from '@/components/Logo'
 import { getCountryByCode, getLevelInfo } from '@/data/countries'
 import HomeSearch from '@/components/HomeSearch'
@@ -22,57 +23,89 @@ export default async function Home({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  const [h, s] = await Promise.all([
-    getTranslations({ locale, namespace: 'Hero' }),
-    getTranslations({ locale, namespace: 'HomeSection' }),
-  ])
+  let user: User | null = null
+  let postCount = 0
+  let guideCount = 0
+  type PostRow = { id: string; destination_country: string; destination_city?: string | null; title: string; start_date: string; end_date: string; profiles: Record<string, unknown> }
+  type GuideRow = { id: string; full_name: string | null; avatar_url: string | null; nationality?: string | null; travel_level?: number; trust_score?: number; guide_hourly_rate?: number }
+  type GuideRequestRow = { id: string; title: string; destination_country: string; start_date: string; end_date: string; profiles: Record<string, unknown> }
+  type LeaderboardRow = { id: string; full_name: string | null; avatar_url: string | null; total_points?: number }
+  let recentPosts: PostRow[] | null = null
+  let companionCountryRows: { destination_country: string | null }[] | null = null
+  let topGuides: GuideRow[] | null = null
+  let recentGuideRequests: GuideRequestRow[] | null = null
+  let hallOfFameTop5: LeaderboardRow[] | null = null
+  let h: (key: string) => string
+  let s: (key: string) => string
 
-  const today = new Date().toISOString().split('T')[0]
+  try {
+    const supabase = await createClient()
+    const { data: { user: u } } = await supabase.auth.getUser()
+    user = u ?? null
 
-  const [
-    { count: postCount },
-    { count: guideCount },
-    { data: recentPosts },
-    { data: companionCountryRows },
-    { data: topGuides },
-    { data: recentGuideRequests },
-    { data: hallOfFameTop5 },
-  ] = await Promise.all([
-    supabase.from('companion_posts').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_guide', true),
-    supabase
-      .from('companion_posts')
-      .select('*, profiles(id, full_name, avatar_url, travel_level, trust_score, nationality)')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-      .limit(6),
-    supabase
-      .from('companion_posts')
-      .select('destination_country')
-      .eq('status', 'open')
-      .gte('end_date', today)
-      .not('destination_country', 'is', null),
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_guide', true)
-      .order('trust_score', { ascending: false })
-      .limit(4),
-    supabase
-      .from('guide_requests')
-      .select('*, profiles(id, full_name, avatar_url, nationality)')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-      .limit(4),
-    supabase
-      .from('overall_leaderboard')
-      .select('id, full_name, avatar_url, total_points')
-      .order('total_points', { ascending: false })
-      .limit(5),
-  ])
+    const [heroT, sectionT] = await Promise.all([
+      getTranslations({ locale, namespace: 'Hero' }),
+      getTranslations({ locale, namespace: 'HomeSection' }),
+    ])
+    h = heroT
+    s = sectionT
+
+    const today = new Date().toISOString().split('T')[0]
+
+    const [
+      { count: pc },
+      { count: gc },
+      { data: rp },
+      { data: ccr },
+      { data: tg },
+      { data: rgr },
+      { data: hf5 },
+    ] = await Promise.all([
+      supabase.from('companion_posts').select('*', { count: 'exact', head: true }),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_guide', true),
+      supabase
+        .from('companion_posts')
+        .select('*, profiles(id, full_name, avatar_url, travel_level, trust_score, nationality)')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(6),
+      supabase
+        .from('companion_posts')
+        .select('destination_country')
+        .eq('status', 'open')
+        .gte('end_date', today)
+        .not('destination_country', 'is', null),
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_guide', true)
+        .order('trust_score', { ascending: false })
+        .limit(4),
+      supabase
+        .from('guide_requests')
+        .select('*, profiles(id, full_name, avatar_url, nationality)')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(4),
+      supabase
+        .from('overall_leaderboard')
+        .select('id, full_name, avatar_url, total_points')
+        .order('total_points', { ascending: false })
+        .limit(5),
+    ])
+    postCount = pc ?? 0
+    guideCount = gc ?? 0
+    recentPosts = rp as PostRow[] | null
+    companionCountryRows = ccr as { destination_country: string | null }[] | null
+    topGuides = tg as GuideRow[] | null
+    recentGuideRequests = rgr as GuideRequestRow[] | null
+    hallOfFameTop5 = hf5 as LeaderboardRow[] | null
+  } catch (err) {
+    console.error('Home page data fetch error:', err)
+    h = (key: string) => key
+    s = (key: string) => key
+  }
 
   // Popular Destinations: Find Companions 글 많은 순으로 국가 정렬 (상위 8개, 부족하면 fallback으로 채움)
   const countByCountry = new Map<string, number>()
@@ -335,9 +368,9 @@ export default async function Home({
                           {levelInfo.badge} Lv.{levelInfo.level}
                         </span>
                       </div>
-                      {guide.trust_score > 0 && (
+                      {(guide.trust_score ?? 0) > 0 && (
                         <div className="text-xs text-yellow-500 mt-1.5 font-semibold">
-                          {'★'.repeat(Math.round(guide.trust_score))} {Number(guide.trust_score).toFixed(1)}
+                          {'★'.repeat(Math.round(guide.trust_score ?? 0))} {Number(guide.trust_score ?? 0).toFixed(1)}
                         </div>
                       )}
                     </div>

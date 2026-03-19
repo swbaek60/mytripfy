@@ -82,12 +82,18 @@ export default async function LocaleLayout({
   params: Promise<{locale: string}>;
 }) {
   const {locale} = await params;
-  
+
   if (!routing.locales.includes(locale as any)) {
     notFound();
   }
- 
-  const messages = await getMessages();
+
+  let messages: Record<string, unknown> = {};
+  try {
+    const m = await getMessages();
+    messages = (m ?? {}) as Record<string, unknown>;
+  } catch (e) {
+    console.error('[locale] layout getMessages error:', e);
+  }
 
   return (
     <div

@@ -16,7 +16,14 @@ export default function SocialLoginButtons({ locale }: { locale: string }) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>, provider: string) {
     e.preventDefault()
     try {
-      const { codeChallenge } = await createAndStorePkce()
+      const { codeChallenge, codeVerifier } = await createAndStorePkce()
+      // 쿠키에도 저장: 콜백이 새 탭이어도 같은 브라우저면 쿠키가 전송됨
+      await fetch('/api/auth/set-pkce-cookie', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code_verifier: codeVerifier }),
+      })
       const params = new URLSearchParams({
         provider,
         locale,

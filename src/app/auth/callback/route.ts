@@ -6,6 +6,7 @@ import { setPickupToken } from '../oauth-pickup-store'
 import type { StoredCookie } from '../oauth-pickup-store'
 
 const LOCALE_COOKIE = 'mytripfy_oauth_locale'
+const PKCE_VERIFIER_COOKIE = 'mytripfy_pkce_verifier'
 const BROADCAST_CHANNEL = 'mytripfy_oauth'
 
 export async function GET(request: Request) {
@@ -39,19 +40,33 @@ export async function GET(request: Request) {
     return buildRedirect(false, locale, cookiesToSet, origin)
   }
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  let data: { user: unknown } | null = null
+  let error: unknown = null
+  const first = await supabase.auth.exchangeCodeForSession(code)
+  data = first.data
+  error = first.error
 
-  if (error || !data.user) {
-    // 모바일에서 새 탭에선 code_verifier 쿠키가 없어 exchange가 실패할 수 있음.
-    // BroadcastChannel로 opener에 "이 콜백 URL로 이동하라"고 보내면,
-    // opener(로그인 탭)가 그 URL로 이동해 재시도하고, 그 탭에는 verifier가 있어 성공함.
+  if (error || !data?.user) {
+    // 모바일 새 탭: 우리가 설정한 PKCE verifier 쿠키가 있으면 그걸로 exchange 시도
+    const verifierFromCookie = cookieStore.get(PKCE_VERIFIER_COOKIE)?.value
+    if (verifierFromCookie) {
+      const second = await (supabase.auth as { exchangeCodeForSession: (a: string, b?: string) => Promise<{ data: { user: unknown }; error: unknown }> }).exchangeCodeForSession(code, verifierFromCookie)
+      if (second.data?.user && !second.error) {
+        data = second.data
+        error = null
+      }
+    }
+  }
+
+  if (error || !data?.user) {
     return buildRetryHtml(url.toString(), locale, origin)
   }
 
+  const userId = (data as { user: { id: string } }).user.id
   await supabase
     .from('profiles')
     .update({ preferred_locale: locale, updated_at: new Date().toISOString() })
-    .eq('id', data.user.id)
+    .eq('id', userId)
 
   return buildRedirect(true, locale, cookiesToSet, origin)
 }
@@ -95,6 +110,7 @@ function buildRedirect(
     })
     applyCookies(res, cookiesToSet, isSecure, domain)
     res.cookies.set(LOCALE_COOKIE, '', { path: '/', maxAge: 0, secure: isSecure, sameSite: 'lax', ...(domain && { domain }) })
+    res.cookies.set(PKCE_VERIFIER_COOKIE, '', { path: '/', maxAge: 0, secure: isSecure, sameSite: 'lax', ...(domain && { domain }) })
     return res
   }
 

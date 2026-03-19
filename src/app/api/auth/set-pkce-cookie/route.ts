@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     httpOnly: true,
     secure: isSecure,
     sameSite: 'lax',
-    ...(domain && domain !== 'localhost' && { domain: `.${domain}` }),
+    ...(domain && { domain }),
   })
 
   return res

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { randomBytes, createHash } from 'crypto'
 
 const PROVIDERS = ['google', 'apple', 'facebook'] as const
 type Provider = (typeof PROVIDERS)[number]
 const LOCALE_COOKIE = 'mytripfy_oauth_locale'
+const PKCE_VERIFIER_COOKIE = 'mytripfy_pkce_verifier'
 
 function getOrigin() {
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
@@ -20,6 +22,21 @@ function setLocaleCookie(res: NextResponse, locale: string, origin: string) {
   res.cookies.set(LOCALE_COOKIE, encodeURIComponent(locale), {
     ...getCookieOpts(origin),
     maxAge: 300,
+  })
+}
+
+/** 서버에서 PKCE code_verifier + code_challenge 생성 (클라이언트가 안 보낸 경우용) */
+function generateServerPkce(): { codeVerifier: string; codeChallenge: string } {
+  const codeVerifier = randomBytes(32).toString('base64url')
+  const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url')
+  return { codeVerifier, codeChallenge }
+}
+
+function setPkceVerifierCookie(res: NextResponse, codeVerifier: string, origin: string) {
+  res.cookies.set(PKCE_VERIFIER_COOKIE, codeVerifier, {
+    ...getCookieOpts(origin),
+    maxAge: 300,
+    httpOnly: true,
   })
 }
 
@@ -85,9 +102,10 @@ export async function GET(request: NextRequest) {
   const providerRaw = searchParams.get('provider') ?? ''
   const provider = providerRaw.trim().toLowerCase() as Provider | ''
   const locale = (searchParams.get('locale') ?? 'en').trim() || 'en'
-  const codeChallenge = searchParams.get('code_challenge')?.trim() || null
-  const codeChallengeMethod = searchParams.get('code_challenge_method')?.trim() || 'S256'
   const origin = getOrigin()
+  // 쿠키는 실제 요청 Host 기준으로 설정 (www vs non-www 일치)
+  const requestHost = request.headers.get('host') || ''
+  const cookieOrigin = requestHost ? `${request.nextUrl.protocol}//${requestHost}` : origin
 
   if (!provider || !PROVIDERS.includes(provider)) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Invalid+provider`, 302)
@@ -108,19 +126,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  let finalUrl = data.url
-  if (codeChallenge) {
-    const u = new URL(finalUrl)
-    u.searchParams.set('code_challenge', codeChallenge)
-    u.searchParams.set('code_challenge_method', codeChallengeMethod)
-    finalUrl = u.toString()
-  }
+  // 항상 서버 PKCE 사용: 이 응답을 받는 탭에 verifier 쿠키가 설정되므로, 콜백이 새 탭이어도 같은 브라우저면 쿠키 전송됨
+  const { codeVerifier, codeChallenge: serverChallenge } = generateServerPkce()
+  const u = new URL(data.url)
+  u.searchParams.set('code_challenge', serverChallenge)
+  u.searchParams.set('code_challenge_method', 'S256')
+  const finalUrl = u.toString()
 
-  const html = buildOAuthRedirectHtml(finalUrl)
-  const res = new NextResponse(html, {
+  const res = new NextResponse(buildOAuthRedirectHtml(finalUrl), {
     status: 200,
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   })
   setLocaleCookie(res, locale, origin)
+  setPkceVerifierCookie(res, codeVerifier, cookieOrigin)
   return res
 }

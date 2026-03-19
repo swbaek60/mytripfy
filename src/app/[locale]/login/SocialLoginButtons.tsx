@@ -1,7 +1,5 @@
 'use client'
 
-import { createAndStorePkce } from './oauth-pkce'
-
 const ACTION = '/api/auth/oauth-start'
 
 const btnBase =
@@ -9,31 +7,12 @@ const btnBase =
 
 /**
  * 소셜 로그인 버튼 (Google / Apple / Facebook).
- * 클라이언트에서 PKCE를 생성해 code_verifier를 localStorage에 저장한 뒤 oauth-start로 이동합니다.
- * 콜백이 새 탭에서 열려도 같은 origin의 localStorage에서 verifier를 읽어 exchange할 수 있습니다.
+ * oauth-start가 서버에서 PKCE를 생성하고 verifier를 쿠키로 설정하므로, 콜백이 새 탭이어도 동작합니다.
  */
 export default function SocialLoginButtons({ locale }: { locale: string }) {
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>, provider: string) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>, provider: string) {
     e.preventDefault()
-    try {
-      const { codeChallenge, codeVerifier } = await createAndStorePkce()
-      // 쿠키에도 저장: 콜백이 새 탭이어도 같은 브라우저면 쿠키가 전송됨
-      await fetch('/api/auth/set-pkce-cookie', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ code_verifier: codeVerifier }),
-      })
-      const params = new URLSearchParams({
-        provider,
-        locale,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-      })
-      window.location.href = `${ACTION}?${params.toString()}`
-    } catch {
-      window.location.href = `${ACTION}?provider=${provider}&locale=${locale}`
-    }
+    window.location.href = `${ACTION}?provider=${provider}&locale=${locale}`
   }
 
   return (

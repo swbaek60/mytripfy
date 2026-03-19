@@ -12,8 +12,16 @@ function getOrigin() {
 }
 
 function getCookieOpts(origin: string) {
+  if (!origin || typeof origin !== 'string') {
+    return { path: '/' as const, sameSite: 'lax' as const, secure: true }
+  }
   const isSecure = origin.startsWith('https://')
-  const hostname = new URL(origin).hostname
+  let hostname: string
+  try {
+    hostname = new URL(origin).hostname
+  } catch {
+    return { path: '/' as const, sameSite: 'lax' as const, secure: isSecure }
+  }
   const domain = hostname === 'localhost' ? undefined : `.${hostname.replace(/^www\./, '')}`
   return { path: '/' as const, sameSite: 'lax' as const, secure: isSecure, ...(domain && { domain }) }
 }
@@ -103,9 +111,10 @@ export async function GET(request: NextRequest) {
   const provider = providerRaw.trim().toLowerCase() as Provider | ''
   const locale = (searchParams.get('locale') ?? 'en').trim() || 'en'
   const origin = getOrigin()
-  // 쿠키는 실제 요청 Host 기준으로 설정 (www vs non-www 일치)
+  // 쿠키는 실제 요청 Host 기준으로 설정 (www vs non-www 일치). protocol이 없으면 origin 사용
   const requestHost = request.headers.get('host') || ''
-  const cookieOrigin = requestHost ? `${request.nextUrl.protocol}//${requestHost}` : origin
+  const protocol = request.nextUrl?.protocol || (origin.startsWith('https') ? 'https:' : 'http:')
+  const cookieOrigin = requestHost ? `${protocol}//${requestHost}` : origin
 
   if (!provider || !PROVIDERS.includes(provider)) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Invalid+provider`, 302)

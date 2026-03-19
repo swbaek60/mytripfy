@@ -108,9 +108,16 @@ function buildRedirect(
   return res
 }
 
+const STORAGE_KEY_RETRY = 'mytripfy_oauth_retry_url'
+const STORAGE_KEY_RETRY_TS = 'mytripfy_oauth_retry_ts'
+const STORAGE_KEY_PICKUP = 'mytripfy_oauth_pickup_url'
+const STORAGE_KEY_PICKUP_TS = 'mytripfy_oauth_pickup_ts'
+const STORAGE_TTL_MS = 2 * 60 * 1000
+
 /**
  * exchange 실패 시: opener가 이 콜백 URL로 이동하면 그 탭의 쿠키(code_verifier)로 재시도할 수 있음.
- * BroadcastChannel 사용 (Android 등에서 window.opener가 null이어도 동작).
+ * BroadcastChannel + localStorage 폴백 (모바일 백그라운드 탭에서 수신 실패/지연 대비).
+ * 새 탭에서 window.close()가 안 되는 경우를 위해 "이전 탭으로 돌아가라" 안내 표시.
  */
 function buildRetryHtml(fullCallbackUrl: string, _locale: string, _origin: string): NextResponse {
   const channel = BROADCAST_CHANNEL
@@ -120,20 +127,31 @@ function buildRetryHtml(fullCallbackUrl: string, _locale: string, _origin: strin
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Redirecting…</title>
-  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#64748b;font-size:14px;text-align:center}</style>
+  <title>Complete sign-in</title>
+  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#334155;font-size:15px;text-align:center;padding:24px;box-sizing:border-box}
+  .box{max-width:360px}
+  .msg{margin-top:12px;line-height:1.5;color:#64748b}
+  .hint{margin-top:20px;font-size:13px;color:#94a3b8}</style>
 </head>
 <body data-url="${urlB64}">
-  <p>Redirecting…</p>
+  <div class="box">
+    <div style="font-size:2.5rem">↩️</div>
+    <p class="msg"><strong>Almost there</strong><br>Switch back to the tab where you started login. Sign-in will complete there.</p>
+    <p class="hint">You can close this tab after switching.</p>
+  </div>
   <script>
     (function () {
       try {
         var url = atob(document.body.getAttribute("data-url") || "");
+        try {
+          localStorage.setItem("${STORAGE_KEY_RETRY}", url);
+          localStorage.setItem("${STORAGE_KEY_RETRY_TS}", String(Date.now()));
+        } catch (e) {}
         var ch = new BroadcastChannel("${channel}");
         ch.postMessage({ type: "oauth_retry", url: url });
         ch.close();
       } catch (e) {}
-      setTimeout(function () { try { window.close(); } catch (_) {} }, 500);
+      setTimeout(function () { try { window.close(); } catch (_) {} }, 800);
     })();
   </script>
 </body>
@@ -145,7 +163,8 @@ function buildRetryHtml(fullCallbackUrl: string, _locale: string, _origin: strin
 }
 
 /**
- * 성공 시: BroadcastChannel로 pickupUrl 전달 후, 이 창은 픽업 URL로 이동(같은 탭) 또는 닫기(팝업).
+ * 성공 시: BroadcastChannel + localStorage로 pickupUrl 전달. 이 창은 픽업으로 이동 또는 닫기.
+ * 모바일에서 창이 안 닫히면 "이전 탭으로 돌아가라" 안내 표시.
  */
 function buildSuccessHtml(dest: string, pickupUrl: string, _origin: string, channel: string): string {
   const pickupB64 = Buffer.from(pickupUrl, 'utf-8').toString('base64')
@@ -154,24 +173,32 @@ function buildSuccessHtml(dest: string, pickupUrl: string, _origin: string, chan
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Signing in…</title>
-  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#64748b;font-size:14px;text-align:center}</style>
+  <title>Signed in</title>
+  <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#334155;font-size:15px;text-align:center;padding:24px;box-sizing:border-box}
+  .box{max-width:360px}
+  .msg{margin-top:12px;line-height:1.5;color:#64748b}
+  .hint{margin-top:20px;font-size:13px;color:#94a3b8}</style>
 </head>
 <body data-pickup="${pickupB64}">
-  <div>
-    <div style="font-size:2rem;margin-bottom:0.5rem">✅</div>
-    <p>Signed in! Redirecting…</p>
+  <div class="box">
+    <div style="font-size:2.5rem">✅</div>
+    <p class="msg"><strong>Signed in!</strong><br>Switch back to the previous tab to continue. You can close this tab.</p>
+    <p class="hint">If nothing happens there, we will redirect in a moment.</p>
   </div>
   <script>
     (function () {
       var pickupUrl = atob(document.body.getAttribute("data-pickup") || "");
+      try {
+        localStorage.setItem("${STORAGE_KEY_PICKUP}", pickupUrl);
+        localStorage.setItem("${STORAGE_KEY_PICKUP_TS}", String(Date.now()));
+      } catch (e) {}
       var ch = new BroadcastChannel("${channel}");
       ch.postMessage({ type: "oauth_complete", pickupUrl: pickupUrl, dest: "${dest.replace(/"/g, '&quot;')}" });
       ch.close();
       if (window.opener && !window.opener.closed) {
-        setTimeout(function () { try { window.close(); } catch (_) {} }, 300);
+        setTimeout(function () { try { window.close(); } catch (_) {} }, 500);
       } else {
-        window.location.replace(pickupUrl);
+        setTimeout(function () { window.location.replace(pickupUrl); }, 1500);
       }
     })();
   </script>

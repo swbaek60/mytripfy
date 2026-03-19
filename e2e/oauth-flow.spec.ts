@@ -166,30 +166,28 @@ test.describe('auth/session-pickup', () => {
 })
 
 // ── 3. 로그인 페이지 UI ───────────────────────────────────────────────────────
+// 소셜 로그인은 클라이언트 PKCE로 onSubmit 시 oauth-start로 이동합니다 (hidden input 없음).
 
 test.describe('로그인 페이지 – form 구조', () => {
-  test('Google/Apple/Facebook 모두 form + target=_self', async ({ page }) => {
+  test('Google/Apple/Facebook 모두 소셜 버튼 + form, target=_blank 없음', async ({ page }) => {
     await page.goto('/en/login')
-    for (const provider of ['google', 'apple', 'facebook'] as const) {
-      const form = page.locator('form').filter({
-        has: page.locator(`input[name=provider][value=${provider}]`),
-      })
-      await expect(form.first(), `${provider} form`).toHaveAttribute('action', /oauth-start/)
-      await expect(form.first(), `${provider} target`).toHaveAttribute('target', '_self')
+    for (const name of ['Google', 'Apple', 'Facebook']) {
+      const btn = page.getByRole('button', { name: new RegExp(`continue with ${name}`, 'i') })
+      await expect(btn).toBeVisible()
+      await expect(btn.locator('xpath=ancestor::form[1]')).not.toHaveAttribute('target', '_blank')
     }
   })
 
-  test('locale=ko 로그인 페이지에서 locale hidden input이 ko', async ({ page }) => {
+  test('locale=ko 로그인에서 소셜 클릭 시 OAuth 플로우 시작 (로그인 페이지 이탈)', async ({ page }) => {
     await page.goto('/ko/login')
-    for (const provider of ['google', 'apple', 'facebook'] as const) {
-      const form = page.locator('form').filter({
-        has: page.locator(`input[name=provider][value=${provider}]`),
-      })
-      await expect(
-        form.first().locator('input[name=locale]'),
-        `${provider} locale`
-      ).toHaveValue('ko')
-    }
+    const btn = page.getByRole('button', { name: /continue with google/i })
+    await expect(btn).toBeVisible()
+    await Promise.all([
+      page.waitForURL(/oauth-start|accounts\.google\.com|supabase\.co/, { timeout: 10000 }),
+      btn.click(),
+    ])
+    expect(page.url()).not.toMatch(/\/ko\/login$/)
+    expect(page.url()).toMatch(/oauth-start|accounts\.google\.com|supabase\.co/)
   })
 })
 

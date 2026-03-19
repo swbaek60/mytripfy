@@ -114,14 +114,17 @@ const STORAGE_KEY_PICKUP = 'mytripfy_oauth_pickup_url'
 const STORAGE_KEY_PICKUP_TS = 'mytripfy_oauth_pickup_ts'
 const STORAGE_TTL_MS = 2 * 60 * 1000
 
+const VERIFIER_STORAGE_KEY = 'mytripfy_oauth_code_verifier'
+
 /**
- * exchange 실패 시: opener가 이 콜백 URL로 이동하면 그 탭의 쿠키(code_verifier)로 재시도할 수 있음.
- * BroadcastChannel + localStorage 폴백 (모바일 백그라운드 탭에서 수신 실패/지연 대비).
- * 새 탭에서 window.close()가 안 되는 경우를 위해 "이전 탭으로 돌아가라" 안내 표시.
+ * exchange 실패 시:
+ * 1) localStorage에 code_verifier가 있으면(클라이언트 PKCE) 이 탭에서 바로 POST /api/auth/exchange로 완료.
+ * 2) 없으면 BroadcastChannel + localStorage로 다른 탭에 콜백 URL 전달 (기존 폴백).
  */
-function buildRetryHtml(fullCallbackUrl: string, _locale: string, _origin: string): NextResponse {
+function buildRetryHtml(fullCallbackUrl: string, _locale: string, origin: string): NextResponse {
   const channel = BROADCAST_CHANNEL
   const urlB64 = Buffer.from(fullCallbackUrl, 'utf-8').toString('base64')
+  const exchangeUrl = `${origin}/api/auth/exchange`
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -131,27 +134,58 @@ function buildRetryHtml(fullCallbackUrl: string, _locale: string, _origin: strin
   <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;background:#f8fafc;color:#334155;font-size:15px;text-align:center;padding:24px;box-sizing:border-box}
   .box{max-width:360px}
   .msg{margin-top:12px;line-height:1.5;color:#64748b}
-  .hint{margin-top:20px;font-size:13px;color:#94a3b8}</style>
+  .hint{margin-top:20px;font-size:13px;color:#94a3b8}
+  .loading{color:#64748b;margin-top:12px}</style>
 </head>
-<body data-url="${urlB64}">
+<body data-url="${urlB64}" data-exchange="${exchangeUrl.replace(/"/g, '&quot;')}">
   <div class="box">
     <div style="font-size:2.5rem">↩️</div>
-    <p class="msg"><strong>Almost there</strong><br>Switch back to the tab where you started login. Sign-in will complete there.</p>
-    <p class="hint">You can close this tab after switching.</p>
+    <p class="msg"><strong>Almost there</strong><br><span id="status">Completing sign-in…</span></p>
+    <p class="hint" id="hint" style="display:none">You can close this tab after switching.</p>
   </div>
   <script>
     (function () {
-      try {
-        var url = atob(document.body.getAttribute("data-url") || "");
+      var url = "";
+      try { url = atob(document.body.getAttribute("data-url") || ""); } catch (e) {}
+      var exchangeApi = document.body.getAttribute("data-exchange") || "";
+      var code = "";
+      try { code = new URL(url).searchParams.get("code") || ""; } catch (e) {}
+      var verifier = "";
+      try { verifier = localStorage.getItem("${VERIFIER_STORAGE_KEY}") || ""; } catch (e) {}
+
+      function fallback() {
+        var status = document.getElementById("status");
+        var hint = document.getElementById("hint");
+        if (status) status.textContent = "Switch back to the tab where you started login. Sign-in will complete there.";
+        if (hint) hint.style.display = "block";
         try {
           localStorage.setItem("${STORAGE_KEY_RETRY}", url);
           localStorage.setItem("${STORAGE_KEY_RETRY_TS}", String(Date.now()));
         } catch (e) {}
-        var ch = new BroadcastChannel("${channel}");
-        ch.postMessage({ type: "oauth_retry", url: url });
-        ch.close();
-      } catch (e) {}
-      setTimeout(function () { try { window.close(); } catch (_) {} }, 800);
+        try {
+          var ch = new BroadcastChannel("${channel}");
+          ch.postMessage({ type: "oauth_retry", url: url });
+          ch.close();
+        } catch (e) {}
+        setTimeout(function () { try { window.close(); } catch (_) {} }, 800);
+      }
+
+      if (code && verifier && exchangeApi) {
+        fetch(exchangeApi, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: code, code_verifier: verifier })
+        }).then(function (r) {
+          if (r.ok) return r.json();
+          throw new Error("Exchange failed");
+        }).then(function (d) {
+          try { localStorage.removeItem("${VERIFIER_STORAGE_KEY}"); localStorage.removeItem("mytripfy_oauth_code_verifier_ts"); } catch (e) {}
+          if (d && d.pickupUrl) { window.location.replace(d.pickupUrl); return; }
+          fallback();
+        }).catch(function () { fallback(); });
+      } else {
+        fallback();
+      }
     })();
   </script>
 </body>

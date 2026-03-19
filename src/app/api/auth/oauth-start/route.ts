@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
   const providerRaw = searchParams.get('provider') ?? ''
   const provider = providerRaw.trim().toLowerCase() as Provider | ''
   const locale = (searchParams.get('locale') ?? 'en').trim() || 'en'
+  const codeChallenge = searchParams.get('code_challenge')?.trim() || null
+  const codeChallengeMethod = searchParams.get('code_challenge_method')?.trim() || 'S256'
   const origin = getOrigin()
 
   if (!provider || !PROVIDERS.includes(provider)) {
@@ -106,7 +108,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/${locale}/login?message=Could+not+authenticate+user`, 302)
   }
 
-  const html = buildOAuthRedirectHtml(data.url)
+  let finalUrl = data.url
+  if (codeChallenge) {
+    const u = new URL(finalUrl)
+    u.searchParams.set('code_challenge', codeChallenge)
+    u.searchParams.set('code_challenge_method', codeChallengeMethod)
+    finalUrl = u.toString()
+  }
+
+  const html = buildOAuthRedirectHtml(finalUrl)
   const res = new NextResponse(html, {
     status: 200,
     headers: { 'Content-Type': 'text/html; charset=utf-8' },

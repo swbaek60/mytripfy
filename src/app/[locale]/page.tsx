@@ -523,7 +523,7 @@ export default async function Home({
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-6 sm:gap-8 mb-6 sm:mb-8">
             <div>
-              <Logo className="h-10" darkBg={true} />
+              <Logo className="h-10 brightness-0 invert" />
               <p className="text-sm text-gray-500 mt-3 max-w-xs leading-relaxed">
                 {s('footerTagline')}
               </p>

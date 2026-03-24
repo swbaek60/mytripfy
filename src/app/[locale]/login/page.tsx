@@ -29,7 +29,7 @@ export default async function LoginPage({
 
             {/* Top banner */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-8 text-center">
-              <Logo className="h-9 mb-3 mx-auto brightness-0 invert" darkBg />
+              <Logo className="h-9 mb-3 mx-auto" darkBg />
               <p className="text-blue-100 text-sm">
                 Join millions of travelers worldwide 🌍
               </p>

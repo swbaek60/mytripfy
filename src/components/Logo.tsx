@@ -24,7 +24,7 @@ export default function Logo({ className = '', darkBg = false }: LogoProps) {
 
   return (
     <Image
-      src={darkBg ? '/logo-transparent.png?v=2' : '/logo.png?v=2'}
+      src="/logo-transparent.png?v=3"
       alt="mytripfy"
       width={893}
       height={287}

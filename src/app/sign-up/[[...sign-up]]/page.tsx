@@ -11,15 +11,7 @@ export default function SignUpPage() {
           <span className="text-xs text-hint">또는 이메일로</span>
           <div className="flex-1 border-t border-edge" />
         </div>
-        <SignUp
-          appearance={{
-            elements: {
-              socialButtonsBlock: 'hidden',
-              dividerRow: 'hidden',
-              dividerText: 'hidden',
-            },
-          }}
-        />
+        <SignUp />
       </div>
     </div>
   )

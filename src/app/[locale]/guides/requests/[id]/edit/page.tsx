@@ -11,7 +11,7 @@ export default async function EditGuideRequestPage({
   const { locale, id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
 
   const { data: request } = await supabase
     .from('guide_requests')

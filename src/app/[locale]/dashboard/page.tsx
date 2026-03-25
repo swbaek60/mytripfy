@@ -16,7 +16,7 @@ export default async function DashboardPage({
   const t = await getTranslations({ locale, namespace: 'Dashboard' })
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
 
   const [
     { data: myPosts },

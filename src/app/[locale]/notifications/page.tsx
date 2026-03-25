@@ -11,7 +11,7 @@ export default async function NotificationsPage({
   const t = await getTranslations({ locale, namespace: 'Notifications' })
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
 
   // 메시지 타입 제외 (메시지는 💬 버튼에서 따로 관리)
   const { data: notifications } = await supabase

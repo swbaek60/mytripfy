@@ -1,19 +1,20 @@
 import Link from 'next/link'
 import { getUnreadNotificationCount, getUnreadMessageCount } from '@/utils/notifications'
-import type { User } from '@supabase/supabase-js'
 import Logo from '@/components/Logo'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import HeaderNav from '@/components/HeaderNav'
+import { currentUser } from '@clerk/nextjs/server'
+import type { User } from '@supabase/supabase-js'
 
 export default async function Header({
-  user,
   locale,
   currentPath = '',
+  user: _userProp,
 }: {
-  user: User | null
   locale: string
   currentPath?: string
+  user?: User | null
 }) {
   const t = await getTranslations({ locale, namespace: 'Nav' })
 
@@ -25,22 +26,38 @@ export default async function Header({
     { href: '/hall-of-fame', label: t('hallOfFame') },
   ]
 
-  // 알림 카운트 + 프로필 데이터
-  const [unreadCount, unreadMessageCount, profile] = user
-    ? await Promise.all([
-        getUnreadNotificationCount(user.id),
-        getUnreadMessageCount(user.id),
-        (async () => {
-          const supabase = await createClient()
-          const { data } = await supabase
-            .from('profiles')
-            .select('avatar_url, full_name')
-            .eq('id', user.id)
-            .single()
-          return data
-        })(),
-      ])
-    : [0, 0, null]
+  // Clerk 현재 사용자 (오류 시 null 처리)
+  let clerkUser: Awaited<ReturnType<typeof currentUser>> = null
+  try {
+    clerkUser = await currentUser()
+  } catch {
+    // Keyless Mode 초기화 중이거나 인증 컨텍스트 없음 → 비로그인 상태로 처리
+  }
+
+  let unreadCount = 0
+  let unreadMessageCount = 0
+  let profile: { id: string; avatar_url: string | null; full_name: string | null } | null = null
+
+  if (clerkUser) {
+    try {
+      const admin = createAdminClient()
+      const { data: profileData } = await admin
+        .from('profiles')
+        .select('id, avatar_url, full_name')
+        .eq('clerk_id', clerkUser.id)
+        .single()
+
+      if (profileData) {
+        profile = profileData
+        const [uc, umc] = await Promise.all([
+          getUnreadNotificationCount(profileData.id),
+          getUnreadMessageCount(profileData.id),
+        ])
+        unreadCount = uc
+        unreadMessageCount = umc
+      }
+    } catch { /* DB 조회 실패 시 무시 */ }
+  }
 
   const logoSlot = (
     <Link
@@ -57,10 +74,10 @@ export default async function Header({
         <HeaderNav
           logoSlot={logoSlot}
           locale={locale}
-          userId={user?.id}
-          userEmail={user?.email}
-          avatarUrl={profile?.avatar_url}
-          fullName={profile?.full_name}
+          userId={profile?.id ?? clerkUser?.id}
+          userEmail={clerkUser?.emailAddresses?.[0]?.emailAddress}
+          avatarUrl={profile?.avatar_url ?? clerkUser?.imageUrl}
+          fullName={profile?.full_name ?? clerkUser?.fullName}
           navLinks={NAV_LINKS}
           unreadCount={unreadCount}
           unreadMessageCount={unreadMessageCount}

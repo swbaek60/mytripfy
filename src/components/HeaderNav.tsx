@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell, MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Store, Trophy, Award } from 'lucide-react'
-import { logout } from '@/app/[locale]/actions'
+import { useClerk } from '@clerk/nextjs'
 import LanguageSelector from '@/components/LanguageSelector'
 import CurrencySelector from '@/components/CurrencySelector'
 
@@ -48,6 +48,7 @@ export default function HeaderNav({
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
+  const { signOut } = useClerk()
 
   // 프로필 드롭다운 외부 클릭 닫기
   useEffect(() => {
@@ -229,17 +230,14 @@ export default function HeaderNav({
                     </div>
                   </div>
                   <div className="border-t border-gray-100 py-1">
-                    <form>
-                      <input type="hidden" name="locale" value={locale} suppressHydrationWarning />
-                      <button
-                        suppressHydrationWarning
-                        formAction={logout}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        {tLogout}
-                      </button>
-                    </form>
+                    <button
+                      suppressHydrationWarning
+                      onClick={() => signOut({ redirectUrl: `/${locale}` })}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {tLogout}
+                    </button>
                   </div>
                 </div>
               )}
@@ -363,17 +361,14 @@ export default function HeaderNav({
             {/* 로그아웃 */}
             {userId && (
               <div className="px-4 py-3 mt-auto">
-                <form>
-                  <input type="hidden" name="locale" value={locale} suppressHydrationWarning />
-                  <button
-                    suppressHydrationWarning
-                    formAction={logout}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-red-500 border border-red-100 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    {tLogout}
-                  </button>
-                </form>
+                <button
+                  suppressHydrationWarning
+                  onClick={() => { setMobileOpen(false); signOut({ redirectUrl: `/${locale}` }) }}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-red-500 border border-red-100 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {tLogout}
+                </button>
               </div>
             )}
           </div>

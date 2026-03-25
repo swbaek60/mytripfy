@@ -22,7 +22,7 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
 
   const { data: sponsors } = await supabase
     .from('sponsors')

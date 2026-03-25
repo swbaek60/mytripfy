@@ -2,7 +2,7 @@ import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import Header from '@/components/Header'
 import { createClient } from '@/utils/supabase/server'
-import type { User } from '@supabase/supabase-js'
+import { auth } from '@clerk/nextjs/server'
 import Logo from '@/components/Logo'
 import { getCountryByCode, getLevelInfo } from '@/data/countries'
 import HomeSearch from '@/components/HomeSearch'
@@ -24,7 +24,7 @@ export default async function Home({
 }) {
   const { locale } = await params
 
-  let user: User | null = null
+  let isLoggedIn = false
   let postCount = 0
   let guideCount = 0
   type PostRow = { id: string; destination_country: string; destination_city?: string | null; title: string; start_date: string; end_date: string; profiles: Record<string, unknown> }
@@ -40,9 +40,9 @@ export default async function Home({
   let s: (key: string) => string
 
   try {
+    const { userId } = await auth()
+    isLoggedIn = !!userId
     const supabase = await createClient()
-    const { data: { user: u } } = await supabase.auth.getUser()
-    user = u ?? null
 
     const [heroT, sectionT] = await Promise.all([
       getTranslations({ locale, namespace: 'Hero' }),
@@ -134,7 +134,7 @@ export default async function Home({
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <Header user={user} locale={locale} currentPath="/" />
+      <Header locale={locale} currentPath="/" />
 
       {/* ─── HERO (모바일·태블릿·데스크탑) ─── */}
       <section className="relative overflow-hidden min-h-0 sm:min-h-[400px] flex items-center">
@@ -234,7 +234,7 @@ export default async function Home({
             <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
               <Plane className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium">{s('firstToPost')}</p>
-              <Link href={user ? '/companions/new' : '/login'} className="inline-block mt-4">
+              <Link href={isLoggedIn ? '/companions/new' : '/sign-in'} className="inline-block mt-4">
                 <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6">{s('postTrip')}</Button>
               </Link>
             </div>
@@ -489,7 +489,7 @@ export default async function Home({
       </section>
 
       {/* ─── CTA ─── */}
-      {!user && (
+      {!isLoggedIn && (
         <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
@@ -541,14 +541,14 @@ export default async function Home({
               <div>
                 <div className="text-white font-semibold mb-3">{s('footerAccount')}</div>
                 <div className="space-y-2">
-                  {user ? (
+                  {isLoggedIn ? (
                     <>
                       <div><Link href="/dashboard" className="hover:text-white transition-colors">{s('footerDashboard')}</Link></div>
                       <div><Link href="/profile" className="hover:text-white transition-colors">{s('myProfile')}</Link></div>
                       <div><Link href="/bookmarks" className="hover:text-white transition-colors">{s('footerBookmarks')}</Link></div>
                     </>
                   ) : (
-                    <div><Link href="/login" className="hover:text-white transition-colors">{s('footerLoginSignUp')}</Link></div>
+                    <div><Link href="/sign-in" className="hover:text-white transition-colors">{s('footerLoginSignUp')}</Link></div>
                   )}
                 </div>
               </div>

@@ -22,7 +22,7 @@ export default async function ProfilePage({
 
   // 로그인 확인
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
 
   // 프로필 조회
   const { data: profile } = await supabase

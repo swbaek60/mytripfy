@@ -18,7 +18,7 @@ export default async function WriteReviewPage({
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
   if (user.id === userId) redirect(`/${locale}/profile`)
 
   const { data: targetProfile } = await supabase

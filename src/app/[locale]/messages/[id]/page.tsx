@@ -14,7 +14,7 @@ export default async function MessagePage({
   const { postId } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
   if (user.id === otherUserId) redirect(`/${locale}/profile`)
 
   // 상대방 프로필

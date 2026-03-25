@@ -12,7 +12,7 @@ export default async function MessagesPage({
   const t = await getTranslations({ locale, namespace: 'Messages' })
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  if (!user) redirect(`/sign-in`)
 
   const admin = createAdminClient()
 

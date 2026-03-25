@@ -176,16 +176,16 @@ export default function ProfileEditForm({
     <div className="space-y-0">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-heading">{t('title')}</h1>
         <Link href={`/${locale}/profile`}>
-          <Button variant="ghost" className="text-gray-500">{t('goBack')}</Button>
+          <Button variant="ghost" className="text-subtle">{t('goBack')}</Button>
         </Link>
       </div>
 
       {/* 탭 바 */}
-      <div className="bg-white rounded-2xl shadow-sm">
+      <div className="bg-surface rounded-2xl shadow-sm">
         <div className="overflow-x-auto rounded-t-2xl overflow-hidden">
-          <div className="flex min-w-max border-b border-gray-100">
+          <div className="flex min-w-max border-b border-edge">
             {TABS.map(tab => {
               const isActive = activeTab === tab.id
               const badge = tab.id === 'guide'
@@ -201,14 +201,14 @@ export default function ProfileEditForm({
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-all whitespace-nowrap ${
                     isActive
-                      ? 'text-blue-700 bg-blue-50 border-b-2 border-blue-600'
-                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'text-brand-hover bg-brand-light border-b-2 border-brand'
+                      : 'text-hint hover:text-body hover:bg-surface-hover'
                   }`}
                 >
                   {tab.label}
                   {badge !== null && (
                     <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${
-                      isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+                      isActive ? 'bg-brand-muted text-brand-hover' : 'bg-surface-sunken text-subtle'
                     }`}>
                       {badge}
                     </span>
@@ -226,24 +226,24 @@ export default function ProfileEditForm({
           {activeTab === 'basic' && (
             <div className="space-y-5">
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-3">
+                <p className="text-sm font-semibold text-body mb-3">
                   {t('photo_label')}
-                  <span className="text-xs font-normal text-gray-400"> — {t('photo_desc')}</span>
+                  <span className="text-xs font-normal text-hint"> — {t('photo_desc')}</span>
                 </p>
                 <div className="flex justify-center py-2 mb-4">
                   <AvatarUpload userId={userId} currentUrl={avatarUrl} onUpload={setAvatarUrl} />
                 </div>
-                <div className="border-t border-gray-100 pt-4">
+                <div className="border-t border-edge pt-4">
                   <ProfilePhotos userId={userId} initialPhotos={profilePhotos} onUpdate={setProfilePhotos} />
                 </div>
               </div>
-              <div className="border-t border-gray-100" />
+              <div className="border-t border-edge" />
               <Field label={t('field_name')}>
                 <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder={t('field_name_placeholder')} />
               </Field>
               <Field label={t('field_gender')}>
                 <select value={gender} onChange={e => setGender(e.target.value)}
-                  className="w-full h-10 rounded-md border border-gray-200 px-3 text-sm bg-white">
+                  className="w-full h-10 rounded-md border border-edge px-3 text-sm bg-surface">
                   <option value="">{t('gender_none')}</option>
                   <option value="male">{t('gender_male')}</option>
                   <option value="female">{t('gender_female')}</option>
@@ -253,7 +253,7 @@ export default function ProfileEditForm({
               </Field>
               <Field label={t('field_birth_year')}>
                 <select value={birthYear} onChange={e => setBirthYear(Number(e.target.value))}
-                  className="w-full h-10 rounded-md border border-gray-200 px-3 text-sm bg-white">
+                  className="w-full h-10 rounded-md border border-edge px-3 text-sm bg-surface">
                   <option value={0}>{t('year_none')}</option>
                   {years.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
@@ -271,13 +271,13 @@ export default function ProfileEditForm({
                   onChange={e => setBio(e.target.value)}
                   placeholder={t('bio_placeholder')}
                   rows={4}
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-edge px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
                 />
               </Field>
 
               {/* Travel Personality Test */}
-              <div className="border-t border-gray-100 pt-5">
-                <p className="text-sm font-semibold text-gray-700 mb-2">
+              <div className="border-t border-edge pt-5">
+                <p className="text-sm font-semibold text-body mb-2">
                   {locale.startsWith('ko') ? '여행 성향 테스트' : 'Travel Personality Test'}
                 </p>
                 {travelPersonality ? (
@@ -285,11 +285,11 @@ export default function ProfileEditForm({
                     <div className="flex items-start gap-3">
                       <span className="text-3xl shrink-0">{getPersonalityDisplay(travelPersonality.personality_type)?.emoji ?? '🌍'}</span>
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-heading">
                           {getPersonalityDisplay(travelPersonality.personality_type)?.type ?? travelPersonality.personality_type}
                         </p>
                         {(travelPersonality.personality_desc || getPersonalityDisplay(travelPersonality.personality_type)?.desc) && (
-                          <p className="text-sm text-gray-600 mt-0.5">
+                          <p className="text-sm text-body mt-0.5">
                             {travelPersonality.personality_desc || getPersonalityDisplay(travelPersonality.personality_type)?.desc}
                           </p>
                         )}
@@ -300,7 +300,7 @@ export default function ProfileEditForm({
                     </Link>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 mb-2">
+                  <p className="text-sm text-subtle mb-2">
                     {locale.startsWith('ko') ? '8가지 질문으로 나의 여행 스타일을 알아보세요.' : 'Answer 8 questions to discover your travel style.'}
                   </p>
                 )}
@@ -319,18 +319,18 @@ export default function ProfileEditForm({
               <div className={`rounded-2xl p-5 border-2 transition-all ${
                 isGuide
                   ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
-                  : 'bg-gradient-to-br from-slate-50 to-gray-50 border-gray-200'
+                  : 'bg-gradient-to-br from-slate-50 to-gray-50 border-edge'
               }`}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 ${isGuide ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'}`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 ${isGuide ? 'bg-amber-100 text-amber' : 'bg-surface-sunken text-hint'}`}>
                       {isGuide ? '✓' : '·'}
                     </div>
                     <div>
-                      <p className={`font-semibold ${isGuide ? 'text-amber-900' : 'text-gray-700'}`}>
+                      <p className={`font-semibold ${isGuide ? 'text-amber-900' : 'text-body'}`}>
                         {isGuide ? t('guide_toggle_on') : t('guide_toggle_off')}
                       </p>
-                      <p className={`text-xs mt-0.5 ${isGuide ? 'text-amber-700' : 'text-gray-400'}`}>
+                      <p className={`text-xs mt-0.5 ${isGuide ? 'text-amber-700' : 'text-hint'}`}>
                         {isGuide ? t('guide_hint_on') : t('guide_hint_off')}
                       </p>
                     </div>
@@ -339,19 +339,19 @@ export default function ProfileEditForm({
                     type="button"
                     onClick={() => setIsGuide(v => !v)}
                     className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors focus:outline-none ${
-                      isGuide ? 'bg-amber-500' : 'bg-gray-300'
+                      isGuide ? 'bg-amber-light0' : 'bg-gray-300'
                     }`}
                   >
-                    <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform ${
+                    <span className={`inline-block h-6 w-6 transform rounded-full bg-surface shadow-md transition-transform ${
                       isGuide ? 'translate-x-7' : 'translate-x-1'
                     }`} />
                   </button>
                 </div>
 
                 {!isGuide && (
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-500">
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-subtle">
                     {[t('guide_benefit_1'), t('guide_benefit_2'), t('guide_benefit_3'), t('guide_benefit_4')].map(text => (
-                      <div key={text} className="bg-white/70 rounded-lg px-3 py-2 border border-gray-100">
+                      <div key={text} className="bg-surface/70 rounded-lg px-3 py-2 border border-edge">
                         {text}
                       </div>
                     ))}
@@ -366,7 +366,7 @@ export default function ProfileEditForm({
                       <select
                         value={rateCurrency}
                         onChange={e => setRateCurrency(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
+                        className="border border-edge rounded-lg px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
                       >
                         {CURRENCIES.map(c => (
                           <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
@@ -381,16 +381,16 @@ export default function ProfileEditForm({
                         className="flex-1"
                       />
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{t('guide_rate_hint')}</p>
+                    <p className="text-xs text-hint mt-1">{t('guide_rate_hint')}</p>
                   </Field>
 
                   <div className="space-y-3">
-                    <p className="text-sm font-semibold text-gray-700">{t('guide_services')}</p>
+                    <p className="text-sm font-semibold text-body">{t('guide_services')}</p>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
+                      <label className="flex items-center gap-3 p-3 bg-surface-sunken rounded-xl cursor-pointer hover:bg-amber-light transition-colors">
                         <input type="checkbox" checked={hasVehicle} onChange={e => setHasVehicle(e.target.checked)}
                           className="w-4 h-4 accent-amber-500" />
-                        <span className="text-sm font-medium text-gray-700">{t('guide_vehicle_check')}</span>
+                        <span className="text-sm font-medium text-body">{t('guide_vehicle_check')}</span>
                       </label>
                       {hasVehicle && (
                         <div className="space-y-2 pl-4 border-l-2 border-amber-200">
@@ -401,10 +401,10 @@ export default function ProfileEditForm({
                         </div>
                       )}
 
-                      <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
+                      <label className="flex items-center gap-3 p-3 bg-surface-sunken rounded-xl cursor-pointer hover:bg-amber-light transition-colors">
                         <input type="checkbox" checked={hasAccommodation} onChange={e => setHasAccommodation(e.target.checked)}
                           className="w-4 h-4 accent-amber-500" />
-                        <span className="text-sm font-medium text-gray-700">{t('guide_accommodation_check')}</span>
+                        <span className="text-sm font-medium text-body">{t('guide_accommodation_check')}</span>
                       </label>
                       {hasAccommodation && (
                         <div className="space-y-2 pl-4 border-l-2 border-amber-200">
@@ -418,8 +418,8 @@ export default function ProfileEditForm({
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-1">{t('guide_region_label')}</p>
-                    <p className="text-xs text-gray-400 mb-3">{t('guide_region_hint')}</p>
+                    <p className="text-sm font-semibold text-body mb-1">{t('guide_region_label')}</p>
+                    <p className="text-xs text-hint mb-3">{t('guide_region_hint')}</p>
                     <GuideRegionPicker value={guideRegions} onChange={setGuideRegions} />
                   </div>
                 </>
@@ -431,8 +431,8 @@ export default function ProfileEditForm({
           {activeTab === 'language' && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-1">{t('lang_title')}</p>
-                <p className="text-xs text-gray-400 mb-4">{t('lang_desc')}</p>
+                <p className="text-sm font-semibold text-body mb-1">{t('lang_title')}</p>
+                <p className="text-xs text-hint mb-4">{t('lang_desc')}</p>
                 <LanguageSkillPicker value={spokenLanguages} onChange={setSpokenLanguages} maxItems={10} />
               </div>
             </div>
@@ -441,7 +441,7 @@ export default function ProfileEditForm({
           {/* ── 탭 4: 연락처 ── */}
           {activeTab === 'contact' && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-400">{t('contact_notice')}</p>
+              <p className="text-xs text-hint">{t('contact_notice')}</p>
               <Field label="Instagram URL">
                 <Input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="https://instagram.com/username" />
               </Field>
@@ -467,44 +467,44 @@ export default function ProfileEditForm({
           {activeTab === 'visited' && (
             <div className="space-y-5">
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('visited_title')}</h3>
-                <p className="text-xs text-gray-500 mb-2">{t('visited_desc')}</p>
+                <h3 className="text-sm font-semibold text-body mb-2">{t('visited_title')}</h3>
+                <p className="text-xs text-subtle mb-2">{t('visited_desc')}</p>
                 <div className="flex items-center gap-3 p-4 rounded-xl mb-4" style={{ backgroundColor: currentLevel.color + '20' }}>
                   <span className="text-3xl">{currentLevel.badge}</span>
                   <div>
-                    <div className="font-bold text-gray-900">Lv.{currentLevel.level} {currentLevel.titleKo}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-bold text-heading">Lv.{currentLevel.level} {currentLevel.titleKo}</div>
+                    <div className="text-sm text-body">
                       {currentLevel.level < 10
                         ? t('visited_level_next', { n: Math.max(0, (TRAVEL_LEVELS[currentLevel.level]?.minCountries || 50) - totalVisitedCount) })
                         : t('visited_level_max')}
                     </div>
                   </div>
-                  <div className="ml-auto text-2xl font-bold text-gray-400">
+                  <div className="ml-auto text-2xl font-bold text-hint">
                     {t('visited_count', { n: totalVisitedCount })}
                   </div>
                 </div>
 
                 {certifiedCountryCodes.length > 0 && (
                   <div className="mb-3">
-                    <p className="text-xs font-medium text-gray-500 mb-1.5">{t('visited_certified_label')}</p>
+                    <p className="text-xs font-medium text-subtle mb-1.5">{t('visited_certified_label')}</p>
                     <div className="flex flex-wrap gap-2">
                       {certifiedCountryCodes.map(code => {
                         const country = COUNTRIES.find(c => c.code === code)
                         return country ? (
-                          <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-800 rounded-full text-sm font-medium border border-green-200">
+                          <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success-light text-green-800 rounded-full text-sm font-medium border border-green-200">
                             <span className="text-base">{country.emoji}</span>
                             <span>{country.name}</span>
-                            <span className="text-green-500 text-xs">✓</span>
+                            <span className="text-success text-xs">✓</span>
                           </span>
                         ) : null
                       })}
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{t('visited_certified_note')}</p>
+                    <p className="text-xs text-hint mt-1">{t('visited_certified_note')}</p>
                   </div>
                 )}
 
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1.5">{t('visited_manual_label')}</p>
+                  <p className="text-xs font-medium text-subtle mb-1.5">{t('visited_manual_label')}</p>
                   <div className="relative mb-2">
                     <Input
                       value={countrySearch}
@@ -512,14 +512,14 @@ export default function ProfileEditForm({
                       placeholder={t('visited_search_placeholder')}
                     />
                     {filteredCountries.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 z-10 overflow-hidden">
+                      <div className="absolute top-full left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg mt-1 z-10 overflow-hidden">
                         {filteredCountries.map(c => (
                           <button key={c.code} type="button" onClick={() => { toggleCountry(c.code); setCountrySearch('') }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-blue-50 transition-colors ${visitedCodes.includes(c.code) ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}>
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-brand-light transition-colors ${visitedCodes.includes(c.code) ? 'bg-brand-light text-brand-hover' : 'text-body'}`}>
                             <span className="text-xl">{c.emoji}</span>
                             <span className="font-medium">{c.name}</span>
-                            <span className="text-xs text-gray-400 ml-auto">{c.region}</span>
-                            {visitedCodes.includes(c.code) && <span className="text-blue-600">✓</span>}
+                            <span className="text-xs text-hint ml-auto">{c.region}</span>
+                            {visitedCodes.includes(c.code) && <span className="text-brand">✓</span>}
                           </button>
                         ))}
                       </div>
@@ -531,28 +531,28 @@ export default function ProfileEditForm({
                         const country = COUNTRIES.find(c => c.code === code)
                         return country ? (
                           <button key={code} type="button" onClick={() => toggleCountry(code)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-800 rounded-full text-sm font-medium border border-blue-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors group">
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-light text-blue-800 rounded-full text-sm font-medium border border-edge-brand hover:bg-danger-light hover:text-danger hover:border-red-200 transition-colors group">
                             <span className="text-base">{country.emoji}</span>
                             <span>{country.name}</span>
-                            <span className="text-gray-400 group-hover:text-red-500 ml-0.5">×</span>
+                            <span className="text-hint group-hover:text-red-500 ml-0.5">×</span>
                           </button>
                         ) : null
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400 py-2">{t('visited_empty')}</p>
+                    <p className="text-sm text-hint py-2">{t('visited_empty')}</p>
                   )}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('wishlist_title')}</h3>
+                <h3 className="text-sm font-semibold text-body mb-2">{t('wishlist_title')}</h3>
                 {wishedCountryCodes.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {wishedCountryCodes.map(code => {
                       const country = COUNTRIES.find(c => c.code === code)
                       return country ? (
-                        <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 rounded-full text-sm font-medium border border-amber-200">
+                        <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-light text-amber-800 rounded-full text-sm font-medium border border-amber-200">
                           <span className="text-base">{country.emoji}</span>
                           <span>{country.name}</span>
                         </span>
@@ -560,9 +560,9 @@ export default function ProfileEditForm({
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 py-2">{t('wishlist_empty')}</p>
+                  <p className="text-sm text-hint py-2">{t('wishlist_empty')}</p>
                 )}
-                <p className="text-xs text-amber-600 mt-2">
+                <p className="text-xs text-amber mt-2">
                   💡 <Link href={`/${locale}/challenges/countries`} className="underline font-medium">100 Countries</Link>
                   {' '}{t('wishlist_hint')}
                 </p>
@@ -575,7 +575,7 @@ export default function ProfileEditForm({
 
       {/* 메시지 */}
       {message && (
-        <div className={`rounded-xl p-4 text-sm text-center ${message.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+        <div className={`rounded-xl p-4 text-sm text-center ${message.startsWith('✅') ? 'bg-success-light text-success border border-green-200' : 'bg-danger-light text-danger border border-red-200'}`}>
           {message}
         </div>
       )}
@@ -585,7 +585,7 @@ export default function ProfileEditForm({
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg rounded-xl"
+          className="w-full bg-brand hover:bg-brand-hover py-6 text-lg rounded-xl"
         >
           {saving ? t('saving') : t('save')}
         </Button>
@@ -597,7 +597,7 @@ export default function ProfileEditForm({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm text-gray-600">{label}</Label>
+      <Label className="text-sm text-body">{label}</Label>
       {children}
     </div>
   )

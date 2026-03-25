@@ -7,9 +7,9 @@ export default function SignInPage() {
       <div className="w-full max-w-sm space-y-4">
         <OAuthButtons mode="signIn" />
         <div className="relative flex items-center gap-3">
-          <div className="flex-1 border-t border-gray-200" />
-          <span className="text-xs text-gray-400">또는 이메일로</span>
-          <div className="flex-1 border-t border-gray-200" />
+          <div className="flex-1 border-t border-edge" />
+          <span className="text-xs text-hint">또는 이메일로</span>
+          <div className="flex-1 border-t border-edge" />
         </div>
         <SignIn
           appearance={{

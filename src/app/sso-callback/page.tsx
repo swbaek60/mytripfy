@@ -39,10 +39,10 @@ export default function SSOCallbackPage() {
       }
 
       // 로그인 → 회원가입 전환 (신규 유저가 로그인 시도)
-      if (signIn?.firstFactorVerification?.status === 'transferable') {
+      if ((signIn?.firstFactorVerification as { status?: string })?.status === 'transferable') {
         await signUp?.create({ transfer: true })
-        if (signUp?.status === 'complete') {
-          await clerk.setActive({ session: signUp.createdSessionId })
+        if ((signUp?.status as string) === 'complete') {
+          await clerk.setActive({ session: signUp!.createdSessionId })
           navigate('/en')
           return
         }
@@ -51,10 +51,10 @@ export default function SSOCallbackPage() {
       }
 
       // 회원가입 → 로그인 전환 (기존 유저가 회원가입 시도)
-      if (signUp?.verifications?.externalAccount?.status === 'transferable') {
+      if ((signUp?.verifications?.externalAccount as { status?: string })?.status === 'transferable') {
         await signIn?.create({ transfer: true })
-        if (signIn?.status === 'complete') {
-          await clerk.setActive({ session: signIn.createdSessionId })
+        if ((signIn?.status as string) === 'complete') {
+          await clerk.setActive({ session: signIn!.createdSessionId })
           navigate('/en')
           return
         }
@@ -63,7 +63,7 @@ export default function SSOCallbackPage() {
       }
 
       // 추가 정보 필요 시
-      if (signUp?.status === 'missing_requirements') {
+      if ((signUp?.status as string) === 'missing_requirements') {
         navigate('/sign-up')
         return
       }
@@ -75,8 +75,8 @@ export default function SSOCallbackPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-        <p className="text-sm text-gray-500">로그인 처리 중...</p>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+        <p className="text-sm text-subtle">로그인 처리 중...</p>
       </div>
     </div>
   )

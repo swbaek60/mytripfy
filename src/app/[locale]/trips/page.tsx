@@ -42,7 +42,7 @@ export default async function TripsPage({
   ) as any[]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user || null} locale={locale} currentPath="/trips" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
@@ -51,8 +51,8 @@ export default async function TripsPage({
         <section>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Trip Plans</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Day-by-day itineraries you've created</p>
+              <h1 className="text-2xl font-bold text-heading">My Trip Plans</h1>
+              <p className="text-sm text-subtle mt-0.5">Day-by-day itineraries you've created</p>
             </div>
             {user && (
               <Link href={`/${locale}/trips/new`}>
@@ -64,15 +64,15 @@ export default async function TripsPage({
           </div>
 
           {!user ? (
-            <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-              <p className="text-gray-500 mb-4">Log in to create and manage your own trip itineraries.</p>
+            <div className="bg-surface rounded-2xl shadow-sm p-8 text-center">
+              <p className="text-subtle mb-4">Log in to create and manage your own trip itineraries.</p>
               <Link href={`/${locale}/login`}>
                 <Button className="rounded-full px-8">Login to Start Planning</Button>
               </Link>
             </div>
           ) : myTrips.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
-              <p className="text-gray-400 text-sm mb-4">No trip plans yet. Start by creating your first itinerary!</p>
+            <div className="bg-surface rounded-2xl shadow-sm p-10 text-center">
+              <p className="text-hint text-sm mb-4">No trip plans yet. Start by creating your first itinerary!</p>
               <Link href={`/${locale}/trips/new`}>
                 <Button variant="outline" className="rounded-full">Create your first trip</Button>
               </Link>
@@ -88,8 +88,8 @@ export default async function TripsPage({
         {publicTrips.length > 0 && (
           <section>
             <div className="mb-5">
-              <h2 className="text-xl font-bold text-gray-900">Explore Public Itineraries</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Discover travel plans shared by the community</p>
+              <h2 className="text-xl font-bold text-heading">Explore Public Itineraries</h2>
+              <p className="text-sm text-subtle mt-0.5">Discover travel plans shared by the community</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {publicTrips.map((trip: any) => <TripCard key={trip.id} trip={trip} locale={locale} showOwner />)}
@@ -113,47 +113,47 @@ function TripCard({ trip, locale, showOwner }: { trip: any; locale: string; show
 
   return (
     <Link href={`/${locale}/trips/${trip.id}`}>
-      <div className="bg-white rounded-2xl shadow-sm border border-transparent hover:border-blue-100 hover:shadow-md transition-all p-5 cursor-pointer h-full flex flex-col">
+      <div className="bg-surface rounded-2xl shadow-sm border border-transparent hover:border-edge-brand hover:shadow-md transition-all p-5 cursor-pointer h-full flex flex-col">
         {/* Country flag + visibility */}
         <div className="flex items-start justify-between mb-3">
           <span className="text-3xl">{country?.emoji || '✈️'}</span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${
-            trip.visibility === 'public' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+            trip.visibility === 'public' ? 'bg-success-light text-green-700' : 'bg-surface-sunken text-subtle'
           }`}>
             {trip.visibility === 'public' ? <Globe size={10} /> : <Lock size={10} />}
             {trip.visibility === 'public' ? 'Public' : 'Private'}
           </span>
         </div>
 
-        <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2 flex-1">{trip.title}</h3>
+        <h3 className="font-bold text-heading text-sm leading-snug mb-2 line-clamp-2 flex-1">{trip.title}</h3>
 
         <div className="space-y-1.5 mt-auto">
           {country && (
-            <p className="flex items-center gap-1.5 text-xs text-gray-500">
-              <MapPin size={11} className="text-gray-400" />
+            <p className="flex items-center gap-1.5 text-xs text-subtle">
+              <MapPin size={11} className="text-hint" />
               {country.name}
             </p>
           )}
           {dateLabel && (
-            <p className="flex items-center gap-1.5 text-xs text-gray-500">
-              <CalendarDays size={11} className="text-gray-400" />
+            <p className="flex items-center gap-1.5 text-xs text-subtle">
+              <CalendarDays size={11} className="text-hint" />
               {dateLabel}
             </p>
           )}
           {dayCount > 0 && (
-            <p className="text-xs text-blue-600 font-medium">{dayCount} day{dayCount > 1 ? 's' : ''} planned</p>
+            <p className="text-xs text-brand font-medium">{dayCount} day{dayCount > 1 ? 's' : ''} planned</p>
           )}
         </div>
 
         {/* Owner info */}
         {showOwner && trip.profiles && (
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
-            <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-xs overflow-hidden shrink-0">
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-edge">
+            <div className="w-5 h-5 rounded-full bg-brand-muted flex items-center justify-center text-xs overflow-hidden shrink-0">
               {trip.profiles.avatar_url
                 ? <img src={trip.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                : <span className="text-gray-400">?</span>}
+                : <span className="text-hint">?</span>}
             </div>
-            <span className="text-xs text-gray-500 truncate">{trip.profiles.full_name || 'Anonymous'}</span>
+            <span className="text-xs text-subtle truncate">{trip.profiles.full_name || 'Anonymous'}</span>
           </div>
         )}
       </div>

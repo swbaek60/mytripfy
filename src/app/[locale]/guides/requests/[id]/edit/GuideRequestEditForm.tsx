@@ -130,24 +130,24 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">✏️ Edit Guide Request</h2>
-        <Link href={`/${locale}/guides/requests/${id}`} className="text-sm text-gray-500 hover:text-amber-600">
+        <h2 className="text-xl font-bold text-heading">✏️ Edit Guide Request</h2>
+        <Link href={`/${locale}/guides/requests/${id}`} className="text-sm text-subtle hover:text-amber-600">
           ← 돌아가기
         </Link>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-danger-light border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
 
       {/* 여행 정보 */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Trip Details</h3>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h3 className="font-bold text-heading border-b border-edge pb-3">Trip Details</h3>
 
         <div className="space-y-1.5">
-          <Label>Title <span className="text-red-500">*</span></Label>
+          <Label>Title <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -157,7 +157,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
         </div>
 
         <div className="space-y-1.5">
-          <Label>Destination Country <span className="text-red-500">*</span></Label>
+          <Label>Destination Country <span className="text-danger">*</span></Label>
           <CountrySelect
             value={country}
             onChange={handleCountryChange}
@@ -191,7 +191,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
                     className={`px-3 py-1.5 rounded-full text-sm border ${
                       selectedCities.includes(city)
                         ? 'bg-amber-500 text-white border-amber-500'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-amber-400'
+                        : 'bg-surface text-body border-edge hover:border-amber-400'
                     }`}
                   >
                     {selectedCities.includes(city) ? '✓ ' : ''}{city}
@@ -216,11 +216,11 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-red-500">*</span></Label>
+            <Label>Start Date <span className="text-danger">*</span></Label>
             <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-red-500">*</span></Label>
+            <Label>End Date <span className="text-danger">*</span></Label>
             <Input type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} />
           </div>
         </div>
@@ -237,24 +237,24 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                   status === s
                     ? s === 'open'
-                      ? 'bg-green-500 text-white border-green-500'
+                      ? 'bg-success text-white border-success'
                       : s === 'closed'
                         ? 'bg-gray-500 text-white border-gray-500'
-                        : 'bg-blue-500 text-white border-blue-500'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-amber-400'
+                        : 'bg-brand text-white border-brand'
+                    : 'bg-surface text-body border-edge hover:border-amber-400'
                 }`}
               >
                 {s === 'open' ? '🟢 Open' : s === 'closed' ? '⛔ Closed' : '✅ Completed'}
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-400">Closed / Completed 로 변경하면 새 가이드 신청을 받지 않습니다.</p>
+          <p className="text-xs text-hint">Closed / Completed 로 변경하면 새 가이드 신청을 받지 않습니다.</p>
         </div>
       </div>
 
       {/* 설명 */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Description</h3>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h3 className="font-bold text-heading border-b border-edge pb-3">Description</h3>
         <div className="space-y-1.5">
           <Label>What do you need from a guide? (optional)</Label>
           <textarea
@@ -262,16 +262,16 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
             onChange={e => setDescription(e.target.value)}
             placeholder="Preferred language, group size, activities you're interested in, etc."
             rows={5}
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
 
       {/* 선호 언어 */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <div className="border-b border-gray-100 pb-3">
-          <h3 className="font-bold text-gray-900">🗣️ Preferred Guide Languages (optional)</h3>
-          <p className="text-xs text-gray-500 mt-1">
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <div className="border-b border-edge pb-3">
+          <h3 className="font-bold text-heading">🗣️ Preferred Guide Languages (optional)</h3>
+          <p className="text-xs text-subtle mt-1">
             가이드가 사용할 수 있으면 좋을 언어를 선택하세요.
           </p>
         </div>
@@ -291,8 +291,8 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
       </div>
 
       {/* 커버 이미지 */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Cover Image (optional)</h3>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h3 className="font-bold text-heading border-b border-edge pb-3">Cover Image (optional)</h3>
         <PostCoverUpload userId={userId} currentUrl={coverImage} onUpload={setCoverImage} />
       </div>
 

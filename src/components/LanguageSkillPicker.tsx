@@ -58,12 +58,12 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
             return (
               <div
                 key={skill.lang}
-                className="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-xl"
+                className="flex items-center gap-2 p-3 bg-surface border border-edge rounded-xl"
               >
                 <span className="text-base">{lang?.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-gray-900">{lang?.name}</span>
-                  <span className="text-xs text-gray-400 ml-1">({lang?.nativeName})</span>
+                  <span className="text-sm font-medium text-heading">{lang?.name}</span>
+                  <span className="text-xs text-hint ml-1">({lang?.nativeName})</span>
                 </div>
 
                 {/* 레벨 선택 */}
@@ -76,7 +76,7 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
                       className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all ${
                         skill.level === lvl.code
                           ? `${lvl.color} text-white`
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          : 'bg-surface-sunken text-subtle hover:bg-gray-200'
                       }`}
                       title={lvl.label}
                     >
@@ -89,7 +89,7 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
                 <button
                   type="button"
                   onClick={() => removeLanguage(skill.lang)}
-                  className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                  className="w-6 h-6 flex items-center justify-center rounded-full text-hint hover:text-red-500 hover:bg-danger-light transition-colors shrink-0"
                 >
                   ×
                 </button>
@@ -109,12 +109,12 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
             onFocus={() => setOpen(true)}
             onBlur={handleBlur}
             placeholder="🔍 언어 검색 (예: Korean, English, 한국어...)"
-            className="w-full h-10 rounded-xl border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-10 rounded-xl border border-edge px-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
           />
 
           {open && filtered.length > 0 && (
             <div
-              className="absolute z-20 top-12 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg overflow-y-auto max-h-72"
+              className="absolute z-20 top-12 left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg overflow-y-auto max-h-72"
               onMouseDown={handleDropdownMouseDown}
             >
               {filtered.map(lang => (
@@ -122,12 +122,12 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
                   key={lang.code}
                   type="button"
                   onClick={() => addLanguage(lang.code)}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-brand-light transition-colors text-left"
                 >
                   <span className="text-lg">{lang.emoji}</span>
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{lang.name}</div>
-                    <div className="text-xs text-gray-400">{lang.nativeName}</div>
+                    <div className="text-sm font-medium text-heading">{lang.name}</div>
+                    <div className="text-xs text-hint">{lang.nativeName}</div>
                   </div>
                 </button>
               ))}
@@ -136,10 +136,10 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
 
           {open && search.length > 0 && filtered.length === 0 && (
             <div
-              className="absolute z-20 top-12 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg"
+              className="absolute z-20 top-12 left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg"
               onMouseDown={handleDropdownMouseDown}
             >
-              <div className="px-4 py-3 text-sm text-gray-400 text-center">검색 결과 없음</div>
+              <div className="px-4 py-3 text-sm text-hint text-center">검색 결과 없음</div>
             </div>
           )}
         </div>

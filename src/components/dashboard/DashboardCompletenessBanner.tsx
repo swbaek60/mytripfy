@@ -35,23 +35,23 @@ export default function DashboardCompletenessBanner({ locale }: { locale: string
 
   return (
     <Link href={`/${locale}/profile`}>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex items-center justify-between hover:shadow-md hover:border-blue-200 transition-all cursor-pointer">
+      <div className="bg-surface rounded-2xl shadow-sm border border-edge px-5 py-4 flex items-center justify-between hover:shadow-md hover:border-edge-brand transition-all cursor-pointer">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm">
             {data.percent}%
           </div>
           <div>
-            <p className="font-semibold text-gray-900 text-sm">
+            <p className="font-semibold text-heading text-sm">
               {t('completenessTitle')} {data.percent}%
             </p>
             {data.nextStepKey && (
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-subtle mt-0.5">
                 {t('completenessNextPrefix')}{nextLabel}
               </p>
             )}
           </div>
         </div>
-        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
+        <span className="text-xs font-semibold text-brand bg-brand-light px-3 py-1.5 rounded-lg">
           {t('viewProfileLink')}
         </span>
       </div>

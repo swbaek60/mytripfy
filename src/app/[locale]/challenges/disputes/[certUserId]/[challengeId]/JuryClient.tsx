@@ -58,26 +58,26 @@ export default function JuryClient({
 
   if (result) {
     return (
-      <div className="mt-5 text-center py-6 bg-purple-50 rounded-2xl">
+      <div className="mt-5 text-center py-6 bg-purple-light rounded-2xl">
         {result === 'invalidated' && (
           <>
             <div className="text-4xl mb-2">❌</div>
-            <p className="font-bold text-red-700">판결: 인증 무효!</p>
-            <p className="text-sm text-gray-500 mt-1">인증이 취소되고 포인트가 차감되었습니다.</p>
+            <p className="font-bold text-danger">판결: 인증 무효!</p>
+            <p className="text-sm text-subtle mt-1">인증이 취소되고 포인트가 차감되었습니다.</p>
           </>
         )}
         {result === 'dismissed' && (
           <>
             <div className="text-4xl mb-2">✅</div>
-            <p className="font-bold text-green-700">판결: 정당한 인증!</p>
-            <p className="text-sm text-gray-500 mt-1">딴지가 기각되었습니다.</p>
+            <p className="font-bold text-success">판결: 정당한 인증!</p>
+            <p className="text-sm text-subtle mt-1">딴지가 기각되었습니다.</p>
           </>
         )}
         {result === 'pending' && (
           <>
             <div className="text-4xl mb-2">🗳️</div>
-            <p className="font-bold text-blue-700">투표 완료 (+2pt 적립 예정)</p>
-            <p className="text-sm text-gray-500 mt-1">아직 최종 판결이 나지 않았습니다. 더 많은 배심원 투표가 필요합니다.</p>
+            <p className="font-bold text-brand-hover">투표 완료 (+2pt 적립 예정)</p>
+            <p className="text-sm text-subtle mt-1">아직 최종 판결이 나지 않았습니다. 더 많은 배심원 투표가 필요합니다.</p>
           </>
         )}
       </div>
@@ -86,37 +86,37 @@ export default function JuryClient({
 
   if (myVote) {
     return (
-      <div className="mt-5 bg-purple-50 rounded-2xl p-4 text-center">
-        <p className="font-semibold text-gray-700">
+      <div className="mt-5 bg-purple-light rounded-2xl p-4 text-center">
+        <p className="font-semibold text-body">
           {L.jury.alreadyVoted}: {myVote === 'valid' ? L.jury.validBtn : L.jury.invalidBtn}
         </p>
-        <p className="text-xs text-gray-400 mt-1">Final verdict will appear when decided.</p>
+        <p className="text-xs text-hint mt-1">Final verdict will appear when decided.</p>
       </div>
     )
   }
 
   if (isCertOwner) {
     return (
-      <div className="mt-5 bg-amber-50 rounded-2xl p-4 text-center">
-        <p className="text-sm font-semibold text-amber-700">⚠️ {L.jury.ownerNote}</p>
+      <div className="mt-5 bg-amber-light rounded-2xl p-4 text-center">
+        <p className="text-sm font-semibold text-amber">⚠️ {L.jury.ownerNote}</p>
       </div>
     )
   }
 
   if (isReporter) {
     return (
-      <div className="mt-5 bg-gray-50 rounded-2xl p-4 text-center">
-        <p className="text-sm font-semibold text-gray-600">{L.buttonText} submitted.</p>
-        <p className="text-xs text-gray-400 mt-1">{L.jury.reporterNote}</p>
+      <div className="mt-5 bg-surface-sunken rounded-2xl p-4 text-center">
+        <p className="text-sm font-semibold text-body">{L.buttonText} submitted.</p>
+        <p className="text-xs text-hint mt-1">{L.jury.reporterNote}</p>
       </div>
     )
   }
 
   if (!currentUserId) {
     return (
-      <div className="mt-5 bg-gray-50 rounded-2xl p-4 text-center">
-        <p className="text-sm text-gray-500 mb-2">Login required to vote.</p>
-        <a href={`/${locale}/login`} className="text-purple-600 font-bold text-sm underline">Login →</a>
+      <div className="mt-5 bg-surface-sunken rounded-2xl p-4 text-center">
+        <p className="text-sm text-subtle mb-2">Login required to vote.</p>
+        <a href={`/${locale}/login`} className="text-purple font-bold text-sm underline">Login →</a>
       </div>
     )
   }
@@ -126,28 +126,28 @@ export default function JuryClient({
   }
 
   return (
-    <div className="mt-5 bg-blue-50 rounded-2xl p-5 border border-blue-100">
+    <div className="mt-5 bg-brand-light rounded-2xl p-5 border border-edge-brand">
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xl">⚖️</span>
         <div>
-          <p className="font-bold text-blue-900 text-sm">{L.jury.title}</p>
-          <p className="text-xs text-blue-600">{L.jury.rewardNote}</p>
+          <p className="font-bold text-heading text-sm">{L.jury.title}</p>
+          <p className="text-xs text-brand">{L.jury.rewardNote}</p>
         </div>
       </div>
 
-      <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+      <p className="text-xs text-body mb-4 leading-relaxed">
         Review the certification photo and flag reasons, then vote honestly.
       </p>
 
       {error && (
-        <div className="text-red-500 text-sm bg-red-50 p-3 rounded-xl mb-3">{error}</div>
+        <div className="text-danger text-sm bg-danger-light p-3 rounded-xl mb-3">{error}</div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => handleVote('valid')}
           disabled={voting}
-          className="flex items-center justify-center gap-2 bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-40"
+          className="flex items-center justify-center gap-2 bg-success text-white font-bold py-3 rounded-xl hover:bg-success transition-colors disabled:opacity-40"
         >
           {voting ? (
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -157,7 +157,7 @@ export default function JuryClient({
         <button
           onClick={() => handleVote('invalid')}
           disabled={voting}
-          className="flex items-center justify-center gap-2 bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-colors disabled:opacity-40"
+          className="flex items-center justify-center gap-2 bg-danger text-white font-bold py-3 rounded-xl hover:bg-danger transition-colors disabled:opacity-40"
         >
           {voting ? (
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -55,48 +55,48 @@ export default async function PrivacyPage({
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         {/* Page header */}
         <div className="mb-8 sm:mb-10">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">{t('pageTitle')}</h1>
-          <p className="text-sm text-gray-500">{t('effectiveDate')}</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-heading mb-2">{t('pageTitle')}</h1>
+          <p className="text-sm text-subtle">{t('effectiveDate')}</p>
         </div>
 
         {/* Intro */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 sm:p-6 mb-8 text-sm text-blue-800 leading-relaxed">
+        <div className="bg-brand-light border border-edge-brand rounded-2xl p-5 sm:p-6 mb-8 text-sm text-blue-800 leading-relaxed">
           {t('intro')}
         </div>
 
         {/* Sections */}
         <div className="space-y-8">
           {sections.map((section, idx) => (
-            <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+            <div key={idx} className="bg-surface rounded-2xl shadow-sm border border-edge p-5 sm:p-6">
+              <h2 className="text-base sm:text-lg font-bold text-heading mb-3 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0">
                   {idx + 1}
                 </span>
                 {section.title}
               </h2>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{section.body}</p>
+              <p className="text-sm text-body leading-relaxed whitespace-pre-line">{section.body}</p>
             </div>
           ))}
         </div>
 
         {/* Contact */}
-        <div className="mt-10 bg-gray-100 rounded-2xl p-5 sm:p-6 text-sm text-gray-600 leading-relaxed">
-          <p className="font-semibold text-gray-800 mb-1">{t('contactTitle')}</p>
+        <div className="mt-10 bg-surface-sunken rounded-2xl p-5 sm:p-6 text-sm text-body leading-relaxed">
+          <p className="font-semibold text-heading mb-1">{t('contactTitle')}</p>
           <p>{t('contactBody')}</p>
-          <a href="mailto:swbaek60@gmail.com" className="inline-block mt-2 text-blue-600 hover:underline font-medium">
+          <a href="mailto:swbaek60@gmail.com" className="inline-block mt-2 text-brand hover:underline font-medium">
             swbaek60@gmail.com
           </a>
         </div>
 
         {/* Back */}
         <div className="mt-8 text-center">
-          <Link href={`/${locale}`} className="text-sm text-blue-600 hover:underline">
+          <Link href={`/${locale}`} className="text-sm text-brand hover:underline">
             ← {t('backHome')}
           </Link>
         </div>

@@ -23,7 +23,7 @@ export default async function EditGuideRequestPage({
   if (request.user_id !== user.id) redirect(`/${locale}/guides/requests/${id}`)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <GuideRequestEditForm

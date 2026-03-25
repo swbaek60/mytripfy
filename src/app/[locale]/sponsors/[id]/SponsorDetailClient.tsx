@@ -51,7 +51,7 @@ export default function SponsorDetailClient({
         >
           ✓ {t('visitAndVerify')}
         </Button>
-        {visitError && <p className="text-sm text-red-600 mt-1">{visitError}</p>}
+        {visitError && <p className="text-sm text-danger mt-1">{visitError}</p>}
         {showVisitModal && (
           <VisitVerifyModal
             sponsorName={sponsorName}
@@ -92,7 +92,7 @@ export default function SponsorDetailClient({
           📷 {t('viewCoupon')}
         </Link>
       </div>
-      {visitError && <p className="text-sm text-red-600 mt-1">{visitError}</p>}
+      {visitError && <p className="text-sm text-danger mt-1">{visitError}</p>}
     </>
   )
 }
@@ -152,7 +152,7 @@ function VisitVerifyModal({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => !uploading && onClose()}
       />
-      <div className="relative bg-white rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
+      <div className="relative bg-surface rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
         {/* Header */}
         <div className="relative h-28 bg-gradient-to-r from-emerald-400 to-teal-500 flex items-end p-4">
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -173,17 +173,17 @@ function VisitVerifyModal({
           {showSuccess ? (
             <div className="py-6 animate-in zoom-in duration-300">
               <div className="text-6xl mb-3">🎊</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{t('visitSuccessTitle')}</h3>
+              <h3 className="text-2xl font-bold text-heading mb-1">{t('visitSuccessTitle')}</h3>
               <p className="text-emerald-600 font-bold text-lg">+{pointsEarned} pt</p>
             </div>
           ) : (
             <>
-              <p className="text-sm text-gray-600 text-left mb-4">{t('visitVerifyDesc')}</p>
+              <p className="text-sm text-body text-left mb-4">{t('visitVerifyDesc')}</p>
 
               <div className="border-2 border-dashed border-emerald-200 rounded-2xl p-8 hover:bg-emerald-50/50 transition-colors relative cursor-pointer group">
                 <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
                 <div className="text-sm font-bold text-emerald-700">{t('uploadPhoto')}</div>
-                <div className="text-xs text-gray-400 mt-1">{t('visitVerifyHint')}</div>
+                <div className="text-xs text-hint mt-1">{t('visitVerifyHint')}</div>
                 <input
                   type="file"
                   accept="image/*"
@@ -204,7 +204,7 @@ function VisitVerifyModal({
                 type="button"
                 onClick={onClose}
                 disabled={uploading}
-                className="mt-5 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                className="mt-5 text-sm text-hint hover:text-gray-600 disabled:opacity-50"
               >
                 Cancel
               </button>

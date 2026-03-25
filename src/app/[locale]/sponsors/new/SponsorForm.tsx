@@ -126,8 +126,8 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">{error}</p>}
+    <form onSubmit={handleSubmit} className="space-y-6 bg-surface rounded-2xl p-6 shadow-sm border border-edge">
+      {error && <p className="text-sm text-danger bg-danger-light p-3 rounded-xl">{error}</p>}
 
       <div>
         <Label>Store name *</Label>
@@ -139,11 +139,11 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
       </div>
       <div>
         <Label>Description (optional)</Label>
-        <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your store..." className="w-full mt-1 min-h-[80px] rounded-xl border border-gray-200 px-3 py-2 text-sm" />
+        <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your store..." className="w-full mt-1 min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
       </div>
       <div>
         <Label>Business type *</Label>
-        <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full mt-1 rounded-xl border border-gray-200 px-3 py-2 text-sm" required>
+        <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full mt-1 rounded-xl border border-edge px-3 py-2 text-sm" required>
           {BUSINESS_TYPES.map(tp => (
             <option key={tp} value={tp}>{t(tp)}</option>
           ))}
@@ -193,16 +193,16 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
       </div>
       <div>
         <Label>Logo image (optional)</Label>
-        <input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-sm text-gray-500 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
+        <input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
       </div>
       <div>
         <Label>Cover image (optional)</Label>
-        <input type="file" accept="image/*" onChange={e => setCoverFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-sm text-gray-500 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
+        <input type="file" accept="image/*" onChange={e => setCoverFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
       </div>
 
-      <hr className="border-gray-200" />
+      <hr className="border-edge" />
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-gray-900">{t('benefits')} (optional)</h3>
+        <h3 className="font-bold text-heading">{t('benefits')} (optional)</h3>
         <Button type="button" variant="outline" size="sm" onClick={addBenefit} className="rounded-full text-emerald-600 border-emerald-300">
           + Add benefit
         </Button>
@@ -210,10 +210,10 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
       {benefits.map((benefit, index) => {
         const meta = BENEFIT_TYPES.find(b => b.value === benefit.benefit_type)
         return (
-          <div key={benefit.id} className="rounded-xl border border-gray-200 p-4 bg-gray-50/50 space-y-3">
+          <div key={benefit.id} className="rounded-xl border border-edge p-4 bg-gray-50/50 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Benefit #{index + 1}</span>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeBenefit(benefit.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+              <span className="text-sm font-medium text-body">Benefit #{index + 1}</span>
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeBenefit(benefit.id)} className="text-danger hover:text-danger hover:bg-danger-light">
                 Remove
               </Button>
             </div>
@@ -223,7 +223,7 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
             </div>
             <div>
               <Label>Benefit type</Label>
-              <select value={benefit.benefit_type} onChange={e => updateBenefit(benefit.id, 'benefit_type', e.target.value)} className="w-full mt-1 rounded-xl border border-gray-200 px-3 py-2 text-sm">
+              <select value={benefit.benefit_type} onChange={e => updateBenefit(benefit.id, 'benefit_type', e.target.value)} className="w-full mt-1 rounded-xl border border-edge px-3 py-2 text-sm">
                 <option value="discount_percent">{t('discountPercent', { value: '' }).replace('{value}', '…')}</option>
                 <option value="discount_fixed">{t('discountFixed', { value: '' }).replace('{value}', '…')}</option>
                 <option value="free_item">{t('freeItem')}</option>

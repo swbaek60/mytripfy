@@ -101,22 +101,22 @@ export default function GuideDetailTabs({
   return (
     <div className="space-y-5">
       {/* ── 탭 네비게이션 ── */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex border-b border-gray-100">
+      <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <div className="flex border-b border-edge">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex flex-col items-center py-3.5 gap-0.5 transition-colors ${
                 activeTab === tab.id
-                  ? 'text-blue-700 bg-blue-50 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'text-brand-hover bg-brand-light border-b-2 border-brand'
+                  : 'text-subtle hover:bg-surface-hover'
               }`}
             >
-              <span className={activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'}>{tab.icon}</span>
+              <span className={activeTab === tab.id ? 'text-brand' : 'text-hint'}>{tab.icon}</span>
               <span className="text-xs font-medium">{tab.label}</span>
               {tab.sub && (
-                <span className={`text-xs font-bold ${activeTab === tab.id ? 'text-blue-700' : 'text-gray-600'}`}>
+                <span className={`text-xs font-bold ${activeTab === tab.id ? 'text-brand-hover' : 'text-body'}`}>
                   {tab.sub}
                 </span>
               )}
@@ -135,14 +135,14 @@ export default function GuideDetailTabs({
               {/* About */}
               {bio && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">About</h3>
-                  <p className="text-gray-700 leading-relaxed">{bio}</p>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-2">About</h3>
+                  <p className="text-body leading-relaxed">{bio}</p>
                 </div>
               )}
 
               {/* Quick Stats */}
               <div>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Quick Stats</h3>
+                <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Quick Stats</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">🏆</span>
@@ -151,22 +151,22 @@ export default function GuideDetailTabs({
                       <div className="text-xs text-amber-600">Challenge points</div>
                     </div>
                   </div>
-                  <div className="bg-purple-50 rounded-xl p-3 flex items-center gap-3">
+                  <div className="bg-purple-light rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">✅</span>
                     <div>
-                      <div className="font-bold text-purple-700 text-lg">{challengesCompleted}</div>
-                      <div className="text-xs text-purple-600">Challenges done</div>
+                      <div className="font-bold text-purple text-lg">{challengesCompleted}</div>
+                      <div className="text-xs text-purple">Challenges done</div>
                     </div>
                   </div>
-                  <div className="bg-blue-50 rounded-xl p-3 flex items-center gap-3">
+                  <div className="bg-brand-light rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">🌍</span>
                     <div>
-                      <div className="font-bold text-blue-700 text-lg">{visitedCountries.length}</div>
-                      <div className="text-xs text-blue-600">Countries visited</div>
+                      <div className="font-bold text-brand-hover text-lg">{visitedCountries.length}</div>
+                      <div className="text-xs text-brand">Countries visited</div>
                     </div>
                   </div>
                   {trustScore && trustScore > 0 ? (
-                    <div className="bg-yellow-50 rounded-xl p-3 flex items-center gap-3">
+                    <div className="bg-warning-light rounded-xl p-3 flex items-center gap-3">
                       <span className="text-2xl">⭐</span>
                       <div>
                         <div className="font-bold text-yellow-700 text-lg">{Number(trustScore).toFixed(1)}</div>
@@ -174,7 +174,7 @@ export default function GuideDetailTabs({
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-yellow-50 rounded-xl p-3 flex items-center gap-3">
+                    <div className="bg-warning-light rounded-xl p-3 flex items-center gap-3">
                       <span className="text-2xl">💬</span>
                       <div>
                         <div className="font-bold text-yellow-700 text-lg">{reviews.length}</div>
@@ -183,13 +183,13 @@ export default function GuideDetailTabs({
                     </div>
                   )}
                   {memberSince && (
-                    <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-3 col-span-2">
+                    <div className="bg-surface-sunken rounded-xl p-3 flex items-center gap-3 col-span-2">
                       <span className="text-2xl">📅</span>
                       <div>
-                        <div className="font-bold text-gray-700 text-sm">
+                        <div className="font-bold text-body text-sm">
                           {new Date(memberSince).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
                         </div>
-                        <div className="text-xs text-gray-500">Member since</div>
+                        <div className="text-xs text-subtle">Member since</div>
                       </div>
                     </div>
                   )}
@@ -199,7 +199,7 @@ export default function GuideDetailTabs({
               {/* 언어 */}
               {spokenLanguages.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Languages</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Languages</h3>
                   <div className="flex flex-wrap gap-2">
                     {spokenLanguages.map(skill => {
                       const lang = getLanguageByCode(skill.lang)
@@ -208,7 +208,7 @@ export default function GuideDetailTabs({
                         <div key={skill.lang} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${lvl.bgColor}`}>
                           <span className="text-base">{lang.emoji}</span>
                           <div>
-                            <div className="text-sm font-semibold text-gray-900">{lang.name}</div>
+                            <div className="text-sm font-semibold text-heading">{lang.name}</div>
                             <div className={`text-xs font-medium ${lvl.textColor}`}>
                               {'★'.repeat(lvl.stars)}{'☆'.repeat(5 - lvl.stars)}
                             </div>
@@ -223,7 +223,7 @@ export default function GuideDetailTabs({
               {/* 방문한 나라들 */}
               {visitedCountries.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">
                     Countries Visited ({visitedCountries.length})
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -232,9 +232,9 @@ export default function GuideDetailTabs({
                       const flag = c ? c.emoji : getCountryFlagEmoji(vc.country_code)
                       return (
                         <div key={vc.country_code}
-                          className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl">
+                          className="flex items-center gap-2 px-3 py-2 bg-brand-light border border-edge-brand rounded-xl">
                           <span className="text-lg leading-none shrink-0">{flag}</span>
-                          <span className="text-sm font-medium text-gray-800 truncate">
+                          <span className="text-sm font-medium text-heading truncate">
                             {c?.name || vc.country_name || '–'}
                           </span>
                         </div>
@@ -247,11 +247,11 @@ export default function GuideDetailTabs({
               {/* 프로필 사진 갤러리 */}
               {profilePhotos.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Photos</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Photos</h3>
                   <div className="grid grid-cols-3 gap-2">
                     {profilePhotos.map((url, i) => (
                       <button key={i} onClick={() => setPhotoIndex(i)}
-                        className="aspect-square rounded-xl overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity">
+                        className="aspect-square rounded-xl overflow-hidden bg-surface-sunken hover:opacity-90 transition-opacity">
                         <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                       </button>
                     ))}
@@ -261,30 +261,30 @@ export default function GuideDetailTabs({
 
               {/* 가이드 서비스 */}
               <div>
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Guide Services</h3>
+                <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Guide Services</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3.5 bg-amber-50 rounded-xl border border-amber-100">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">💰</span>
-                      <span className="text-sm font-medium text-gray-700">Hourly Rate</span>
+                      <span className="text-sm font-medium text-body">Hourly Rate</span>
                     </div>
                     <GuideRateDisplay rate={guideRate} rateCurrency={rateCurrency} size="lg" />
                   </div>
                   {hasVehicle && (
-                    <div className="flex items-center gap-3 p-3.5 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-3 p-3.5 bg-brand-light rounded-xl border border-edge-brand">
                       <span className="text-xl">🚗</span>
                       <div>
-                        <div className="text-sm font-medium text-gray-700">Vehicle Included</div>
-                        {vehicleInfo && <div className="text-xs text-gray-500 mt-0.5">{vehicleInfo}</div>}
+                        <div className="text-sm font-medium text-body">Vehicle Included</div>
+                        {vehicleInfo && <div className="text-xs text-subtle mt-0.5">{vehicleInfo}</div>}
                       </div>
                     </div>
                   )}
                   {hasAccommodation && (
-                    <div className="flex items-center gap-3 p-3.5 bg-green-50 rounded-xl border border-green-100">
+                    <div className="flex items-center gap-3 p-3.5 bg-success-light rounded-xl border border-green-100">
                       <span className="text-xl">🏠</span>
                       <div>
-                        <div className="text-sm font-medium text-gray-700">Accommodation Included</div>
-                        {accommodationInfo && <div className="text-xs text-gray-500 mt-0.5">{accommodationInfo}</div>}
+                        <div className="text-sm font-medium text-body">Accommodation Included</div>
+                        {accommodationInfo && <div className="text-xs text-subtle mt-0.5">{accommodationInfo}</div>}
                       </div>
                     </div>
                   )}
@@ -294,7 +294,7 @@ export default function GuideDetailTabs({
               {/* 활동 지역 */}
               {(guideRegions.length > 0 || guideRegionsLegacy.length > 0) && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Guide Areas</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Guide Areas</h3>
                   <div className="space-y-2">
                     {guideRegions.length > 0
                       ? guideRegions.map(region => {
@@ -304,18 +304,18 @@ export default function GuideDetailTabs({
                             <div key={region.country} className="bg-amber-50 border border-amber-100 rounded-xl p-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-lg">{flag}</span>
-                                <span className="font-semibold text-sm text-gray-800">{c?.name || '–'}</span>
+                                <span className="font-semibold text-sm text-heading">{c?.name || '–'}</span>
                               </div>
                               {region.cities.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
                                   {region.cities.map(city => (
-                                    <span key={city} className="text-xs bg-white border border-amber-200 text-amber-800 px-2.5 py-1 rounded-full font-medium">
+                                    <span key={city} className="text-xs bg-surface border border-amber-200 text-amber-800 px-2.5 py-1 rounded-full font-medium">
                                       📍 {city}
                                     </span>
                                   ))}
                                 </div>
                               ) : (
-                                <span className="text-xs text-amber-700 bg-white border border-amber-200 px-2.5 py-1 rounded-full">
+                                <span className="text-xs text-amber-700 bg-surface border border-amber-200 px-2.5 py-1 rounded-full">
                                   🗺️ Nationwide
                                 </span>
                               )}
@@ -329,9 +329,9 @@ export default function GuideDetailTabs({
                             <div key={code} className="bg-amber-50 border border-amber-100 rounded-xl p-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-lg">{flag}</span>
-                                <span className="font-semibold text-sm text-gray-800">{c?.name || '–'}</span>
+                                <span className="font-semibold text-sm text-heading">{c?.name || '–'}</span>
                               </div>
-                              <span className="text-xs text-amber-700 bg-white border border-amber-200 px-2.5 py-1 rounded-full">
+                              <span className="text-xs text-amber-700 bg-surface border border-amber-200 px-2.5 py-1 rounded-full">
                                 🗺️ Nationwide
                               </span>
                             </div>
@@ -345,10 +345,10 @@ export default function GuideDetailTabs({
               {/* 차량/숙소 사진 */}
               {vehiclePhotos.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Vehicle Photos</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Vehicle Photos</h3>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {vehiclePhotos.map((url, i) => (
-                      <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                      <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-surface-sunken shrink-0">
                         <img src={url} alt={`Vehicle ${i + 1}`} className="w-full h-full object-cover" />
                       </div>
                     ))}
@@ -357,10 +357,10 @@ export default function GuideDetailTabs({
               )}
               {accommodationPhotos.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Accommodation Photos</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Accommodation Photos</h3>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {accommodationPhotos.map((url, i) => (
-                      <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                      <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-surface-sunken shrink-0">
                         <img src={url} alt={`Accommodation ${i + 1}`} className="w-full h-full object-cover" />
                       </div>
                     ))}
@@ -395,9 +395,9 @@ export default function GuideDetailTabs({
                 myDisputedVisitIds={new Set(myDisputedVisitIds)}
               />
               {certifications.length === 0 && sponsorVisitList.length === 0 && (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-hint">
                   <div className="text-5xl mb-3">🏆</div>
-                  <p className="font-medium text-gray-500">{isKo ? '아직 인증이 없어요' : 'No certifications yet'}</p>
+                  <p className="font-medium text-subtle">{isKo ? '아직 인증이 없어요' : 'No certifications yet'}</p>
                   <p className="text-sm mt-1">{isKo ? '챌린지를 완료하거나 스폰서 매장을 방문해 보세요!' : 'Complete challenges or visit sponsor stores!'}</p>
                 </div>
               )}
@@ -411,7 +411,7 @@ export default function GuideDetailTabs({
             <div>
               {/* 평점 요약 */}
               {reviews.length > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-yellow-50 rounded-2xl border border-yellow-100 mb-5">
+                <div className="flex items-center gap-4 p-4 bg-warning-light rounded-2xl border border-yellow-100 mb-5">
                   <div className="text-center min-w-[60px]">
                     {trustScore && trustScore > 0 ? (
                       <>
@@ -425,7 +425,7 @@ export default function GuideDetailTabs({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm font-semibold text-gray-700 mb-1.5">{reviews.length} reviews</div>
+                    <div className="text-sm font-semibold text-body mb-1.5">{reviews.length} reviews</div>
                     {[5,4,3,2,1].map(star => {
                       const count = reviews.filter(r => r.rating === star).length
                       const pct = (count / reviews.length) * 100
@@ -435,7 +435,7 @@ export default function GuideDetailTabs({
                           <div className="flex-1 h-1.5 bg-yellow-100 rounded-full overflow-hidden">
                             <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="text-xs text-gray-400 w-4">{count}</span>
+                          <span className="text-xs text-hint w-4">{count}</span>
                         </div>
                       )
                     })}
@@ -448,9 +448,9 @@ export default function GuideDetailTabs({
                   {reviews.map(review => {
                     const reviewer = review.profiles
                     return (
-                      <div key={review.id} className="bg-gray-50 rounded-2xl p-4">
+                      <div key={review.id} className="bg-surface-sunken rounded-2xl p-4">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center shrink-0 overflow-hidden">
                             {reviewer?.avatar_url
                               ? <img src={reviewer.avatar_url} alt="" className="w-full h-full object-cover" />
                               : <span className="text-lg">👤</span>}
@@ -460,16 +460,16 @@ export default function GuideDetailTabs({
                               <div>
                                 {reviewer?.id
                                   ? <Link href={`/${locale}/users/${reviewer.id}`}
-                                      className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-sm">
+                                      className="font-semibold text-heading hover:text-brand transition-colors text-sm">
                                       {reviewer.full_name || 'Anonymous'}
                                     </Link>
-                                  : <span className="font-semibold text-gray-900 text-sm">Anonymous</span>
+                                  : <span className="font-semibold text-heading text-sm">Anonymous</span>
                                 }
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                   <span className="text-yellow-400 text-sm leading-none">
                                     {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                   </span>
-                                  <span suppressHydrationWarning className="text-xs text-gray-400">
+                                  <span suppressHydrationWarning className="text-xs text-hint">
                                     {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                                   </span>
                                 </div>
@@ -478,14 +478,14 @@ export default function GuideDetailTabs({
                             {review.tags && review.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1.5">
                                 {review.tags.map(tag => (
-                                  <span key={tag} className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full">
+                                  <span key={tag} className="text-xs bg-brand-light text-brand border border-edge-brand px-2 py-0.5 rounded-full">
                                     #{tag}
                                   </span>
                                 ))}
                               </div>
                             )}
                             {review.content && (
-                              <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.content}</p>
+                              <p className="text-sm text-body mt-2 leading-relaxed">{review.content}</p>
                             )}
                           </div>
                         </div>
@@ -494,9 +494,9 @@ export default function GuideDetailTabs({
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-hint">
                   <div className="text-5xl mb-3">⭐</div>
-                  <p className="font-medium text-gray-500">No reviews yet</p>
+                  <p className="font-medium text-subtle">No reviews yet</p>
                   <p className="text-sm mt-1">Be the first to review this guide!</p>
                 </div>
               )}

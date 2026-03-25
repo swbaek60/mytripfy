@@ -128,7 +128,7 @@ export default async function CompanionsPage({
   const bookmarkedIds = new Set(myBookmarks?.map(b => b.reference_id) || [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/companions" />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -136,18 +136,18 @@ export default async function CompanionsPage({
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">{t('title')}</h1>
-            <p className="text-gray-500 mt-1">{t('subtitle')}</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-heading">{t('title')}</h1>
+            <p className="text-subtle mt-1">{t('subtitle')}</p>
           </div>
           {user ? (
             <Link href={`/${locale}/companions/new`}>
-              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6 shrink-0">
+              <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0">
                 + {t('post')}
               </Button>
             </Link>
           ) : (
             <Link href={`/${locale}/login`}>
-              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6 shrink-0">
+              <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0">
                 + {t('post')}
               </Button>
             </Link>
@@ -167,10 +167,10 @@ export default async function CompanionsPage({
         />
 
         {/* Filter Bar: Purpose */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-2 items-center">
-          <span className="text-sm text-gray-500 font-medium mr-1 shrink-0">{t('filterByPurpose')}</span>
+        <div className="bg-surface rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-2 items-center">
+          <span className="text-sm text-subtle font-medium mr-1 shrink-0">{t('filterByPurpose')}</span>
           <Link href={`/${locale}/companions${country || searchQuery ? `?${new URLSearchParams([...(country ? [['country', country]] : []), ...(searchQuery ? [['q', searchQuery]] : [])]).toString()}` : ''}`}>
-            <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!purpose ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+            <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!purpose ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>
               All
             </span>
           </Link>
@@ -178,7 +178,7 @@ export default async function CompanionsPage({
             const href = `/${locale}/companions?purpose=${key}${country ? `&country=${country}` : ''}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`
             return (
               <Link key={key} href={href}>
-                <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${purpose === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${purpose === key ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>
                   {label}
                 </span>
               </Link>
@@ -199,11 +199,11 @@ export default async function CompanionsPage({
 
               return (
                 <Link key={post.id} href={`/${locale}/companions/${post.id}`}>
-                  <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-transparent hover:border-blue-100 h-full flex flex-col overflow-hidden">
+                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-transparent hover:border-edge-brand h-full flex flex-col overflow-hidden">
 
                     {/* Cover Image */}
                     {post.cover_image ? (
-                      <div className="w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '16/7' }}>
+                      <div className="w-full bg-surface-sunken overflow-hidden" style={{ aspectRatio: '16/7' }}>
                         <img src={post.cover_image} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                       </div>
                     ) : (
@@ -223,26 +223,26 @@ export default async function CompanionsPage({
                           <div className="flex items-center gap-2">
                             <CountryFlag code={post.destination_country} size="sm" className="shrink-0" />
                             <div>
-                              <div className="font-bold text-gray-900 text-lg leading-tight">
+                              <div className="font-bold text-heading text-lg leading-tight">
                                 {country?.name || post.destination_country}
                               </div>
                               {post.destination_city && (
-                                <div className="text-sm text-gray-500 flex flex-wrap gap-1 mt-0.5">
+                                <div className="text-sm text-subtle flex flex-wrap gap-1 mt-0.5">
                                   {post.destination_city.split(', ').map((c: string) => (
-                                    <span key={c} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs">{c}</span>
+                                    <span key={c} className="bg-surface-sunken text-body px-1.5 py-0.5 rounded text-xs">{c}</span>
                                   ))}
                                 </div>
                               )}
                             </div>
                           </div>
                         ) : post.destination_city ? (
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-subtle">
                             📍 {post.destination_city}
                           </div>
                         ) : null}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                        <span className="text-xs bg-surface-sunken text-body px-2 py-1 rounded-full">
                           {nights}N {nights + 1}D
                         </span>
                         {user && (
@@ -258,41 +258,41 @@ export default async function CompanionsPage({
                     </div>
 
                     {/* Title */}
-                    <h3 className="font-semibold text-gray-800 mb-3 line-clamp-2">{post.title}</h3>
+                    <h3 className="font-semibold text-heading mb-3 line-clamp-2">{post.title}</h3>
 
                     {/* Badges */}
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {post.purpose && (
-                        <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">
+                        <span className="text-xs bg-brand-light text-brand-hover px-2.5 py-1 rounded-full">
                           {PURPOSE_LABELS[post.purpose] || post.purpose}
                         </span>
                       )}
-                      <span className="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">
+                      <span className="text-xs bg-purple-light text-purple px-2.5 py-1 rounded-full">
                         {GENDER_LABELS[post.gender_preference] || '👫 Anyone'}
                       </span>
-                      <span className="text-xs bg-green-50 text-green-700 px-2.5 py-1 rounded-full">
+                      <span className="text-xs bg-success-light text-success px-2.5 py-1 rounded-full">
                         {post.max_people} people
                       </span>
                     </div>
 
                     {/* Dates */}
-                    <div suppressHydrationWarning className="text-sm text-gray-500 mb-4">
+                    <div suppressHydrationWarning className="text-sm text-subtle mb-4">
                       {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
 
                     {/* Footer: Profile + App count */}
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-sm">
+                        <div className="w-7 h-7 rounded-full bg-brand-muted flex items-center justify-center text-sm">
                           {(profile?.avatar_url as string) ? (
                             <img src={profile.avatar_url as string} alt="" className="w-full h-full rounded-full object-cover" />
                           ) : <span className="text-xs text-blue-400">?</span>}
                         </div>
-                        <span className="text-sm text-gray-700 font-medium">
+                        <span className="text-sm text-body font-medium">
                           {(profile?.full_name as string) || 'Anonymous'}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-hint">
                         {appCount > 0 ? `${appCount} applied` : 'Be the first!'}
                       </span>
                     </div>
@@ -303,12 +303,12 @@ export default async function CompanionsPage({
             })}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
+          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
             <div className="text-5xl mb-4">🌍</div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">No trips posted yet</h3>
-            <p className="text-gray-500 mb-6">Be the first to post your trip and find a companion!</p>
+            <h3 className="text-xl font-bold text-body mb-2">No trips posted yet</h3>
+            <p className="text-subtle mb-6">Be the first to post your trip and find a companion!</p>
             <Link href={`/${locale}/companions/new`}>
-              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-8">
+              <Button className="bg-brand hover:bg-brand-hover rounded-full px-8">
                 Post My Trip
               </Button>
             </Link>

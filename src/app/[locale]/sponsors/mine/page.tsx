@@ -31,11 +31,11 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{t('mySponsors')}</h1>
+          <h1 className="text-2xl font-bold text-heading">{t('mySponsors')}</h1>
           <Link href={`/${locale}/sponsors/new`}>
             <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-full">+ {t('addSponsor')}</Button>
           </Link>
@@ -47,14 +47,14 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
               const benefitsCount = Array.isArray(s.sponsor_benefits) ? s.sponsor_benefits.length : 0
               const displayName = locale.startsWith('ko') && s.name ? s.name : (s.name_en || s.name)
               return (
-                <div key={s.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+                <div key={s.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-edge flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center text-xl shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-surface-sunken overflow-hidden flex items-center justify-center text-xl shrink-0">
                       {s.logo_url ? <img src={s.logo_url} alt="" className="w-full h-full object-cover" /> : '🏪'}
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">{displayName}</p>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <p className="font-bold text-heading">{displayName}</p>
+                      <p className="text-xs text-subtle flex items-center gap-1">
                         {countryInfo && <CountryFlag code={countryInfo.code} size="xs" />}
                         {t(BUSINESS_TYPE_KEYS[s.business_type] || 'other')}
                         {s.city && ` · ${s.city}`}
@@ -75,8 +75,8 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
             })}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
-            <p className="text-gray-500 mb-4">No stores registered yet.</p>
+          <div className="text-center py-12 bg-surface rounded-2xl border border-edge">
+            <p className="text-subtle mb-4">No stores registered yet.</p>
             <Link href={`/${locale}/sponsors/new`}>
               <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-full">+ {t('addSponsor')}</Button>
             </Link>

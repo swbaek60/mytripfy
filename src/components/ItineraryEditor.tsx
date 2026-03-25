@@ -41,7 +41,7 @@ const CATEGORY_META: Record<Category, { label: string; icon: React.ReactNode; co
   accommodation: { label: 'Accommodation', icon: <BedDouble size={13} />, color: 'bg-purple-100 text-purple-700' },
   meal:          { label: 'Meal',          icon: <Utensils size={13} />,  color: 'bg-orange-100 text-orange-700' },
   activity:      { label: 'Activity',      icon: <Activity size={13} />,  color: 'bg-green-100 text-green-700' },
-  note:          { label: 'Note',          icon: <FileText size={13} />,  color: 'bg-gray-100 text-gray-600' },
+  note:          { label: 'Note',          icon: <FileText size={13} />,  color: 'bg-gray-100 text-body' },
 }
 
 function getDateForDay(startDate: string | null, dayNumber: number): string {
@@ -165,12 +165,12 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
         }, 0)
 
         return (
-          <div key={day.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div key={day.id} className="bg-surface rounded-2xl shadow-sm border border-edge overflow-hidden">
             <div
-              className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-3 p-4 cursor-pointer hover:bg-surface-hover transition-colors"
               onClick={() => toggleDay(day.id)}
             >
-              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center font-bold text-sm shrink-0">
                 {day.day_number}
               </div>
               <div className="flex-1 min-w-0">
@@ -178,13 +178,13 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                   value={day.title ?? `Day ${day.day_number}`}
                   onChange={e => { e.stopPropagation(); updateDayField(day.id, 'title', e.target.value) }}
                   onClick={e => e.stopPropagation()}
-                  className="font-bold text-gray-900 bg-transparent border-none outline-none w-full text-sm sm:text-base"
+                  className="font-bold text-heading bg-transparent border-none outline-none w-full text-sm sm:text-base"
                   placeholder={`Day ${day.day_number}`}
                 />
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-hint">
                   {dateLabel} · {day.trip_activities.length} activities
                   {dayConverted > 0 && (
-                    <span className="text-blue-500 font-medium ml-1">
+                    <span className="text-brand font-medium ml-1">
                       · {formatCurrency(dayConverted, selectedCurrency)}
                     </span>
                   )}
@@ -193,22 +193,22 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={e => { e.stopPropagation(); deleteDay(day.id) }}
-                  className="p-1.5 text-gray-300 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                  className="p-1.5 text-hint hover:text-red-500 transition-colors rounded-lg hover:bg-danger-light"
                 >
                   <Trash2 size={14} />
                 </button>
-                {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                {isExpanded ? <ChevronUp size={16} className="text-hint" /> : <ChevronDown size={16} className="text-hint" />}
               </div>
             </div>
 
             {isExpanded && (
-              <div className="border-t border-gray-100 p-4 space-y-3">
+              <div className="border-t border-edge p-4 space-y-3">
                 <textarea
                   value={day.notes ?? ''}
                   onChange={e => updateDayField(day.id, 'notes', e.target.value)}
                   placeholder="Add notes for this day..."
                   rows={2}
-                  className="w-full text-sm text-gray-600 placeholder-gray-300 bg-gray-50 rounded-xl px-3 py-2 resize-none border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full text-sm text-body placeholder-hint bg-surface-sunken rounded-xl px-3 py-2 resize-none border border-edge focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
 
                 <div className="space-y-2">
@@ -218,10 +218,10 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                       const meta = CATEGORY_META[act.category]
                       return (
                         <div key={act.id} className="flex gap-2 items-start group">
-                          <div className="mt-2 text-gray-300 cursor-grab shrink-0">
+                          <div className="mt-2 text-hint cursor-grab shrink-0">
                             <GripVertical size={14} />
                           </div>
-                          <div className="flex-1 bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
+                          <div className="flex-1 bg-surface-sunken rounded-xl p-3 border border-edge space-y-2">
                             <div className="flex flex-wrap gap-2 items-center">
                               <select
                                 value={act.category}
@@ -236,7 +236,7 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                                 value={act.time_label ?? ''}
                                 onChange={e => updateActivity(day.id, act.id, 'time_label', e.target.value)}
                                 placeholder="Time"
-                                className="w-20 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                className="w-20 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
                               />
                               <input
                                 value={act.title}
@@ -247,24 +247,24 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                                   }
                                 }}
                                 placeholder="Activity title"
-                                className="flex-1 text-sm font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 min-w-0"
+                                className="flex-1 text-sm font-medium text-heading bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 min-w-0"
                               />
                             </div>
                             <div className="flex flex-wrap gap-2 items-center">
                               <div className="flex items-center gap-1 flex-1 min-w-0">
-                                <MapPin size={11} className="text-gray-400 shrink-0" />
+                                <MapPin size={11} className="text-hint shrink-0" />
                                 <input
                                   value={act.location ?? ''}
                                   onChange={e => updateActivity(day.id, act.id, 'location', e.target.value)}
                                   placeholder="Location (optional)"
-                                  className="flex-1 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 min-w-0"
+                                  className="flex-1 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 min-w-0"
                                 />
                               </div>
                               <div className="flex items-center gap-1">
                                 <select
                                   value={act.currency || selectedCurrency}
                                   onChange={e => updateActivity(day.id, act.id, 'currency', e.target.value)}
-                                  className="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 max-w-[70px]"
+                                  className="text-xs text-subtle bg-surface border border-edge rounded-lg px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 max-w-[70px]"
                                 >
                                   {CURRENCIES.map(c => (
                                     <option key={c.code} value={c.code}>{c.code}</option>
@@ -275,7 +275,7 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                                   value={act.cost ?? ''}
                                   onChange={e => updateActivity(day.id, act.id, 'cost', e.target.value ? parseFloat(e.target.value) : null)}
                                   placeholder="0"
-                                  className="w-20 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                  className="w-20 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
                                 />
                               </div>
                             </div>
@@ -283,12 +283,12 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                               value={act.notes ?? ''}
                               onChange={e => updateActivity(day.id, act.id, 'notes', e.target.value)}
                               placeholder="Notes (optional)"
-                              className="w-full text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              className="w-full text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
                             />
                           </div>
                           <button
                             onClick={() => deleteActivity(day.id, act.id)}
-                            className="mt-2 p-1.5 text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                            className="mt-2 p-1.5 text-hint hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -299,7 +299,7 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
 
                 <button
                   onClick={() => addActivity(day.id)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm text-blue-600 border-2 border-dashed border-blue-200 rounded-xl hover:bg-blue-50 transition-colors font-medium"
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm text-brand border-2 border-dashed border-edge-brand rounded-xl hover:bg-brand-light transition-colors font-medium"
                 >
                   <Plus size={14} /> Add Activity
                 </button>
@@ -312,15 +312,15 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
       <button
         onClick={addDay}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold text-blue-600 border-2 border-dashed border-blue-300 rounded-2xl hover:bg-blue-50 transition-colors disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold text-brand border-2 border-dashed border-edge-brand rounded-2xl hover:bg-brand-light transition-colors disabled:opacity-50"
       >
         <Plus size={16} /> Add Day {days.length + 1}
       </button>
 
       {totalConverted > 0 && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700">Estimated Total Budget</span>
-          <span className="text-xl font-bold text-blue-600">
+          <span className="text-sm font-semibold text-body">Estimated Total Budget</span>
+          <span className="text-xl font-bold text-brand">
             {formatCurrency(totalConverted, selectedCurrency)}
           </span>
         </div>

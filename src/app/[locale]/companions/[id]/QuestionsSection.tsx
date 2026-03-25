@@ -138,17 +138,17 @@ export default function QuestionsSection({
   }
 
   return (
-    <section className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    <section className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-gray-900">💬 Trip Q&amp;A</h3>
-        <p className="text-xs text-gray-400">
+        <h3 className="font-bold text-heading">💬 Trip Q&amp;A</h3>
+        <p className="text-xs text-hint">
           일정·예산·준비물 등 다른 신청자에게도 도움이 되는 질문을 남겨주세요.
         </p>
       </div>
 
       {currentUserId ? (
         currentUserId === hostId ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-subtle">
             이 섹션은 여행자(신청자)가 남긴 질문을 모아두는 공간입니다. 호스트는 아래 질문에 답변만 남길 수 있습니다.
           </p>
         ) : (
@@ -161,7 +161,7 @@ export default function QuestionsSection({
               className="text-sm"
             />
             {error && (
-              <p className="text-xs text-red-500">{error}</p>
+              <p className="text-xs text-danger">{error}</p>
             )}
             <div className="flex justify-end">
               <Button
@@ -176,14 +176,14 @@ export default function QuestionsSection({
           </div>
         )
       ) : (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-subtle">
           질문을 남기려면 먼저 로그인해주세요.
         </p>
       )}
 
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-edge pt-4">
         {questions.length === 0 ? (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-hint">
             아직 등록된 Q&amp;A가 없습니다. 첫 번째 질문을 남겨보세요.
           </p>
         ) : (
@@ -191,49 +191,49 @@ export default function QuestionsSection({
             {questions.map(q => (
               <div
                 key={q.id}
-                className="border border-gray-100 rounded-xl p-3 text-sm bg-gray-50 space-y-2"
+                className="border border-edge rounded-xl p-3 text-sm bg-surface-sunken space-y-2"
               >
                 {/* Question */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-heading">
                       Q. {q.question_user_name}
                     </span>
                     <span
                       suppressHydrationWarning
-                      className="text-xs text-gray-400"
+                      className="text-xs text-hint"
                     >
                       {new Date(q.question_created_at).toLocaleDateString('en-US')}
                     </span>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap">
+                  <p className="text-body whitespace-pre-wrap">
                     {q.question}
                   </p>
                 </div>
 
                 {/* Answer */}
                 {q.answer ? (
-                  <div className="mt-1 pl-3 border-l-2 border-blue-200">
+                  <div className="mt-1 pl-3 border-l-2 border-edge-brand">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-blue-700">
+                      <span className="font-medium text-brand-hover">
                         A. {hostName}
                       </span>
                       {q.answer_created_at && (
                         <span
                           suppressHydrationWarning
-                          className="text-xs text-gray-400"
+                          className="text-xs text-hint"
                         >
                           {new Date(q.answer_created_at).toLocaleDateString('en-US')}
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">
+                    <p className="text-body whitespace-pre-wrap">
                       {q.answer}
                     </p>
                   </div>
                 ) : currentUserId === hostId ? (
-                  <div className="mt-1 pl-3 border-l-2 border-dashed border-blue-200 space-y-2">
-                    <p className="text-xs text-gray-400">
+                  <div className="mt-1 pl-3 border-l-2 border-dashed border-edge-brand space-y-2">
+                    <p className="text-xs text-hint">
                       호스트 답변을 남겨주세요.
                     </p>
                     <Textarea
@@ -255,7 +255,7 @@ export default function QuestionsSection({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-hint mt-1">
                     호스트 답변 대기 중입니다.
                   </p>
                 )}

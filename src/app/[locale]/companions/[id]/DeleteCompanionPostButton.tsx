@@ -26,9 +26,9 @@ export default function DeleteCompanionPostButton({
   if (confirm) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-sm text-red-600 font-medium">정말 삭제할까요?</span>
+        <span className="text-sm text-danger font-medium">정말 삭제할까요?</span>
         <Button size="sm" onClick={handleDelete} disabled={deleting}
-          className="bg-red-600 hover:bg-red-700 text-white rounded-full text-xs px-4">
+          className="bg-danger hover:bg-red-700 text-white rounded-full text-xs px-4">
           {deleting ? '삭제 중...' : '삭제'}
         </Button>
         <Button size="sm" variant="outline" onClick={() => setConfirm(false)} disabled={deleting}
@@ -41,7 +41,7 @@ export default function DeleteCompanionPostButton({
 
   return (
     <Button size="sm" variant="outline" onClick={() => setConfirm(true)}
-      className="rounded-full text-xs px-4 border-red-300 text-red-600 hover:bg-red-50">
+      className="rounded-full text-xs px-4 border-red-300 text-danger hover:bg-danger-light">
       🗑️ 삭제
     </Button>
   )

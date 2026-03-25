@@ -131,7 +131,7 @@ function CategoryCard({
 
   return (
     <Link ref={ref} href={`/${locale}/challenges/${id}`} className="group block">
-      <div className="relative rounded-2xl overflow-hidden h-52 shadow-sm border border-gray-100 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+      <div className="relative rounded-2xl overflow-hidden h-52 shadow-sm border border-edge hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
         {/* Background */}
         {showGradient ? (
           <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
@@ -154,7 +154,7 @@ function CategoryCard({
           <div className="flex justify-between items-start">
             <span className="text-2xl drop-shadow-lg">{emoji}</span>
             {completedCount > 0 && (
-              <span className="bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
+              <span className="bg-purple text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">
                 {completedCount}/100
               </span>
             )}

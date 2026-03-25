@@ -66,12 +66,12 @@ export default async function GuideRequestDetailPage({
   const canApplyAsGuide = user && userProfile?.is_guide && !isOwner && effectiveStatus === 'open'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         <div className="flex items-center justify-between">
-          <Link href={`/${locale}/guides/requests`} className="text-sm text-gray-500 hover:text-amber-600 flex items-center gap-1">
+          <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600 flex items-center gap-1">
             ← Back to guide requests
           </Link>
           {isOwner && (
@@ -86,7 +86,7 @@ export default async function GuideRequestDetailPage({
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {request.cover_image ? (
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/7' }}>
               <img src={request.cover_image} alt="" className="w-full h-full object-cover" />
@@ -100,7 +100,7 @@ export default async function GuideRequestDetailPage({
                       {request.destination_city && (
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {request.destination_city.split(', ').map((c: string) => (
-                            <span key={c} className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{c}</span>
+                            <span key={c} className="bg-surface/20 text-white text-xs px-2.5 py-1 rounded-full">{c}</span>
                           ))}
                         </div>
                       )}
@@ -113,10 +113,10 @@ export default async function GuideRequestDetailPage({
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2 text-sm mt-2">
-                  <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">
+                  <span suppressHydrationWarning className="bg-surface/20 px-3 py-1 rounded-full">
                     {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
-                  <span className="bg-white/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
+                  <span className="bg-surface/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
                 </div>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default async function GuideRequestDetailPage({
                   {request.destination_city && (
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {request.destination_city.split(', ').map((c: string) => (
-                        <span key={c} className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{c}</span>
+                        <span key={c} className="bg-surface/20 text-white text-xs px-2.5 py-1 rounded-full">{c}</span>
                       ))}
                     </div>
                   )}
@@ -141,26 +141,26 @@ export default async function GuideRequestDetailPage({
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
-                <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">
+                <span suppressHydrationWarning className="bg-surface/20 px-3 py-1 rounded-full">
                   {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
-                <span className="bg-white/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
+                <span className="bg-surface/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
               </div>
             </div>
           )}
 
           <div className="p-6 space-y-5">
-            <h2 className="text-xl font-bold text-gray-900">{request.title}</h2>
+            <h2 className="text-xl font-bold text-heading">{request.title}</h2>
 
             {/* 선호 언어 */}
             {request.preferred_languages && (request.preferred_languages as string[]).length > 0 && (
-              <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
+              <div className="bg-purple-light border border-purple-100 rounded-xl p-4">
                 <div className="text-xs font-semibold text-purple-700 mb-2">🗣️ Preferred Guide Languages</div>
                 <div className="flex flex-wrap gap-2">
                   {(request.preferred_languages as string[]).map(code => {
                     const lang = getLanguageByCode(code)
                     return lang ? (
-                      <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-purple-200 text-purple-800 rounded-full text-sm font-medium">
+                      <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-purple-200 text-purple-800 rounded-full text-sm font-medium">
                         {lang.emoji} {lang.name}
                       </span>
                     ) : null
@@ -173,16 +173,16 @@ export default async function GuideRequestDetailPage({
             )}
 
             {request.description && (
-              <div className="bg-gray-50 rounded-xl p-4 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+              <div className="bg-surface-sunken rounded-xl p-4 text-body text-sm leading-relaxed whitespace-pre-wrap">
                 {request.description}
               </div>
             )}
 
             {canApplyAsGuide && (
-              <div className="border-t border-gray-100 pt-5">
+              <div className="border-t border-edge pt-5">
                 {!user ? (
                   <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm mb-3">Login to apply as a guide</p>
+                    <p className="text-subtle text-sm mb-3">Login to apply as a guide</p>
                     <Link href={`/${locale}/login`}>
                       <Button className="bg-amber-500 hover:bg-amber-600 rounded-full px-8 text-white">Login</Button>
                     </Link>
@@ -199,16 +199,16 @@ export default async function GuideRequestDetailPage({
             )}
 
             {!user && effectiveStatus === 'open' && (
-              <div className="text-center py-4 border-t border-gray-100">
-                <p className="text-gray-500 text-sm mb-3">Register as a guide to apply for this request</p>
+              <div className="text-center py-4 border-t border-edge">
+                <p className="text-subtle text-sm mb-3">Register as a guide to apply for this request</p>
                 <Link href={`/${locale}/login`}>
                   <Button className="bg-amber-500 hover:bg-amber-600 rounded-full px-8 text-white">Login</Button>
                 </Link>
               </div>
             )}
             {user && !isOwner && effectiveStatus === 'open' && !userProfile?.is_guide && (
-              <div className="text-center py-4 border-t border-gray-100">
-                <p className="text-gray-500 text-sm mb-3">Register as a guide in your profile to apply for requests</p>
+              <div className="text-center py-4 border-t border-edge">
+                <p className="text-subtle text-sm mb-3">Register as a guide in your profile to apply for requests</p>
                 <Link href={`/${locale}/profile/edit`}>
                   <Button variant="outline" className="rounded-full px-6 border-amber-300 text-amber-600 hover:bg-amber-50">Profile / Register as Guide</Button>
                 </Link>
@@ -217,8 +217,8 @@ export default async function GuideRequestDetailPage({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Posted by</h3>
+        <div className="bg-surface rounded-2xl shadow-sm p-6">
+          <h3 className="font-bold text-heading mb-4">Posted by</h3>
           <div className="flex items-center gap-4">
             <Link href={`/${locale}/users/${author?.id}`} className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center shrink-0 overflow-hidden">
               {(author?.avatar_url as string) ? (
@@ -226,7 +226,7 @@ export default async function GuideRequestDetailPage({
               ) : <span className="text-amber-600 text-xl">?</span>}
             </Link>
             <div>
-              <Link href={`/${locale}/users/${author?.id}`} className="font-bold text-gray-900 hover:text-amber-600">
+              <Link href={`/${locale}/users/${author?.id}`} className="font-bold text-heading hover:text-amber-600">
                 {(author?.full_name as string) || 'Traveler'}
               </Link>
               {user && !isOwner && (

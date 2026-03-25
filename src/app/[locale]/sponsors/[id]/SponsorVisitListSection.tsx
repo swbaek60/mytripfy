@@ -47,21 +47,21 @@ export default function SponsorVisitListSection({
   }, [sponsorId])
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
-      <h2 className="font-bold text-gray-900 mb-1">
+    <div className="bg-surface rounded-2xl shadow-sm border border-edge p-6 mt-6">
+      <h2 className="font-bold text-heading mb-1">
         {t('visitVerifications')}
       </h2>
       {loading ? (
-        <p className="text-sm text-gray-500">{t('loadingVisits')}</p>
+        <p className="text-sm text-subtle">{t('loadingVisits')}</p>
       ) : error ? (
-        <p className="text-sm text-amber-600">{error}</p>
+        <p className="text-sm text-amber">{error}</p>
       ) : visits.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-subtle">
           {t('noVerifiedVisitsYet')}
         </p>
       ) : (
         <>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-subtle mb-4">
             {t('otherVisitsCount', { count: visits.length })}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

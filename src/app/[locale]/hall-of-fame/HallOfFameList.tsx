@@ -121,7 +121,7 @@ export default function HallOfFameList({
 
   return (
     <div>
-      <ul className="divide-y divide-gray-100">
+      <ul className="divide-y divide-edge">
         {list.map((profile, index) => {
           const rank = index + 1
           const levelInfo = getLevelInfo(profile.travel_level ?? 1)
@@ -145,7 +145,7 @@ export default function HallOfFameList({
 
                 {/* 아바타 */}
                 <Link href={`/${locale}/users/${profile.id}`} className="shrink-0">
-                  <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-xl hover:opacity-80 transition-opacity">
+                  <div className="w-11 h-11 rounded-full overflow-hidden bg-surface-sunken flex items-center justify-center text-xl hover:opacity-80 transition-opacity">
                     {profile.avatar_url
                       ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                       : '👤'}
@@ -154,9 +154,9 @@ export default function HallOfFameList({
 
                 {/* 이름/정보 */}
                 <Link href={`/${locale}/users/${profile.id}`} className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{displayName}</p>
+                  <p className="font-semibold text-heading truncate">{displayName}</p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                    {country && <span className="text-xs text-gray-500">{country.emoji} {country.name}</span>}
+                    {country && <span className="text-xs text-subtle">{country.emoji} {country.name}</span>}
                     <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
                       {levelInfo.badge} Lv.{levelInfo.level}
                     </span>
@@ -168,8 +168,8 @@ export default function HallOfFameList({
 
                 {/* 포인트 */}
                 <div className="flex-shrink-0 text-right mr-2">
-                  <p className="text-lg font-bold text-amber-600">{points}</p>
-                  <p className="text-xs text-gray-500">{pointsLabel}</p>
+                  <p className="text-lg font-bold text-amber">{points}</p>
+                  <p className="text-xs text-subtle">{pointsLabel}</p>
                 </div>
 
                 {/* 인증 보기 버튼 */}
@@ -177,8 +177,8 @@ export default function HallOfFameList({
                   onClick={(e) => openCerts(profile, e)}
                   className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     isExpanded
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200'
+                      ? 'bg-purple text-white'
+                      : 'bg-purple-light text-purple hover:bg-purple-light border border-purple-200'
                   }`}
                   title="인증 사진 보기"
                 >
@@ -189,25 +189,25 @@ export default function HallOfFameList({
 
               {/* 인증 사진 패널 */}
               {isExpanded && (
-                <div className="px-6 pb-5 bg-purple-50/40 border-t border-purple-100">
+                <div className="px-6 pb-5 bg-purple-light/40 border-t border-purple-100">
                   <div className="flex items-center justify-between py-3">
-                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                      <Users className="w-4 h-4 text-purple-500" />
+                    <p className="text-sm font-semibold text-body flex items-center gap-1.5">
+                      <Users className="w-4 h-4 text-purple" />
                       {displayName}의 인증 사진
-                      {!certLoading && <span className="text-gray-400 font-normal">({certData.length}건)</span>}
+                      {!certLoading && <span className="text-hint font-normal">({certData.length}건)</span>}
                     </p>
-                    <button onClick={() => { setExpandedUserId(null); setCertData([]) }} className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300">
+                    <button onClick={() => { setExpandedUserId(null); setCertData([]) }} className="w-6 h-6 bg-surface-sunken rounded-full flex items-center justify-center hover:bg-surface-hover">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   {certLoading ? (
-                    <div className="text-center py-6 text-gray-400 text-sm">
+                    <div className="text-center py-6 text-hint text-sm">
                       <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                       불러오는 중...
                     </div>
                   ) : certData.length === 0 ? (
-                    <p className="text-sm text-gray-400 py-4 text-center">인증 사진이 없습니다.</p>
+                    <p className="text-sm text-hint py-4 text-center">인증 사진이 없습니다.</p>
                   ) : (
                     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                       {certData.map(cert => {
@@ -219,7 +219,7 @@ export default function HallOfFameList({
                           <div
                             key={`${profile.id}-${cert.challenge_id}`}
                             className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                              cert.dispute_status === 'reviewing' ? 'border-blue-200' :
+                              cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
                               cert.dispute_status === 'flagged' ? 'border-amber-200' :
                               cert.dispute_status === 'invalidated' ? 'border-red-200 opacity-60' :
                               'border-transparent hover:border-purple-200'
@@ -248,7 +248,7 @@ export default function HallOfFameList({
                                     challenge_title: cert.challenge_title,
                                   })
                                 }}
-                                className="absolute top-1 right-1 w-6 h-6 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow"
+                                className="absolute top-1 right-1 w-6 h-6 bg-danger/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow"
                                 title="딴지걸기"
                               >
                                 <Siren className="w-3 h-3" />
@@ -258,8 +258,8 @@ export default function HallOfFameList({
                             {/* 상태 뱃지 */}
                             {cert.dispute_status !== 'clean' && (
                               <div className={`absolute top-1 left-1 text-[8px] font-bold px-1 py-0.5 rounded-full ${
-                                cert.dispute_status === 'reviewing' ? 'bg-blue-500 text-white' :
-                                cert.dispute_status === 'flagged' ? 'bg-amber-400 text-white' : 'bg-red-500 text-white'
+                                cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
+                                cert.dispute_status === 'flagged' ? 'bg-amber text-white' : 'bg-danger text-white'
                               }`}>
                                 {cert.dispute_status === 'reviewing' ? '⚖️' : cert.dispute_status === 'flagged' ? '🚨' : '❌'}
                               </div>
@@ -280,12 +280,12 @@ export default function HallOfFameList({
                   )}
 
                   {!currentUserId && (
-                    <p className="text-xs text-gray-400 mt-3 text-center">
-                      <Link href={`/${locale}/login`} className="text-purple-600 font-semibold hover:underline">로그인</Link>하면 딴지걸기가 가능합니다
+                    <p className="text-xs text-hint mt-3 text-center">
+                      <Link href={`/${locale}/login`} className="text-purple font-semibold hover:underline">로그인</Link>하면 딴지걸기가 가능합니다
                     </p>
                   )}
                   {currentUserId && !canDispute && currentUserId !== profile.id && (
-                    <p className="text-xs text-amber-600 mt-3 text-center flex items-center justify-center gap-1">
+                    <p className="text-xs text-amber mt-3 text-center flex items-center justify-center gap-1">
                       <Siren className="w-3.5 h-3.5" /> 내 인증이 3개 이상이면 딴지걸기가 가능합니다
                     </p>
                   )}

@@ -111,13 +111,13 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
     <div>
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="font-semibold text-gray-800 text-sm">
+          <h3 className="font-semibold text-heading text-sm">
             📸 Profile Photos
-            <span className="ml-2 text-xs font-normal text-gray-400">
+            <span className="ml-2 text-xs font-normal text-hint">
               ({photos.length}/{MAX_PHOTOS})
             </span>
           </h3>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-hint mt-0.5">
             Show travelers what you look like on the road
           </p>
         </div>
@@ -126,7 +126,7 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            className="text-xs bg-brand-light hover:bg-brand-muted text-brand font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
           >
             {uploading ? '⏳ Uploading...' : '+ Add Photos'}
           </button>
@@ -137,7 +137,7 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
       {photos.length > 0 ? (
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
           {photos.map((url, i) => (
-            <div key={i} className="relative group aspect-square rounded-xl overflow-hidden bg-gray-100">
+            <div key={i} className="relative group aspect-square rounded-xl overflow-hidden bg-surface-sunken">
               <img
                 src={url}
                 alt={`Photo ${i + 1}`}
@@ -160,7 +160,7 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 flex items-center justify-center text-gray-300 hover:text-blue-400 text-2xl transition-all disabled:opacity-50"
+              className="aspect-square rounded-xl border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light flex items-center justify-center text-hint hover:text-blue-400 text-2xl transition-all disabled:opacity-50"
             >
               +
             </button>
@@ -171,16 +171,16 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="w-full border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl py-8 text-center transition-all disabled:opacity-50 mb-3"
+          className="w-full border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light rounded-xl py-8 text-center transition-all disabled:opacity-50 mb-3"
         >
           <div className="text-3xl mb-1">📸</div>
-          <div className="text-sm font-medium text-gray-500">Upload up to 5 photos</div>
-          <div className="text-xs text-gray-400 mt-1">Auto-compressed · Storage optimized</div>
+          <div className="text-sm font-medium text-subtle">Upload up to 5 photos</div>
+          <div className="text-xs text-hint mt-1">Auto-compressed · Storage optimized</div>
         </button>
       )}
 
       {uploadInfo && (
-        <p className="text-xs text-green-600 font-medium bg-green-50 px-3 py-1.5 rounded-lg">
+        <p className="text-xs text-success font-medium bg-success-light px-3 py-1.5 rounded-lg">
           ✅ {uploadInfo}
         </p>
       )}

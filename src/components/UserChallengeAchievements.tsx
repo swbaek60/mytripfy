@@ -162,11 +162,11 @@ export default function UserChallengeAchievements({
     return (
       <div
         key={cert.id}
-        className={`group relative rounded-xl overflow-hidden border-2 transition-all aspect-square bg-gray-50 ${
-          dispStatus === 'reviewing' ? 'border-blue-200' :
+        className={`group relative rounded-xl overflow-hidden border-2 transition-all aspect-square bg-surface-sunken ${
+          dispStatus === 'reviewing' ? 'border-edge-brand' :
           dispStatus === 'flagged' ? 'border-amber-200' :
           dispStatus === 'invalidated' ? 'border-red-200 opacity-60' :
-          'border-gray-100 hover:border-amber-200 hover:shadow-md'
+          'border-edge hover:border-amber-200 hover:shadow-md'
         }`}
         title={`${emoji} ${categoryLabel} · ${displayTitle(cert)}`}
       >
@@ -197,8 +197,8 @@ export default function UserChallengeAchievements({
         {/* 상태 뱃지 */}
         {dispStatus !== 'clean' && (
           <div className={`absolute top-1 left-1 text-[8px] font-bold px-1 py-0.5 rounded-full ${
-            dispStatus === 'reviewing' ? 'bg-blue-500 text-white' :
-            dispStatus === 'flagged' ? 'bg-amber-400 text-white' : 'bg-red-500 text-white'
+            dispStatus === 'reviewing' ? 'bg-brand text-white' :
+            dispStatus === 'flagged' ? 'bg-amber-400 text-white' : 'bg-danger text-white'
           }`}>
             {dispStatus === 'reviewing' ? '⚖️' : dispStatus === 'flagged' ? '🚨' : '❌'}
           </div>
@@ -212,7 +212,7 @@ export default function UserChallengeAchievements({
               deleteCert(cert.challenge_id)
             }}
             disabled={deletingCertId === cert.challenge_id}
-            className="absolute top-1 right-1 w-6 h-6 bg-gray-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+            className="absolute top-1 right-1 w-6 h-6 bg-surface-sunken0/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
             title={isKo ? '인증 취소' : 'Cancel certification'}
           >
             <Trash2 className="w-3 h-3" />
@@ -233,7 +233,7 @@ export default function UserChallengeAchievements({
                 challenge_title: displayTitle(cert),
               })
             }}
-            className="absolute top-1 right-1 w-6 h-6 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+            className="absolute top-1 right-1 w-6 h-6 bg-danger/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
             title="딴지걸기"
           >
             <Siren className="w-3 h-3" />
@@ -241,7 +241,7 @@ export default function UserChallengeAchievements({
         )}
 
         {alreadyDisputed && (
-          <div className="absolute top-1 right-1 bg-gray-500/80 text-white text-[8px] font-bold px-1 py-0.5 rounded-full">접수</div>
+          <div className="absolute top-1 right-1 bg-surface-sunken0/80 text-white text-[8px] font-bold px-1 py-0.5 rounded-full">접수</div>
         )}
 
         {/* 배심원 링크 */}
@@ -258,33 +258,33 @@ export default function UserChallengeAchievements({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6">
+    <div className="bg-surface rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between gap-4 mb-4">
-        <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+        <h2 className="font-bold text-heading text-lg flex items-center gap-2">
           <Trophy className="w-5 h-5 text-amber-500" />
           {t('challengeAchievements')}
         </h2>
         <div className="flex items-center gap-3 text-sm flex-wrap">
           {experiencePoints !== undefined && contributionPoints !== undefined ? (
             <>
-              <span className="font-bold text-amber-600 flex items-center gap-1">
+              <span className="font-bold text-amber flex items-center gap-1">
                 <Trophy className="w-4 h-4" /> {t('experiencePoints')} {exp} {t('pointsShort')}
               </span>
-              <span className="text-gray-400">·</span>
-              <span className="font-bold text-amber-600 flex items-center gap-1">
+              <span className="text-hint">·</span>
+              <span className="font-bold text-amber flex items-center gap-1">
                 <Trophy className="w-4 h-4" /> {t('contributionPoints')} {contrib} {t('pointsShort')}
               </span>
             </>
           ) : (
-            <span className="font-bold text-amber-600">{challengePoints} {t('pointsShort')}</span>
+            <span className="font-bold text-amber">{challengePoints} {t('pointsShort')}</span>
           )}
-          <span className="text-gray-400">·</span>
-          <span className="text-gray-600">{certifications.length} {t('certifiedShort')}</span>
+          <span className="text-hint">·</span>
+          <span className="text-body">{certifications.length} {t('certifiedShort')}</span>
         </div>
       </div>
 
       {currentUserId && !isOwnProfile && myCertCount < 3 && (
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-3 flex items-center gap-1">
+        <p className="text-xs text-amber bg-amber-light border border-amber-200 rounded-lg px-3 py-1.5 mb-3 flex items-center gap-1">
           <Siren className="w-3.5 h-3.5" /> 내 인증이 3개 이상이면 딴지걸기가 가능합니다
         </p>
       )}
@@ -298,7 +298,7 @@ export default function UserChallengeAchievements({
                 type="button"
                 onClick={() => setCategoryFilter('')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  categoryFilter === '' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  categoryFilter === '' ? 'bg-amber-light0 text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
                 }`}
               >
                 {isKo ? '전체' : 'All'} ({displayList.length})
@@ -313,7 +313,7 @@ export default function UserChallengeAchievements({
                     type="button"
                     onClick={() => setCategoryFilter(cat)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
-                      categoryFilter === cat ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      categoryFilter === cat ? 'bg-amber-light0 text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
                     }`}
                   >
                     <span>{emoji}</span>
@@ -330,10 +330,10 @@ export default function UserChallengeAchievements({
             const categoryLabel = CATEGORY_LABEL[category] ? (isKo ? CATEGORY_LABEL[category].ko : CATEGORY_LABEL[category].en) : category
             return (
               <div key={category} className="mb-6 last:mb-0">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+                <h3 className="text-sm font-semibold text-body mb-2 flex items-center gap-1.5">
                   <span>{emoji}</span>
                   <span>{categoryLabel}</span>
-                  <span className="text-gray-400 font-normal">({list.length})</span>
+                  <span className="text-hint font-normal">({list.length})</span>
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                   {list.map((cert) => renderCertCard(cert))}
@@ -343,15 +343,15 @@ export default function UserChallengeAchievements({
           })}
           <Link
             href={`/${locale}/challenges`}
-            className="inline-block mt-4 text-sm font-semibold text-amber-600 hover:text-amber-700"
+            className="inline-block mt-4 text-sm font-semibold text-amber hover:text-amber-700"
           >
             {t('viewAllChallenges')} →
           </Link>
         </>
       ) : (
         <>
-          <p className="text-gray-500 text-sm mb-2">{t('noCertificationsYet')}</p>
-          <Link href={`/${locale}/challenges`} className="text-sm font-semibold text-amber-600 hover:text-amber-700">
+          <p className="text-subtle text-sm mb-2">{t('noCertificationsYet')}</p>
+          <Link href={`/${locale}/challenges`} className="text-sm font-semibold text-amber hover:text-amber-700">
             {t('viewAllChallenges')} →
           </Link>
         </>
@@ -361,7 +361,7 @@ export default function UserChallengeAchievements({
       {expandedImg && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out" onClick={() => setExpandedImg(null)}>
           <img src={expandedImg} alt="" className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain" onClick={e => e.stopPropagation()} />
-          <button onClick={() => setExpandedImg(null)} className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/30 text-xl">✕</button>
+          <button onClick={() => setExpandedImg(null)} className="absolute top-4 right-4 w-10 h-10 bg-surface/20 text-white rounded-full flex items-center justify-center hover:bg-surface/30 text-xl">✕</button>
         </div>
       )}
 

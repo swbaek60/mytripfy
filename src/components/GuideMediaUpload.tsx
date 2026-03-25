@@ -68,10 +68,10 @@ export default function GuideMediaUpload({
 
   return (
     <div>
-      <p className="text-xs text-gray-500 mb-2 font-medium">{label} (최대 {maxPhotos}장)</p>
+      <p className="text-xs text-subtle mb-2 font-medium">{label} (최대 {maxPhotos}장)</p>
       <div className="flex flex-wrap gap-2">
         {photos.map((url, i) => (
-          <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 group shrink-0">
+          <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden bg-surface-sunken group shrink-0">
             <img src={url} alt={`${folder} ${i + 1}`} className="w-full h-full object-cover" />
             <button
               type="button"
@@ -85,7 +85,7 @@ export default function GuideMediaUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 flex flex-col items-center justify-center text-gray-300 hover:text-blue-400 transition-all disabled:opacity-50 shrink-0"
+            className="w-20 h-20 rounded-xl border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light flex flex-col items-center justify-center text-hint hover:text-blue-400 transition-all disabled:opacity-50 shrink-0"
           >
             {uploading ? (
               <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />

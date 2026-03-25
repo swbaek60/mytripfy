@@ -161,20 +161,20 @@ export default async function CompanionDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/companions" />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Back + 수정 버튼 */}
         <div className="flex items-center justify-between">
-          <Link href={`/${locale}/companions`} className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1">
+          <Link href={`/${locale}/companions`} className="text-sm text-subtle hover:text-brand flex items-center gap-1">
             ← Back to listings
           </Link>
           {isOwner && (
             <div className="flex items-center gap-2">
               <Link href={`/${locale}/companions/${post.id}/edit`}>
-                <Button size="sm" variant="outline" className="rounded-full text-xs border-blue-200 text-blue-600 hover:bg-blue-50">
+                <Button size="sm" variant="outline" className="rounded-full text-xs border-edge-brand text-brand hover:bg-brand-light">
                   ✏️ 수정
                 </Button>
               </Link>
@@ -184,7 +184,7 @@ export default async function CompanionDetailPage({
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {/* Header Banner */}
           {post.cover_image ? (
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/7' }}>
@@ -256,16 +256,16 @@ export default async function CompanionDetailPage({
 
           <div className="p-6 space-y-5">
             {/* Title */}
-            <h2 className="text-xl font-bold text-gray-900">{post.title}</h2>
+            <h2 className="text-xl font-bold text-heading">{post.title}</h2>
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2">
               {post.purpose && (
-                <span className="text-sm bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-medium">
+                <span className="text-sm bg-brand-light text-brand-hover px-3 py-1.5 rounded-full font-medium">
                   {PURPOSE_LABELS[post.purpose] || post.purpose}
                 </span>
               )}
-              <span className="text-sm bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full font-medium">
+              <span className="text-sm bg-purple-light text-purple-700 px-3 py-1.5 rounded-full font-medium">
                 {post.gender_preference === 'male_only' ? 'Male only'
                   : post.gender_preference === 'female_only' ? 'Female only'
                   : 'Anyone welcome'}
@@ -274,23 +274,23 @@ export default async function CompanionDetailPage({
 
             {/* Description */}
             {post.description && (
-              <div className="bg-gray-50 rounded-xl p-4 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+              <div className="bg-surface-sunken rounded-xl p-4 text-body text-sm leading-relaxed whitespace-pre-wrap">
                 {post.description}
               </div>
             )}
 
             {/* Apply Section */}
             {!isOwner && effectiveStatus === 'open' && (
-              <div className="border-t border-gray-100 pt-5">
+              <div className="border-t border-edge pt-5">
                 {!user ? (
                   <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm mb-3">Login to apply for this trip</p>
+                    <p className="text-subtle text-sm mb-3">Login to apply for this trip</p>
                     <Link href={`/${locale}/login`}>
-                      <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-8">Login to Apply</Button>
+                      <Button className="bg-brand hover:bg-brand-hover rounded-full px-8">Login to Apply</Button>
                     </Link>
                   </div>
                 ) : !canApplyByGender ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="bg-amber-light border border-amber-200 rounded-xl p-4">
                     {pref === 'female_only' && (
                       <>
                         <p className="text-amber-800 font-medium text-sm">👩 This trip is for women only.</p>
@@ -318,9 +318,9 @@ export default async function CompanionDetailPage({
                 ) : wasRemoved ? (
                   /* 강제 제거된 경우: 재신청 안내 */
                   <div className="space-y-3">
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div className="bg-danger-light border border-red-200 rounded-xl p-4">
                       <p className="text-red-700 font-medium text-sm">🚫 You were removed from this trip by the host.</p>
-                      <p className="text-red-500 text-xs mt-1">You can re-apply if you wish to join again.</p>
+                      <p className="text-danger text-xs mt-1">You can re-apply if you wish to join again.</p>
                     </div>
                     <ApplyButton
                       postId={post.id}
@@ -331,7 +331,7 @@ export default async function CompanionDetailPage({
                     />
                   </div>
                 ) : isFull ? (
-                  <div className="text-center py-4 text-gray-500">
+                  <div className="text-center py-4 text-subtle">
                     <p>This trip is already full.</p>
                   </div>
                 ) : (
@@ -348,17 +348,17 @@ export default async function CompanionDetailPage({
         </div>
 
         {/* Host Profile */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Posted by</h3>
+        <div className="bg-surface rounded-2xl shadow-sm p-6">
+          <h3 className="font-bold text-heading mb-4">Posted by</h3>
           <div className="flex items-start gap-4">
-            <Link href={`/${locale}/users/${profile?.id}`} className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity overflow-hidden">
+            <Link href={`/${locale}/users/${profile?.id}`} className="w-14 h-14 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity overflow-hidden">
               {(profile?.avatar_url as string) ? (
                 <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover" />
-              ) : <span className="text-gray-400 text-xl">?</span>}
+              ) : <span className="text-hint text-xl">?</span>}
             </Link>
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <Link href={`/${locale}/users/${profile?.id}`} className="font-bold text-gray-900 hover:text-blue-600">
+                <Link href={`/${locale}/users/${profile?.id}`} className="font-bold text-heading hover:text-brand">
                   {(profile?.full_name as string) || 'Anonymous'}
                 </Link>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
@@ -366,28 +366,28 @@ export default async function CompanionDetailPage({
                 </span>
               </div>
               <div className="flex gap-1.5 mt-1 flex-wrap">
-                {(profile?.email_verified as boolean) && <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">Email verified</span>}
-                {(profile?.phone_verified as boolean) && <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">Phone verified</span>}
-                {(profile?.sns_verified as boolean) && <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">SNS verified</span>}
+                {(profile?.email_verified as boolean) && <span className="text-xs bg-success-light text-success px-2 py-0.5 rounded-full border border-green-200">Email verified</span>}
+                {(profile?.phone_verified as boolean) && <span className="text-xs bg-brand-light text-brand-hover px-2 py-0.5 rounded-full border border-edge-brand">Phone verified</span>}
+                {(profile?.sns_verified as boolean) && <span className="text-xs bg-purple-light text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">SNS verified</span>}
               </div>
-              <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
+              <div className="flex items-center gap-3 mt-2 text-sm text-subtle">
                 {(profile?.trust_score as number) > 0 && (
                   <span>★ {Number(profile.trust_score).toFixed(1)} ({profile?.review_count as number} reviews)</span>
                 )}
               </div>
               {(profile?.bio as string) && (
-                <p className="text-sm text-gray-600 mt-2 line-clamp-2">{profile.bio as string}</p>
+                <p className="text-sm text-body mt-2 line-clamp-2">{profile.bio as string}</p>
               )}
               {/* Action buttons */}
               {user && !isOwner && (
                 <div className="flex gap-2 mt-3">
                   <Link href={`/${locale}/messages/${profile?.id}?postId=${post.id}`}>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs px-4">
+                    <Button size="sm" className="bg-brand hover:bg-brand-hover text-white rounded-full text-xs px-4">
                       Message
                     </Button>
                   </Link>
                   <Link href={`/${locale}/reviews/write?userId=${profile?.id}`}>
-                    <Button size="sm" variant="outline" className="rounded-full text-xs border-yellow-300 text-yellow-600 hover:bg-yellow-50">
+                    <Button size="sm" variant="outline" className="rounded-full text-xs border-yellow-300 text-warning hover:bg-warning-light">
                       Write Review
                     </Button>
                   </Link>
@@ -398,11 +398,11 @@ export default async function CompanionDetailPage({
         </div>
 
         {/* Day-by-Day Itinerary */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Trip Itinerary</h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h3 className="text-lg font-bold text-heading">Trip Itinerary</h3>
+              <p className="text-xs text-hint mt-0.5">
                 {itineraryDays.length > 0
                   ? `${itineraryDays.length} day${itineraryDays.length > 1 ? 's' : ''} · ${itineraryDays.flatMap((d: any) => d.trip_activities).length} activities`
                   : isOwner ? 'Add your day-by-day plan to attract companions' : 'No detailed itinerary yet'}
@@ -459,24 +459,24 @@ export default async function CompanionDetailPage({
 
         {/* 수락된 멤버 전용: 1명이면 DM, 3명 이상 수락이면 그룹 채팅 */}
         {!isOwner && isAccepted && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="bg-brand-light border border-edge-brand rounded-2xl p-5 flex items-center justify-between gap-4">
             <div>
               <p className="font-bold text-blue-800 text-sm">You&apos;re in the trip!</p>
               {acceptedCount >= 2 && groupChatId ? (
-                <p className="text-xs text-blue-600 mt-0.5">Join the group chat to coordinate with your travel group.</p>
+                <p className="text-xs text-brand mt-0.5">Join the group chat to coordinate with your travel group.</p>
               ) : (
-                <p className="text-xs text-blue-600 mt-0.5">DM the host to coordinate your trip.</p>
+                <p className="text-xs text-brand mt-0.5">DM the host to coordinate your trip.</p>
               )}
             </div>
             {acceptedCount >= 2 && groupChatId ? (
               <Link href={`/${locale}/messages/group/${groupChatId}`}>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm px-5 shrink-0 flex items-center gap-2">
+                <Button className="bg-brand hover:bg-brand-hover text-white rounded-full text-sm px-5 shrink-0 flex items-center gap-2">
                   <span>💬</span> Trip Group Chat
                 </Button>
               </Link>
             ) : (
               <Link href={`/${locale}/messages/${profile?.id}?postId=${post.id}`}>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm px-5 shrink-0 flex items-center gap-2">
+                <Button className="bg-brand hover:bg-brand-hover text-white rounded-full text-sm px-5 shrink-0 flex items-center gap-2">
                   <span>💬</span> DM Host
                 </Button>
               </Link>
@@ -486,7 +486,7 @@ export default async function CompanionDetailPage({
 
         {/* Application count (non-owner, non-accepted) */}
         {!isOwner && !isAccepted && applications && applications.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-sm text-gray-500">
+          <div className="bg-surface rounded-2xl shadow-sm p-4 text-center text-sm text-subtle">
             {acceptedCount} accepted · {applications.length} total applicants
           </div>
         )}

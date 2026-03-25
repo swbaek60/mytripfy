@@ -37,24 +37,24 @@ export default async function MyReviewsPage({
   const viewProfile = isKo ? '프로필 보기' : 'View profile'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <MessageSquare className="w-6 h-6 text-purple-500" />
+        <h1 className="text-2xl font-bold text-heading mb-2 flex items-center gap-2">
+          <MessageSquare className="w-6 h-6 text-purple" />
           {title}
         </h1>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-subtle mb-6">
           {list.length} {isKo ? '명' : 'people'}
         </p>
 
         {list.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-500">
+          <div className="bg-surface rounded-2xl shadow-sm p-8 text-center text-subtle">
             <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-40" />
             <p className="font-medium">{emptyMsg}</p>
             <Link
               href={`/${locale}/companions`}
-              className="inline-block mt-4 text-sm font-semibold text-purple-600 hover:text-purple-700"
+              className="inline-block mt-4 text-sm font-semibold text-purple hover:text-purple"
             >
               {isKo ? '동행 찾기 →' : 'Find companions →'}
             </Link>
@@ -68,10 +68,10 @@ export default async function MyReviewsPage({
                 <Link
                   key={review.id}
                   href={`/${locale}/users/${review.reviewee_id}#reviews`}
-                  className="block bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow"
+                  className="block bg-surface rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-purple-light flex items-center justify-center overflow-hidden shrink-0">
                       {reviewee?.avatar_url ? (
                         <img src={reviewee.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -80,7 +80,7 @@ export default async function MyReviewsPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-heading">
                           {reviewee?.full_name || (isKo ? '알 수 없음' : 'Unknown')}
                         </span>
                         <span
@@ -95,9 +95,9 @@ export default async function MyReviewsPage({
                         <span>{review.rating}/5</span>
                       </div>
                       {review.content && (
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">{review.content}</p>
+                        <p className="text-sm text-body mt-2 line-clamp-2">{review.content}</p>
                       )}
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-hint mt-2">
                         {new Date(review.created_at).toLocaleDateString(isKo ? 'ko-KR' : 'en-US', {
                           year: 'numeric',
                           month: 'short',
@@ -105,7 +105,7 @@ export default async function MyReviewsPage({
                         })}
                       </p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 shrink-0 mt-1" />
+                    <ChevronRight className="w-5 h-5 text-hint shrink-0 mt-1" />
                   </div>
                 </Link>
               )
@@ -116,7 +116,7 @@ export default async function MyReviewsPage({
         <div className="mt-6">
           <Link
             href={`/${locale}/profile`}
-            className="text-sm font-semibold text-purple-600 hover:text-purple-700"
+            className="text-sm font-semibold text-purple hover:text-purple"
           >
             ← {isKo ? '내 프로필' : 'My profile'}
           </Link>

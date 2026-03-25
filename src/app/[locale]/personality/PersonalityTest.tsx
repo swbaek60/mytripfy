@@ -138,18 +138,18 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
     const p = PERSONALITY_TYPES[result]
     return (
       <div className="max-w-lg mx-auto text-center space-y-6">
-        <div className="bg-white rounded-2xl shadow-sm p-8">
+        <div className="bg-surface rounded-2xl shadow-sm p-8">
           <div className="text-7xl mb-4">{p.emoji}</div>
-          <h2 className="text-2xl font-extrabold text-gray-900 mb-2">You are...</h2>
+          <h2 className="text-2xl font-extrabold text-heading mb-2">You are...</h2>
           <h3 className="text-3xl font-extrabold mb-4" style={{ color: p.color }}>{p.type}</h3>
-          <p className="text-gray-600 leading-relaxed text-lg mb-6">{p.desc}</p>
+          <p className="text-body leading-relaxed text-lg mb-6">{p.desc}</p>
 
-          <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2 mb-6">
-            <p className="font-semibold text-gray-700 text-sm mb-3">Your travel DNA:</p>
+          <div className="bg-surface-sunken rounded-xl p-4 text-left space-y-2 mb-6">
+            <p className="font-semibold text-body text-sm mb-3">Your travel DNA:</p>
             {Object.entries(answers).map(([key, val]) => (
               <div key={key} className="flex justify-between text-sm">
-                <span className="text-gray-500 capitalize">{key}:</span>
-                <span className="font-medium text-gray-700 capitalize">{val}</span>
+                <span className="text-subtle capitalize">{key}:</span>
+                <span className="font-medium text-body capitalize">{val}</span>
               </div>
             ))}
           </div>
@@ -157,7 +157,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
           <div className="flex flex-col gap-3">
             <Button
               onClick={() => router.push(`/${locale}/companions`)}
-              className="w-full bg-blue-600 hover:bg-blue-700 rounded-full py-5"
+              className="w-full bg-brand hover:bg-brand-hover rounded-full py-5"
             >
               ✈️ Find Matching Companions
             </Button>
@@ -180,28 +180,28 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
     <div className="max-w-lg mx-auto space-y-6">
       {/* Progress */}
       <div>
-        <div className="flex justify-between text-sm text-gray-500 mb-2">
+        <div className="flex justify-between text-sm text-subtle mb-2">
           <span>Question {currentQ + 1} of {QUESTIONS.length}</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-surface-sunken rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-500"
+            className="h-full bg-brand rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
       {/* Question Card */}
-      <div className="bg-white rounded-2xl shadow-sm p-8">
+      <div className="bg-surface rounded-2xl shadow-sm p-8">
         <div className="text-5xl mb-4 text-center">{q.emoji}</div>
-        <h2 className="text-xl font-bold text-gray-900 text-center mb-6">{q.question}</h2>
+        <h2 className="text-xl font-bold text-heading text-center mb-6">{q.question}</h2>
         <div className="space-y-3">
           {q.options.map(opt => (
             <button
               key={opt.value}
               onClick={() => handleAnswer(opt.value)}
-              className="w-full text-left px-5 py-4 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium text-gray-700"
+              className="w-full text-left px-5 py-4 rounded-xl border-2 border-edge hover:border-blue-400 hover:bg-brand-light transition-all text-sm font-medium text-body"
             >
               {opt.label}
             </button>
@@ -212,7 +212,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
       {currentQ > 0 && (
         <button
           onClick={() => setCurrentQ(prev => prev - 1)}
-          className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-sm text-hint hover:text-body transition-colors"
         >
           ← Previous question
         </button>

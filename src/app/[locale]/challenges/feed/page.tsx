@@ -96,7 +96,7 @@ export default async function ChallengeFeedPage({
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/challenges" />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -104,19 +104,19 @@ export default async function ChallengeFeedPage({
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900">🌍 {t('feedTitle')}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h1 className="text-2xl font-extrabold text-heading">🌍 {t('feedTitle')}</h1>
+            <p className="text-sm text-subtle mt-0.5">
               {t('feedSubtitle')}
             </p>
           </div>
           <div className="flex gap-2">
             <Link href={`/${locale}/challenges/guide`}>
-              <button className="flex items-center gap-1.5 border border-amber-300 bg-amber-50 text-amber-700 text-xs font-bold px-3 py-2 rounded-full hover:bg-amber-100 transition-colors">
+              <button className="flex items-center gap-1.5 border border-amber-300 bg-amber-light text-amber-700 text-xs font-bold px-3 py-2 rounded-full hover:bg-amber transition-colors">
                 🚩 {L.systemName}
               </button>
             </Link>
             <Link href={`/${locale}/challenges`}>
-              <button className="border border-gray-200 bg-white text-gray-600 text-xs font-semibold px-3 py-2 rounded-full hover:bg-gray-50 transition-colors">
+              <button className="border border-edge bg-surface text-body text-xs font-semibold px-3 py-2 rounded-full hover:bg-surface-hover transition-colors">
                 ← 챌린지 허브
               </button>
             </Link>
@@ -124,7 +124,7 @@ export default async function ChallengeFeedPage({
         </div>
 
         {/* 안내 배너 */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 mb-6 flex items-start gap-3">
+        <div className="bg-amber-light border border-amber-200 rounded-2xl px-5 py-3.5 mb-6 flex items-start gap-3">
           <span className="text-xl shrink-0">💡</span>
           <div className="text-sm text-amber-800">
             <strong>{L.systemName}</strong>: {L.tagline}.&nbsp;

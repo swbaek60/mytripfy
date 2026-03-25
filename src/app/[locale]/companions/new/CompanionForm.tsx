@@ -178,10 +178,10 @@ export default function CompanionForm({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-heading">
             {isEdit ? '✏️ Edit Trip' : '✈️ Post a Trip'}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-subtle mt-1">
             {isEdit ? 'Update your trip details' : 'Find your perfect travel companion'}
           </p>
         </div>
@@ -192,28 +192,28 @@ export default function CompanionForm({
               size="sm"
               onClick={handleDelete}
               disabled={deleting}
-              className="border-red-200 text-red-500 hover:bg-red-50 rounded-full text-xs"
+              className="border-red-200 text-danger hover:bg-danger-light rounded-full text-xs"
             >
               {deleting ? 'Deleting...' : '🗑️ Delete'}
             </Button>
           )}
           <Link href={isEdit && initialData ? `/${locale}/companions/${initialData.id}` : `/${locale}/companions`}>
-            <Button variant="ghost" className="text-gray-500">← Back</Button>
+            <Button variant="ghost" className="text-subtle">← Back</Button>
           </Link>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+        <div className="bg-danger-light border border-red-200 text-danger rounded-xl p-4 text-sm">
           ❌ {error}
         </div>
       )}
 
       {/* Cover Photo */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-3">
         <div>
-          <h2 className="font-bold text-gray-900">Cover Photo</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Add a photo to make your post stand out (optional)</p>
+          <h2 className="font-bold text-heading">Cover Photo</h2>
+          <p className="text-xs text-hint mt-0.5">Add a photo to make your post stand out (optional)</p>
         </div>
         <PostCoverUpload
           userId={userId}
@@ -223,22 +223,22 @@ export default function CompanionForm({
       </div>
 
       {/* Title */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Trip Details</h2>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-bold text-heading border-b border-edge pb-3">Trip Details</h2>
 
         <div className="space-y-1.5">
-          <Label>Post Title <span className="text-red-500">*</span></Label>
+          <Label>Post Title <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="e.g. Looking for companion for Japan trip in April!"
             maxLength={100}
           />
-          <p className="text-xs text-gray-400 text-right">{title.length}/100</p>
+          <p className="text-xs text-hint text-right">{title.length}/100</p>
         </div>
 
         <div className="space-y-1.5">
-          <Label>Destination Country <span className="text-red-500">*</span></Label>
+          <Label>Destination Country <span className="text-danger">*</span></Label>
           <CountrySelect
             value={country}
             onChange={handleCountryChange}
@@ -251,16 +251,16 @@ export default function CompanionForm({
           <div className="space-y-2">
             <Label>
               Cities to visit
-              <span className="text-gray-400 font-normal text-xs ml-1">(multiple selections allowed)</span>
+              <span className="text-hint font-normal text-xs ml-1">(multiple selections allowed)</span>
             </Label>
 
             {/* 선택된 도시 태그 */}
             {selectedCities.length > 0 && (
-              <div className="flex flex-wrap gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="flex flex-wrap gap-2 p-3 bg-brand-light rounded-xl border border-edge-brand">
                 {selectedCities.map(city => (
                   <span
                     key={city}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-full text-sm font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-brand text-white rounded-full text-sm font-medium"
                   >
                     📍 {city}
                     <button
@@ -284,8 +284,8 @@ export default function CompanionForm({
                     onClick={() => toggleCity(city)}
                     className={`px-3 py-1.5 rounded-full text-sm transition-colors border ${
                       selectedCities.includes(city)
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600'
+                        ? 'bg-brand text-white border-blue-600'
+                        : 'bg-surface text-body border-edge hover:border-blue-400 hover:text-brand'
                     }`}
                   >
                     {selectedCities.includes(city) ? '✓ ' : ''}{city}
@@ -308,30 +308,30 @@ export default function CompanionForm({
                 variant="outline"
                 onClick={addCustomCity}
                 disabled={!customCity.trim()}
-                className="shrink-0 border-blue-300 text-blue-600 hover:bg-blue-50"
+                className="shrink-0 border-blue-300 text-brand hover:bg-brand-light"
               >
                 + Add
               </Button>
             </div>
-            <p className="text-xs text-gray-400">Click a city to select/deselect. Press Enter or click Add for unlisted cities.</p>
+            <p className="text-xs text-hint">Click a city to select/deselect. Press Enter or click Add for unlisted cities.</p>
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-red-500">*</span></Label>
+            <Label>Start Date <span className="text-danger">*</span></Label>
             <Input type="date" value={startDate} min={today} onChange={e => setStartDate(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-red-500">*</span></Label>
+            <Label>End Date <span className="text-danger">*</span></Label>
             <Input type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} />
           </div>
         </div>
       </div>
 
       {/* Preferences */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Companion Preferences</h2>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-bold text-heading border-b border-edge pb-3">Companion Preferences</h2>
 
         <div className="space-y-1.5">
           <Label>Trip Purpose</Label>
@@ -342,8 +342,8 @@ export default function CompanionForm({
                 onClick={() => setPurpose(p.value)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                   purpose === p.value
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                    ? 'bg-brand text-white border-blue-600'
+                    : 'bg-surface text-body border-edge hover:border-blue-300'
                 }`}
               >
                 {p.label}
@@ -358,7 +358,7 @@ export default function CompanionForm({
             <select
               value={genderPref}
               onChange={e => setGenderPref(e.target.value)}
-              className="w-full h-10 rounded-md border border-gray-200 px-3 text-sm bg-white"
+              className="w-full h-10 rounded-md border border-edge px-3 text-sm bg-surface"
             >
               <option value="any">👫 Anyone welcome</option>
               <option value="male_only">👨 Male only</option>
@@ -377,8 +377,8 @@ export default function CompanionForm({
       </div>
 
       {/* Description */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Description</h2>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-bold text-heading border-b border-edge pb-3">Description</h2>
         <div className="space-y-1.5">
           <Label>Introduce your trip (optional)</Label>
           <textarea
@@ -386,7 +386,7 @@ export default function CompanionForm({
             onChange={e => setDescription(e.target.value)}
             placeholder="Share your travel plan, budget range, preferred companion style, accommodation plans, etc."
             rows={5}
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
       </div>
@@ -394,7 +394,7 @@ export default function CompanionForm({
       <Button
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg rounded-xl"
+        className="w-full bg-brand hover:bg-brand-hover py-6 text-lg rounded-xl"
       >
         {saving
           ? (isEdit ? 'Saving...' : 'Posting...')

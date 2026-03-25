@@ -56,10 +56,10 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
 
   if (editing) {
     return (
-      <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+      <div className="mt-3 bg-brand-light border border-edge-brand rounded-xl p-4 space-y-3">
         {/* 별점 */}
         <div>
-          <p className="text-xs font-medium text-gray-600 mb-1.5">Rating</p>
+          <p className="text-xs font-medium text-body mb-1.5">Rating</p>
           <div className="flex gap-1.5">
             {[1, 2, 3, 4, 5].map(star => (
               <button
@@ -77,12 +77,12 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
 
         {/* 코멘트 */}
         <div>
-          <p className="text-xs font-medium text-gray-600 mb-1.5">Comment</p>
+          <p className="text-xs font-medium text-body mb-1.5">Comment</p>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-edge px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Share your experience..."
           />
         </div>
@@ -92,7 +92,7 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
             size="sm"
             onClick={handleSave}
             disabled={saving || rating === 0}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs px-4 flex items-center gap-1"
+            className="bg-brand hover:bg-brand-hover text-white rounded-full text-xs px-4 flex items-center gap-1"
           >
             <Check className="w-3 h-3" />
             {saving ? 'Saving...' : 'Save'}
@@ -115,7 +115,7 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
     <div className="flex gap-1.5 mt-2">
       <button
         onClick={() => setEditing(true)}
-        className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500 transition-colors px-2 py-1 rounded-lg hover:bg-blue-50"
+        className="flex items-center gap-1 text-xs text-hint hover:text-brand transition-colors px-2 py-1 rounded-lg hover:bg-brand-light"
         title="Edit review"
       >
         <Pencil className="w-3 h-3" />
@@ -124,7 +124,7 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
       <button
         onClick={handleDelete}
         disabled={deleting}
-        className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+        className="flex items-center gap-1 text-xs text-hint hover:text-danger transition-colors px-2 py-1 rounded-lg hover:bg-danger-light"
         title="Delete review"
       >
         <Trash2 className="w-3 h-3" />

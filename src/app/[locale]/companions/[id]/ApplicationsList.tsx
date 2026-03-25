@@ -109,31 +109,31 @@ export default function ApplicationsList({
   const removed  = applications.filter(a => a.status === 'removed')
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+    <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-6">
       {/* 헤더 */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-500" />
+          <h3 className="font-bold text-heading text-lg flex items-center gap-2">
+            <Users className="w-5 h-5 text-brand" />
             Applications
           </h3>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Accepted <span className="text-green-600 font-semibold">{accepted.length}</span>
-            &nbsp;· Pending <span className="text-yellow-600 font-semibold">{pending.length}</span>
-            &nbsp;· Rejected <span className="text-gray-400">{rejected.length}</span>
+          <p className="text-sm text-subtle mt-0.5">
+            Accepted <span className="text-success font-semibold">{accepted.length}</span>
+            &nbsp;· Pending <span className="text-warning font-semibold">{pending.length}</span>
+            &nbsp;· Rejected <span className="text-hint">{rejected.length}</span>
             {removed.length > 0 && <>&nbsp;· Removed <span className="text-red-400">{removed.length}</span></>}
           </p>
         </div>
       </div>
 
       {applications.length === 0 ? (
-        <p className="text-center text-gray-400 py-6">No applications yet.</p>
+        <p className="text-center text-hint py-6">No applications yet.</p>
       ) : (
         <div className="space-y-3">
           {/* 수락됨 */}
           {accepted.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-2">
+              <p className="text-xs font-semibold text-success uppercase tracking-wider mb-2">
                 Accepted Members ({accepted.length})
               </p>
               {accepted.map(app => <AppCard key={app.id} app={app} locale={locale} status="accepted"
@@ -159,7 +159,7 @@ export default function ApplicationsList({
           {/* 거절됨 */}
           {rejected.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-4">
+              <p className="text-xs font-semibold text-hint uppercase tracking-wider mb-2 mt-4">
                 Rejected ({rejected.length})
               </p>
               {rejected.map(app => <AppCard key={app.id} app={app} locale={locale} status="rejected"
@@ -200,24 +200,24 @@ function AppCard({
 
   return (
     <div className={`rounded-xl p-4 border transition-all ${
-      status === 'accepted' ? 'bg-green-50 border-green-200'
-      : status === 'rejected' ? 'bg-gray-50 border-gray-200 opacity-50'
-      : status === 'removed'  ? 'bg-red-50 border-red-200 opacity-60'
-      : 'bg-white border-gray-200 hover:border-blue-200'
+      status === 'accepted' ? 'bg-success-light border-green-200'
+      : status === 'rejected' ? 'bg-surface-sunken border-edge opacity-50'
+      : status === 'removed'  ? 'bg-danger-light border-red-200 opacity-60'
+      : 'bg-surface border-edge hover:border-edge-brand'
     }`}>
       <div className="flex items-start gap-3">
         <Link href={`/${locale}/users/${app.applicant_id}`}>
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 hover:opacity-80 overflow-hidden">
+          <div className="w-10 h-10 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 overflow-hidden">
             {(profile?.avatar_url as string) ? (
               <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover rounded-full" />
-            ) : <span className="text-gray-400 text-sm">?</span>}
+            ) : <span className="text-hint text-sm">?</span>}
           </div>
         </Link>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Link href={`/${locale}/users/${app.applicant_id}`}>
-              <span className="font-semibold text-gray-900 hover:text-blue-600 text-sm">
+              <span className="font-semibold text-heading hover:text-brand text-sm">
                 {(profile?.full_name as string) || 'Anonymous'}
               </span>
             </Link>
@@ -226,11 +226,11 @@ function AppCard({
             </span>
           </div>
           {app.message && (
-            <p className="text-sm text-gray-600 mt-1.5 line-clamp-2 bg-gray-50 rounded-lg px-2 py-1.5 italic">
+            <p className="text-sm text-body mt-1.5 line-clamp-2 bg-surface-sunken rounded-lg px-2 py-1.5 italic">
               "{app.message}"
             </p>
           )}
-          <p suppressHydrationWarning className="text-xs text-gray-400 mt-1">
+          <p suppressHydrationWarning className="text-xs text-hint mt-1">
             {new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
           </p>
         </div>
@@ -240,11 +240,11 @@ function AppCard({
           {status === 'pending' && (
             <>
               <Button size="sm" onClick={onAccept} disabled={loading === app.id}
-                className="bg-green-500 hover:bg-green-600 text-white rounded-full text-xs px-3 h-7">
+                className="bg-success hover:bg-success text-white rounded-full text-xs px-3 h-7">
                 Accept
               </Button>
               <Button size="sm" variant="outline" onClick={onReject} disabled={loading === app.id}
-                className="border-red-200 text-red-500 hover:bg-red-50 rounded-full text-xs px-3 h-7">
+                className="border-red-200 text-danger hover:bg-danger-light rounded-full text-xs px-3 h-7">
                 Reject
               </Button>
             </>
@@ -254,13 +254,13 @@ function AppCard({
               {onMessage && (
                 <Link href={onMessage}>
                   <Button size="sm" variant="outline"
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50 rounded-full text-xs px-3 h-7 w-full flex items-center gap-1">
+                    className="border-edge-brand text-brand hover:bg-brand-light rounded-full text-xs px-3 h-7 w-full flex items-center gap-1">
                     <MessageSquare className="w-3 h-3" /> DM
                   </Button>
                 </Link>
               )}
               <Button size="sm" variant="outline" onClick={onRemove} disabled={loading === app.applicant_id}
-                className="border-red-200 text-red-400 hover:bg-red-50 rounded-full text-xs px-3 h-7">
+                className="border-red-200 text-red-400 hover:bg-danger-light rounded-full text-xs px-3 h-7">
                 Remove
               </Button>
             </>

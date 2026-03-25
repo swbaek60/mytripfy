@@ -31,10 +31,10 @@ export default async function NotificationsPage({
     .eq('is_read', false)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-heading mb-6">{t('title')}</h1>
         <NotificationsList notifications={notifications ?? []} locale={locale} />
       </main>
     </div>

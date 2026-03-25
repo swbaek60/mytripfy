@@ -45,10 +45,10 @@ export default function BookmarkButton({ userId, type, referenceId, isBookmarked
       disabled={loading}
       title={bookmarked ? 'Remove bookmark' : 'Bookmark'}
       className={`rounded-full transition-all hover:scale-110 ${padClass} ${
-        bookmarked ? 'text-blue-500' : 'text-gray-300 hover:text-blue-400'
+        bookmarked ? 'text-brand' : 'text-hint hover:text-blue-400'
       } disabled:opacity-50`}
     >
-      <Bookmark className={`${iconSize} ${bookmarked ? 'fill-blue-500' : ''}`} />
+      <Bookmark className={`${iconSize} ${bookmarked ? 'fill-brand' : ''}`} />
     </button>
   )
 }

@@ -72,10 +72,10 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
       <button
         onClick={() => setOpen(true)}
         className={iconOnly
-          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-600 shrink-0 font-semibold text-sm"
+          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0 font-semibold text-sm"
           : compact
-            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
-            : "flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-surface-hover transition-colors text-sm font-medium text-body"
+            : "flex items-center gap-1 text-sm font-medium text-subtle hover:text-heading px-2 py-1.5 rounded-lg hover:bg-surface-hover transition-colors"
         }
         aria-label="Select currency"
       >
@@ -93,20 +93,20 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
           />
 
           {/* 패널 */}
-          <div className="relative z-10 w-full max-w-lg max-h-[85vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative z-10 w-full max-w-lg max-h-[85vh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
 
             {/* 헤더 */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="px-6 pt-6 pb-4 border-b border-edge">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Select Currency</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Currently: <span className="font-semibold text-blue-600">{current.symbol} {current.code} — {current.name}</span>
+                  <h2 className="text-lg font-bold text-heading">Select Currency</h2>
+                  <p className="text-xs text-hint mt-0.5">
+                    Currently: <span className="font-semibold text-brand">{current.symbol} {current.code} — {current.name}</span>
                   </p>
                 </div>
                 <button
                   onClick={() => setOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-hint hover:text-body"
                 >
                   ✕
                 </button>
@@ -114,13 +114,13 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
 
               {/* 검색창 */}
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-hint text-sm">🔍</span>
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search currency (e.g. USD, Euro, ¥...)"
-                  className="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                  className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
                   autoFocus
                 />
               </div>
@@ -132,7 +132,7 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
                 <div key={group.region}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="h-1 w-5 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500" />
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-hint uppercase tracking-wide">
                       {group.region}
                     </span>
                   </div>
@@ -147,18 +147,18 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
                           onClick={() => { setSelectedCurrency(c.code); setOpen(false); setSearch('') }}
                           className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
                             isActive
-                              ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                              : 'hover:bg-gray-50 border border-gray-100 hover:border-blue-200'
+                              ? 'bg-brand text-white shadow-md shadow-blue-200'
+                              : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
                           }`}
                         >
-                          <span className={`text-base font-bold w-6 text-center shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                          <span className={`text-base font-bold w-6 text-center shrink-0 ${isActive ? 'text-white' : 'text-subtle'}`}>
                             {c.symbol}
                           </span>
                           <div className="min-w-0">
-                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800'}`}>
+                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
                               {c.code}
                             </div>
-                            <div className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
+                            <div className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-hint'}`}>
                               {c.name}
                             </div>
                           </div>
@@ -177,7 +177,7 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="h-1 w-5 rounded-full bg-gradient-to-r from-gray-300 to-gray-400" />
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Other</span>
+                    <span className="text-xs font-semibold text-hint uppercase tracking-wide">Other</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {others.map(c => {
@@ -188,16 +188,16 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
                           onClick={() => { setSelectedCurrency(c.code); setOpen(false); setSearch('') }}
                           className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
                             isActive
-                              ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                              : 'hover:bg-gray-50 border border-gray-100 hover:border-blue-200'
+                              ? 'bg-brand text-white shadow-md shadow-blue-200'
+                              : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
                           }`}
                         >
-                          <span className={`text-base font-bold w-6 text-center shrink-0 ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                          <span className={`text-base font-bold w-6 text-center shrink-0 ${isActive ? 'text-white' : 'text-subtle'}`}>
                             {c.symbol}
                           </span>
                           <div className="min-w-0">
-                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800'}`}>{c.code}</div>
-                            <div className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>{c.name}</div>
+                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>{c.code}</div>
+                            <div className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-hint'}`}>{c.name}</div>
                           </div>
                         </button>
                       )
@@ -207,7 +207,7 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
               )}
 
               {filtered.length === 0 && (
-                <div className="text-center py-10 text-gray-400">
+                <div className="text-center py-10 text-hint">
                   <div className="text-3xl mb-2">🔍</div>
                   <p className="text-sm">No currency found for &quot;{search}&quot;</p>
                 </div>
@@ -215,8 +215,8 @@ export default function CurrencySelector({ compact, iconOnly }: { compact?: bool
             </div>
 
             {/* 푸터 */}
-            <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50">
-              <p className="text-xs text-gray-400 text-center">
+            <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50">
+              <p className="text-xs text-hint text-center">
                 Prices are shown in the selected currency
               </p>
             </div>

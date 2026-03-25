@@ -88,12 +88,12 @@ export default async function SponsorDetailPage({
   const VISIT_POINTS = 10
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Cover + logo + name */}
-        <div className="rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100 mb-6">
+        <div className="rounded-2xl overflow-hidden bg-surface shadow-sm border border-edge mb-6">
           <div className="h-40 bg-gradient-to-r from-emerald-400 to-teal-500 relative">
             {sponsor.cover_image_url && (
               <img src={sponsor.cover_image_url} alt="" className="w-full h-full object-cover" />
@@ -101,14 +101,14 @@ export default async function SponsorDetailPage({
           </div>
           <div className="px-6 pb-6 pt-4 -mt-12 relative">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-              <div className="w-24 h-24 rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center text-4xl">
+              <div className="w-24 h-24 rounded-2xl bg-surface shadow-lg border border-edge overflow-hidden shrink-0 flex items-center justify-center text-4xl">
                 {sponsor.logo_url ? <img src={sponsor.logo_url} alt="" className="w-full h-full object-cover" /> : '🏪'}
               </div>
               <div className="flex-1 min-h-[4.5rem] flex flex-col justify-end">
-                <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+                <h1 className="text-2xl font-bold text-heading">{displayName}</h1>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {countryInfo && (
-                    <span className="flex items-center gap-1 text-sm text-gray-500">
+                    <span className="flex items-center gap-1 text-sm text-subtle">
                       <CountryFlag code={countryInfo.code} size="sm" />
                       {countryInfo.name}
                       {sponsor.city && ` · ${sponsor.city}`}
@@ -130,31 +130,31 @@ export default async function SponsorDetailPage({
 
         {/* Description */}
         {displayDesc && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-            <h2 className="font-bold text-gray-900 mb-2">About</h2>
-            <p className="text-gray-600 text-sm whitespace-pre-wrap">{displayDesc}</p>
+          <div className="bg-surface rounded-2xl p-6 shadow-sm border border-edge mb-6">
+            <h2 className="font-bold text-heading mb-2">About</h2>
+            <p className="text-body text-sm whitespace-pre-wrap">{displayDesc}</p>
           </div>
         )}
 
         {/* Links: Website, Phone, SNS, Directions */}
         <div className="flex flex-wrap gap-2 mb-6">
           {sponsor.website_url && (
-            <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium">
+            <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
               🔗 {t('website')}
             </a>
           )}
           {sponsor.phone && (
-            <a href={`tel:${sponsor.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium">
+            <a href={`tel:${sponsor.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
               📞 {sponsor.phone}
             </a>
           )}
           {sponsor.instagram_url && (
-            <a href={sponsor.instagram_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium">
+            <a href={sponsor.instagram_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
               Instagram
             </a>
           )}
           {sponsor.facebook_url && (
-            <a href={sponsor.facebook_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium">
+            <a href={sponsor.facebook_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
               Facebook
             </a>
           )}
@@ -166,10 +166,10 @@ export default async function SponsorDetailPage({
         </div>
 
         {/* Benefits */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
-          <h2 className="font-bold text-gray-900 px-6 py-4 border-b border-gray-100">{t('benefits')}</h2>
+        <div className="bg-surface rounded-2xl shadow-sm border border-edge mb-6 overflow-hidden">
+          <h2 className="font-bold text-heading px-6 py-4 border-b border-edge">{t('benefits')}</h2>
           {benefits && benefits.length > 0 ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-edge">
               {benefits.map(b => {
                 const benefitLabel = b.benefit_type === 'discount_percent' && b.value_num != null
                   ? t('discountPercent', { value: b.value_num })
@@ -179,9 +179,9 @@ export default async function SponsorDetailPage({
                 return (
                   <li key={b.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-gray-900">{b.title_en || b.title}</p>
-                      {b.description && <p className="text-sm text-gray-500 mt-0.5">{b.description}</p>}
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="font-semibold text-heading">{b.title_en || b.title}</p>
+                      {b.description && <p className="text-sm text-subtle mt-0.5">{b.description}</p>}
+                      <p className="text-xs text-hint mt-1">
                         {t('validUntil', { date: new Date(b.end_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US') })}
                       </p>
                     </div>
@@ -198,15 +198,15 @@ export default async function SponsorDetailPage({
               })}
             </ul>
           ) : (
-            <p className="px-6 py-8 text-gray-500 text-sm">{t('noActiveBenefits')}</p>
+            <p className="px-6 py-8 text-subtle text-sm">{t('noActiveBenefits')}</p>
           )}
         </div>
 
         {/* Visit verification — 챌린지 인증과 동일: 버튼 클릭 → 모달에서 사진 업로드 → 즉시 인증 완료 */}
         {user && sponsor.user_id !== user.id && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-bold text-gray-900 mb-1">{t('visitAndVerify')}</h2>
-            <p className="text-sm text-gray-500 mb-4">{t('visitVerifyDesc')}</p>
+          <div className="bg-surface rounded-2xl shadow-sm border border-edge p-6">
+            <h2 className="font-bold text-heading mb-1">{t('visitAndVerify')}</h2>
+            <p className="text-sm text-subtle mb-4">{t('visitVerifyDesc')}</p>
             {myVisit ? (
               myVisit.status === 'approved' ? (
                 <>
@@ -217,10 +217,10 @@ export default async function SponsorDetailPage({
                     createdAt={myVisit.created_at}
                     locale={locale}
                   />
-                  <p className="text-sm text-green-700 font-medium mt-1">✓ {t('visitApproved', { points: myVisit.points_granted })}</p>
+                  <p className="text-sm text-success font-medium mt-1">✓ {t('visitApproved', { points: myVisit.points_granted })}</p>
                 </>
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-subtle">
                   {myVisit.status === 'pending' ? t('visitPending') : myVisit.status === 'rejected' ? t('visitRejected') : null}
                 </p>
               )

@@ -88,19 +88,19 @@ export default function HeaderNav({
       {userId ? (
         <>
           <Link href={`/${locale}/messages`} title={tMessages}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
             <MessageSquare style={{ width: 18, height: 18 }} />
             {unreadMessageCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-brand text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
               </span>
             )}
           </Link>
           <Link href={`/${locale}/notifications`} title={tNotifications}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
             <Bell style={{ width: 18, height: 18 }} />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-danger text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -108,7 +108,7 @@ export default function HeaderNav({
           <button
             suppressHydrationWarning
             onClick={() => setMobileOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-body hover:bg-surface-hover transition-colors shrink-0"
             aria-label={tMenu}
           >
             <Menu style={{ width: 20, height: 20 }} />
@@ -119,7 +119,7 @@ export default function HeaderNav({
           <LanguageSelector currentLocale={locale} compact iconOnly userId={userId} />
           <CurrencySelector compact iconOnly />
           <Link href={`/${locale}/login`}>
-            <button suppressHydrationWarning className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors shrink-0">
+            <button suppressHydrationWarning className="bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 rounded-full transition-colors shrink-0">
               {tLogin}
             </button>
           </Link>
@@ -149,8 +149,8 @@ export default function HeaderNav({
               href={`/${locale}${link.href}`}
               className={`px-4 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-colors ${
                 isActive(link.href)
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-brand text-white'
+                  : 'text-body hover:bg-surface-hover hover:text-heading'
               }`}
             >
               {link.label}
@@ -165,10 +165,10 @@ export default function HeaderNav({
           <>
             {/* 메시지 */}
             <Link href={`/${locale}/messages`} title={tMessages}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
               <MessageSquare className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
               {unreadMessageCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-brand text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                   {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
                 </span>
               )}
@@ -176,10 +176,10 @@ export default function HeaderNav({
 
             {/* 알림 */}
             <Link href={`/${locale}/notifications`} title={tNotifications}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
               <Bell style={{ width: 18, height: 18 }} />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-danger text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -190,50 +190,50 @@ export default function HeaderNav({
               <button
                 suppressHydrationWarning
                 onClick={() => setProfileOpen(v => !v)}
-                className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-surface-hover transition-colors"
               >
                 {/* 아바타 */}
-                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
+                <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
                   {avatarUrl
                     ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                     : initials}
                 </div>
-                <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-hint transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-1.5 w-48 bg-surface rounded-2xl shadow-xl border border-edge py-1.5 z-50 overflow-hidden">
                   {/* 사용자 정보 */}
-                  <div className="px-4 py-2.5 border-b border-gray-100">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{fullName || userEmail}</p>
-                    {fullName && <p className="text-xs text-gray-400 truncate">{userEmail}</p>}
+                  <div className="px-4 py-2.5 border-b border-edge">
+                    <p className="font-semibold text-heading text-sm truncate">{fullName || userEmail}</p>
+                    {fullName && <p className="text-xs text-hint truncate">{userEmail}</p>}
                   </div>
                   <div className="py-1">
                     <DropLink href={`/${locale}/profile`} icon={<User className="w-4 h-4" />} label={tProfile} onClick={() => setProfileOpen(false)} />
                     <DropLink href={`/${locale}/dashboard`} icon={<LayoutDashboard className="w-4 h-4" />} label={tDashboard} onClick={() => setProfileOpen(false)} />
                     <DropLink href={`/${locale}/bookmarks`} icon={<Bookmark className="w-4 h-4" />} label={tBookmarks} onClick={() => setProfileOpen(false)} />
                   </div>
-                  <div className="border-t border-gray-100 py-1">
-                    <div className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 transition-colors">
-                      <span className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-gray-400">🌐</span>
+                  <div className="border-t border-edge py-1">
+                    <div className="flex items-center justify-between px-4 py-2 hover:bg-surface-hover transition-colors">
+                      <span className="flex items-center gap-3 text-sm text-body">
+                        <span className="text-hint">🌐</span>
                         Language
                       </span>
                       <LanguageSelector currentLocale={locale} compact userId={userId} />
                     </div>
-                    <div className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 transition-colors">
-                      <span className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-gray-400">💱</span>
+                    <div className="flex items-center justify-between px-4 py-2 hover:bg-surface-hover transition-colors">
+                      <span className="flex items-center gap-3 text-sm text-body">
+                        <span className="text-hint">💱</span>
                         Currency
                       </span>
                       <CurrencySelector compact />
                     </div>
                   </div>
-                  <div className="border-t border-gray-100 py-1">
+                  <div className="border-t border-edge py-1">
                     <button
                       suppressHydrationWarning
                       onClick={() => signOut({ redirectUrl: `/${locale}` })}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-danger hover:bg-danger-light transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       {tLogout}
@@ -251,7 +251,7 @@ export default function HeaderNav({
               <CurrencySelector compact />
             </div>
             <Link href={`/${locale}/login`}>
-              <button suppressHydrationWarning className="ml-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors">
+              <button suppressHydrationWarning className="ml-1 bg-brand hover:bg-brand-hover text-white text-sm font-medium px-4 py-2 rounded-full transition-colors">
                 {tLogin}
               </button>
             </Link>
@@ -269,8 +269,8 @@ export default function HeaderNav({
             title={link.label}
             className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-0 flex-1 max-w-[4.5rem] rounded-lg transition-colors ${
               isActive(link.href)
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                ? 'bg-brand text-white'
+                : 'text-subtle hover:bg-surface-hover hover:text-body'
             }`}
           >
             <span className="shrink-0">{navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}</span>
@@ -293,28 +293,28 @@ export default function HeaderNav({
           />
 
           {/* 메뉴 패널 (오른쪽에서 슬라이드, 모바일 전체 높이·태블릿 적정 너비) */}
-          <div className="absolute right-0 top-0 bottom-0 w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+          <div className="absolute right-0 top-0 bottom-0 w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-surface shadow-2xl flex flex-col overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
             {/* 메뉴 헤더 */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-edge">
               {userId ? (
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+                  <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold overflow-hidden">
                     {avatarUrl
                       ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                       : initials}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">{fullName || userEmail}</p>
-                    {fullName && <p className="text-xs text-gray-400">{userEmail}</p>}
+                    <p className="font-semibold text-heading text-sm">{fullName || userEmail}</p>
+                    {fullName && <p className="text-xs text-hint">{userEmail}</p>}
                   </div>
                 </div>
               ) : (
-                <span className="font-bold text-gray-900">{tMenu}</span>
+                <span className="font-bold text-heading">{tMenu}</span>
               )}
               <button
                 suppressHydrationWarning
                 onClick={() => setMobileOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -323,7 +323,7 @@ export default function HeaderNav({
             {/* 사용자 메뉴 (메인 5개는 헤더 아이콘으로 표시됨) */}
             {userId ? (
               <>
-                <div className="px-3 py-3 border-b border-gray-100">
+                <div className="px-3 py-3 border-b border-edge">
                   <MobileMenuLink href={`/${locale}/profile`} icon={<User className="w-4 h-4" />} label={tProfile} onClick={() => setMobileOpen(false)} />
                   <MobileMenuLink href={`/${locale}/dashboard`} icon={<LayoutDashboard className="w-4 h-4" />} label={tDashboard} onClick={() => setMobileOpen(false)} />
                   <MobileMenuLink href={`/${locale}/bookmarks`} icon={<Bookmark className="w-4 h-4" />} label={tBookmarks} onClick={() => setMobileOpen(false)} />
@@ -331,9 +331,9 @@ export default function HeaderNav({
                 </div>
               </>
             ) : (
-              <div className="px-4 py-4 border-b border-gray-100">
+              <div className="px-4 py-4 border-b border-edge">
                 <Link href={`/${locale}/login`} onClick={() => setMobileOpen(false)}>
-                  <button suppressHydrationWarning className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-3 rounded-xl transition-colors">
+                  <button suppressHydrationWarning className="w-full bg-brand hover:bg-brand-hover text-white text-sm font-medium py-3 rounded-xl transition-colors">
                     {tLogin}
                   </button>
                 </Link>
@@ -341,17 +341,17 @@ export default function HeaderNav({
             )}
 
             {/* 설정 */}
-            <div className="px-3 py-2 border-b border-gray-100">
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors">
-                <span className="flex items-center gap-3 text-sm font-medium text-gray-700">
-                  <span className="text-gray-400">🌐</span>
+            <div className="px-3 py-2 border-b border-edge">
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
+                <span className="flex items-center gap-3 text-sm font-medium text-body">
+                  <span className="text-hint">🌐</span>
                   {tLanguage}
                 </span>
                 <LanguageSelector currentLocale={locale} compact userId={userId} />
               </div>
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors">
-                <span className="flex items-center gap-3 text-sm font-medium text-gray-700">
-                  <span className="text-gray-400">💱</span>
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
+                <span className="flex items-center gap-3 text-sm font-medium text-body">
+                  <span className="text-hint">💱</span>
                   {tCurrency}
                 </span>
                 <CurrencySelector compact />
@@ -364,7 +364,7 @@ export default function HeaderNav({
                 <button
                   suppressHydrationWarning
                   onClick={() => { setMobileOpen(false); signOut({ redirectUrl: `/${locale}` }) }}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-red-500 border border-red-100 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-danger border border-danger-light hover:bg-danger-light transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   {tLogout}
@@ -382,8 +382,8 @@ export default function HeaderNav({
 function DropLink({ href, icon, label, onClick }: { href: string; icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
     <Link href={href} onClick={onClick}
-      className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-      <span className="text-gray-400">{icon}</span>
+      className="flex items-center gap-3 px-4 py-2 text-sm text-body hover:bg-surface-hover transition-colors">
+      <span className="text-hint">{icon}</span>
       {label}
     </Link>
   )
@@ -395,11 +395,11 @@ function MobileMenuLink({ href, icon, label, badge, onClick }: {
 }) {
   return (
     <Link href={href} onClick={onClick}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-0.5">
-      <span className="text-gray-400">{icon}</span>
+      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-body hover:bg-surface-hover transition-colors mb-0.5">
+      <span className="text-hint">{icon}</span>
       <span className="flex-1">{label}</span>
       {badge != null && badge > 0 && (
-        <span className="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+        <span className="bg-brand text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
           {badge > 9 ? '9+' : badge}
         </span>
       )}

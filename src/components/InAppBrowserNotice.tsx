@@ -108,7 +108,7 @@ const noticeContent = (
       <button
         type="button"
         onClick={onOpenExternal}
-        className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-500"
+        className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-light0"
       >
         브라우저에서 열기
       </button>
@@ -174,8 +174,8 @@ export default function InAppBrowserNotice({ standalone = false }: { standalone?
       role="alert"
       className={
         standalone
-          ? 'rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900'
-          : 'mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900'
+          ? 'rounded-2xl border border-amber-200 bg-amber-light p-6 text-sm text-amber-900'
+          : 'mb-4 rounded-xl border border-amber-200 bg-amber-light p-4 text-sm text-amber-900'
       }
     >
       {noticeContent(copied, copyUrl, openInExternalBrowser, !standalone, () => setShow(false))}

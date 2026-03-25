@@ -44,7 +44,7 @@ export default function SponsorVisitListCard({
   }
 
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50 relative group">
+    <div className="rounded-xl overflow-hidden border border-edge bg-surface-sunken relative group">
       <div className="aspect-square relative">
         <img src={visit.photo_url} alt="" className="w-full h-full object-cover" />
         {canDelete && (
@@ -63,8 +63,8 @@ export default function SponsorVisitListCard({
         )}
       </div>
       <div className="p-2">
-        <p className="text-xs font-medium text-gray-800 truncate" title={name}>{name}</p>
-        <p className="text-[10px] text-gray-500">{dateStr}</p>
+        <p className="text-xs font-medium text-heading truncate" title={name}>{name}</p>
+        <p className="text-[10px] text-subtle">{dateStr}</p>
         <p className="text-[10px] text-emerald-600 font-medium">+{visit.points_granted} pt</p>
       </div>
     </div>

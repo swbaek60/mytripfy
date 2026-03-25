@@ -1,9 +1,10 @@
 'use client'
 
 import { useSignIn, useSignUp } from '@clerk/nextjs'
-import type { OAuthStrategy } from '@clerk/types'
 
-const providers: { strategy: OAuthStrategy; label: string; icon: string }[] = [
+type SSOStrategy = 'oauth_google' | 'oauth_facebook' | 'oauth_apple'
+
+const providers: { strategy: SSOStrategy; label: string; icon: string }[] = [
   {
     strategy: 'oauth_google',
     label: 'Google',
@@ -29,11 +30,11 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
   const { signIn } = useSignIn()
   const { signUp } = useSignUp()
 
-  const handleOAuth = async (strategy: OAuthStrategy) => {
+  const handleOAuth = async (strategy: SSOStrategy) => {
     const obj = mode === 'signIn' ? signIn : signUp
     if (!obj) return
 
-    await obj.authenticateWithRedirect({
+    await (obj as any).authenticateWithRedirect({
       strategy,
       redirectUrl: '/sso-callback',
       redirectUrlComplete: '/en',
@@ -46,7 +47,7 @@ export default function OAuthButtons({ mode }: OAuthButtonsProps) {
         <button
           key={strategy}
           onClick={() => handleOAuth(strategy)}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 active:bg-gray-100"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-edge bg-surface px-4 py-2.5 text-sm font-medium text-body shadow-sm transition hover:bg-surface-hover active:bg-surface-sunken"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
             <path d={icon} />

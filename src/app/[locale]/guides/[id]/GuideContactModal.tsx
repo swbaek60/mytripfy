@@ -200,17 +200,17 @@ export default function GuideContactModal({
           />
 
           {/* 패널 */}
-          <div className="relative w-full sm:max-w-md bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+          <div className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
 
             {/* 헤더 */}
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div className="px-6 py-5 border-b border-edge flex items-center justify-between shrink-0">
               <div>
-                <h2 className="font-bold text-gray-900 text-lg">Contact Guide</h2>
-                <p className="text-sm text-gray-400 mt-0.5">{guideName}</p>
+                <h2 className="font-bold text-heading text-lg">Contact Guide</h2>
+                <p className="text-sm text-hint mt-0.5">{guideName}</p>
               </div>
               <button
                 onClick={() => { setOpen(false); setShowEmail(false) }}
-                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                className="w-8 h-8 rounded-full bg-surface-sunken flex items-center justify-center text-subtle hover:bg-surface-hover transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -220,14 +220,14 @@ export default function GuideContactModal({
             {showEmail ? (
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setShowEmail(false)} className="text-gray-400 hover:text-gray-600 text-sm">← Back</button>
-                  <span className="text-sm font-semibold text-gray-700">Send Message to {guideName}</span>
+                  <button onClick={() => setShowEmail(false)} className="text-hint hover:text-body text-sm">← Back</button>
+                  <span className="text-sm font-semibold text-body">Send Message to {guideName}</span>
                 </div>
                 {sent ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">✅</div>
-                    <p className="font-bold text-green-700">Message sent!</p>
-                    <p className="text-sm text-gray-400 mt-1">The guide will reply soon.</p>
+                    <p className="font-bold text-success">Message sent!</p>
+                    <p className="text-sm text-hint mt-1">The guide will reply soon.</p>
                   </div>
                 ) : (
                   <>
@@ -236,7 +236,7 @@ export default function GuideContactModal({
                       onChange={e => setEmailMsg(e.target.value)}
                       placeholder={`Hi ${guideName}, I'm interested in hiring you as a guide for my trip to...`}
                       rows={5}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-400"
+                      className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-400"
                       autoFocus
                     />
                     <button
@@ -262,7 +262,7 @@ export default function GuideContactModal({
                       <div className="flex-1 min-w-0">
                         <p className={`font-semibold text-sm ${method.textColor}`}>{method.label}</p>
                         {method.desc && (
-                          <p className="text-xs text-gray-400 truncate mt-0.5">{method.desc}</p>
+                          <p className="text-xs text-hint truncate mt-0.5">{method.desc}</p>
                         )}
                         {method.loginRequired && (
                           <p className="text-xs text-orange-500 mt-0.5">Login required</p>
@@ -297,8 +297,8 @@ export default function GuideContactModal({
 
             {/* 안전 안내 */}
             {!showEmail && (
-              <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 shrink-0">
-                <p className="text-[11px] text-gray-400 text-center">
+              <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50 shrink-0">
+                <p className="text-[11px] text-hint text-center">
                   🔒 For your safety, keep initial communications on mytripfy chat.
                 </p>
               </div>

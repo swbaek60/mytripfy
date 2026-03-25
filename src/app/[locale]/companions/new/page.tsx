@@ -14,7 +14,7 @@ export default async function NewCompanionPage({
   if (!user) redirect(`/sign-in`)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/companions" />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <CompanionForm userId={user.id} locale={locale} />

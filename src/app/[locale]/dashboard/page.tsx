@@ -66,24 +66,24 @@ export default async function DashboardPage({
   ])
 
   const APP_STATUS_COLORS: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    accepted: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-600',
+    pending: 'bg-warning-light text-warning',
+    accepted: 'bg-success-light text-success',
+    rejected: 'bg-danger-light text-danger',
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/dashboard" />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-            <p className="text-gray-500 text-sm mt-1">{t('subtitle')}</p>
+            <h1 className="text-2xl font-bold text-heading">{t('title')}</h1>
+            <p className="text-subtle text-sm mt-1">{t('subtitle')}</p>
           </div>
           <Link href={`/${locale}/companions/new`} className="shrink-0">
-            <Button className="bg-blue-600 hover:bg-blue-700 rounded-full w-full sm:w-auto">+ {t('postTrip')}</Button>
+            <Button className="bg-brand hover:bg-brand-hover rounded-full w-full sm:w-auto">+ {t('postTrip')}</Button>
           </Link>
         </div>
 
@@ -93,19 +93,19 @@ export default async function DashboardPage({
         {/* Quick Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {[
-            { label: t('myPosts'), value: myPosts?.length || 0, Icon: FileText, color: 'text-blue-600', link: false },
+            { label: t('myPosts'), value: myPosts?.length || 0, Icon: FileText, color: 'text-brand', link: false },
             { label: t('applications'), value: myApplications?.length || 0, Icon: Send, color: 'text-indigo-600', link: false },
-            { label: t('countries'), value: profile?.travel_count || 0, Icon: Globe, color: 'text-green-600', link: false },
-            { label: t('challengePts'), value: profile?.challenge_points || 0, Icon: Trophy, color: 'text-purple-600', link: true },
-            { label: t('avgRating'), value: profile?.trust_score ? Number(profile.trust_score).toFixed(1) : '—', Icon: Star, color: 'text-yellow-500', link: false },
+            { label: t('countries'), value: profile?.travel_count || 0, Icon: Globe, color: 'text-success', link: false },
+            { label: t('challengePts'), value: profile?.challenge_points || 0, Icon: Trophy, color: 'text-purple', link: true },
+            { label: t('avgRating'), value: profile?.trust_score ? Number(profile.trust_score).toFixed(1) : '—', Icon: Star, color: 'text-warning', link: false },
           ].map(stat => {
             const content = (
-              <div className="bg-white rounded-2xl p-5 shadow-sm text-center">
+              <div className="bg-surface rounded-2xl p-5 shadow-sm text-center">
                 <stat.Icon className={`w-5 h-5 mx-auto mb-2 ${stat.color}`} />
                 <div className={`text-2xl font-extrabold ${stat.color}`}>{stat.value}</div>
-                <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+                <div className="text-xs text-subtle mt-1">{stat.label}</div>
                 {stat.link && (
-                  <div className="text-[10px] text-purple-500 mt-1 font-medium">{t('seeRanking')}</div>
+                  <div className="text-[10px] text-purple mt-1 font-medium">{t('seeRanking')}</div>
                 )}
               </div>
             )
@@ -129,8 +129,8 @@ export default async function DashboardPage({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Applications I sent (Companion) */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="font-bold text-gray-900 mb-4">{t('companionAppsSent')} ({myApplications?.length || 0})</h2>
+          <div className="bg-surface rounded-2xl shadow-sm p-6">
+            <h2 className="font-bold text-heading mb-4">{t('companionAppsSent')} ({myApplications?.length || 0})</h2>
             {myApplications && myApplications.length > 0 ? (
               <div className="space-y-3">
                 {myApplications.map(app => {
@@ -138,11 +138,11 @@ export default async function DashboardPage({
                   const country = post ? getCountryByCode(post.destination_country as string) : null
                   return (
                     <Link key={app.id} href={`/${locale}/companions/${(post as Record<string,unknown> | null) ? app.post_id : '#'}`}>
-                      <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100 cursor-pointer">
+                      <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-hover transition-colors border border-edge cursor-pointer">
                         <span className="text-xl shrink-0">{country?.emoji || '🌍'}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-800 truncate text-sm">{(post?.title as string) || 'Trip'}</p>
-                          <p suppressHydrationWarning className="text-xs text-gray-500">{post?.start_date ? new Date(post.start_date as string).toLocaleDateString('en-US') : ''}</p>
+                          <p className="font-medium text-heading truncate text-sm">{(post?.title as string) || 'Trip'}</p>
+                          <p suppressHydrationWarning className="text-xs text-subtle">{post?.start_date ? new Date(post.start_date as string).toLocaleDateString('en-US') : ''}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${APP_STATUS_COLORS[app.status]}`}>
                           {app.status}
@@ -153,18 +153,18 @@ export default async function DashboardPage({
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-hint">
                 <p className="text-sm">{t('noAppsSent')}</p>
                 <Link href={`/${locale}/companions`}>
-                  <Button variant="link" className="text-blue-600 text-sm mt-1">{t('browseTrips')}</Button>
+                  <Button variant="link" className="text-brand text-sm mt-1">{t('browseTrips')}</Button>
                 </Link>
               </div>
             )}
           </div>
 
           {/* My Guide Applications (as guide) */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="font-bold text-gray-900 mb-4">{t('myGuideApps')} ({myGuideApplications?.length || 0})</h2>
+          <div className="bg-surface rounded-2xl shadow-sm p-6">
+            <h2 className="font-bold text-heading mb-4">{t('myGuideApps')} ({myGuideApplications?.length || 0})</h2>
             {myGuideApplications && myGuideApplications.length > 0 ? (
               <div className="space-y-3">
                 {myGuideApplications.map((app: { id: string; request_id: string; status: string; guide_requests: { title: string; destination_country: string; start_date: string } | null }) => {
@@ -172,13 +172,13 @@ export default async function DashboardPage({
                   const country = req ? getCountryByCode(req.destination_country) : null
                   return (
                     <Link key={app.id} href={`/${locale}/guides/requests/${app.request_id}`}>
-                      <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100 cursor-pointer">
+                      <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-hover transition-colors border border-edge cursor-pointer">
                         <span className="text-xl shrink-0">{country?.emoji || '🌍'}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-800 truncate text-sm">{req?.title || 'Guide request'}</p>
-                          <p suppressHydrationWarning className="text-xs text-gray-500">{req?.start_date ? new Date(req.start_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US') : ''}</p>
+                          <p className="font-medium text-heading truncate text-sm">{req?.title || 'Guide request'}</p>
+                          <p suppressHydrationWarning className="text-xs text-subtle">{req?.start_date ? new Date(req.start_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US') : ''}</p>
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${APP_STATUS_COLORS[app.status] || 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${APP_STATUS_COLORS[app.status] || 'bg-surface-sunken text-body'}`}>
                           {app.status}
                         </span>
                       </div>
@@ -187,10 +187,10 @@ export default async function DashboardPage({
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-hint">
                 <p className="text-sm">No guide applications yet.</p>
                 <Link href={`/${locale}/guides/requests`}>
-                  <Button variant="link" className="text-amber-600 text-sm mt-1">Browse guide requests →</Button>
+                  <Button variant="link" className="text-amber text-sm mt-1">Browse guide requests →</Button>
                 </Link>
               </div>
             )}
@@ -198,11 +198,11 @@ export default async function DashboardPage({
         </div>
 
         {/* My Trip Plans (Itineraries) */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-gray-900">My Trip Plans ({myTrips?.length || 0})</h2>
+            <h2 className="font-bold text-heading">My Trip Plans ({myTrips?.length || 0})</h2>
             <Link href={`/${locale}/trips/new`}>
-              <Button variant="outline" size="sm" className="rounded-full text-xs border-blue-300 text-blue-600">
+              <Button variant="outline" size="sm" className="rounded-full text-xs border-edge-strong text-brand">
                 + New Plan
               </Button>
             </Link>
@@ -220,19 +220,19 @@ export default async function DashboardPage({
                     : ''
                 return (
                     <Link key={trip.id} href={`/${locale}/trips/${trip.id}`}>
-                    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100 cursor-pointer">
+                    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-hover transition-colors border border-edge cursor-pointer">
                       <span className="text-xl shrink-0">{country?.emoji || '🌍'}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 truncate text-sm">{trip.title}</p>
+                        <p className="font-medium text-heading truncate text-sm">{trip.title}</p>
                         {dateLabel && (
-                          <p className="text-xs text-gray-500">{dateLabel}</p>
+                          <p className="text-xs text-subtle">{dateLabel}</p>
                         )}
                       </div>
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
                           trip.visibility === 'public'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-success-light text-success'
+                            : 'bg-surface-sunken text-body'
                         }`}
                       >
                         {trip.visibility === 'public' ? t('public') : t('private')}
@@ -243,10 +243,10 @@ export default async function DashboardPage({
               })}
             </div>
           ) : (
-            <div className="text-center py-6 text-gray-400">
+            <div className="text-center py-6 text-hint">
               <p className="text-sm">No trip plans yet.</p>
               <Link href={`/${locale}/trips/new`}>
-                <Button variant="link" className="text-blue-600 text-sm mt-1">Create your first plan →</Button>
+                <Button variant="link" className="text-brand text-sm mt-1">Create your first plan →</Button>
               </Link>
             </div>
           )}
@@ -262,8 +262,8 @@ export default async function DashboardPage({
             { label: t('myBookmarks'), href: `/${locale}/bookmarks` },
           ].map(link => (
             <Link key={link.label} href={link.href}>
-              <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center cursor-pointer border border-transparent hover:border-blue-100">
-                <div className="text-sm font-medium text-gray-700">{link.label}</div>
+              <div className="bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center cursor-pointer border border-transparent hover:border-edge-brand">
+                <div className="text-sm font-medium text-body">{link.label}</div>
               </div>
             </Link>
           ))}

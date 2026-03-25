@@ -155,10 +155,10 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
       <button
         onClick={() => setOpen(!open)}
         className={iconOnly
-          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-600 shrink-0"
+          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0"
           : compact
-            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
-            : "flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium text-gray-600 group"
+            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-surface-hover transition-colors text-sm font-medium text-body"
+            : "flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-edge hover:border-blue-400 hover:bg-brand-light transition-all text-sm font-medium text-body group"
         }
         aria-label="Select language"
       >
@@ -171,7 +171,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
         {!iconOnly && compact
           ? <span className="text-xs uppercase font-semibold">{getLocaleShortLabel(currentLang.locale)}</span>
           : !iconOnly && <svg
-              className={`w-3 h-3 transition-transform duration-200 text-gray-400 group-hover:text-blue-500 ${open ? 'rotate-180' : ''}`}
+              className={`w-3 h-3 transition-transform duration-200 text-hint group-hover:text-brand ${open ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
@@ -189,18 +189,18 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
           />
 
           {/* 패널 */}
-          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
 
             {/* 헤더 */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <div className="px-6 pt-6 pb-4 border-b border-edge">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Select Language</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">25 languages available</p>
+                  <h2 className="text-lg font-bold text-heading">Select Language</h2>
+                  <p className="text-xs text-hint mt-0.5">25 languages available</p>
                 </div>
                 <button
                   onClick={() => setOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-hint hover:text-body"
                 >
                   ✕
                 </button>
@@ -208,13 +208,13 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
 
               {/* 검색창 */}
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-hint text-sm">🔍</span>
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search language..."
-                  className="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+                  className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
                   autoFocus
                 />
               </div>
@@ -227,7 +227,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
                   {/* 지역 헤더 */}
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`h-1 w-5 rounded-full bg-gradient-to-r ${group.color}`} />
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-hint uppercase tracking-wide">
                       {group.region}
                     </span>
                   </div>
@@ -242,8 +242,8 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
                           onClick={() => handleSelect(lang.locale)}
                           className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
                             isActive
-                              ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                              : 'hover:bg-gray-50 border border-gray-100 hover:border-blue-200'
+                              ? 'bg-brand text-white shadow-md shadow-blue-200'
+                              : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
                           }`}
                         >
                           {LOCALE_TO_COUNTRY[lang.locale] ? (
@@ -252,10 +252,10 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
                             <span className="text-xl leading-none shrink-0">🌐</span>
                           )}
                           <div className="min-w-0">
-                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800'}`}>
+                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
                               {lang.native}
                             </div>
-                            <div className={`text-xs truncate ${isActive ? 'text-blue-200' : 'text-gray-400'}`}>
+                            <div className={`text-xs truncate ${isActive ? 'text-blue-200' : 'text-hint'}`}>
                               {lang.english}
                             </div>
                           </div>
@@ -270,7 +270,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
               ))}
 
               {filtered.length === 0 && (
-                <div className="text-center py-10 text-gray-400">
+                <div className="text-center py-10 text-hint">
                   <div className="text-3xl mb-2">🔍</div>
                   <p className="text-sm">No language found for &quot;{search}&quot;</p>
                 </div>
@@ -278,9 +278,9 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
             </div>
 
             {/* 푸터 */}
-            <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50">
-              <p className="text-xs text-gray-400 text-center">
-                More languages coming soon · <span className="text-blue-500">Suggest a language</span>
+            <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50">
+              <p className="text-xs text-hint text-center">
+                More languages coming soon · <span className="text-brand">Suggest a language</span>
               </p>
             </div>
           </div>

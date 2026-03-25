@@ -14,12 +14,12 @@ export default async function PersonalityPage({
   if (!user) redirect(`/sign-in`)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">🧠 {t('title')}</h1>
-          <p className="text-gray-500">{t('subtitle')}</p>
+          <h1 className="text-3xl font-extrabold text-heading mb-2">🧠 {t('title')}</h1>
+          <p className="text-subtle">{t('subtitle')}</p>
         </div>
         <PersonalityTest userId={user.id} locale={locale} />
       </main>

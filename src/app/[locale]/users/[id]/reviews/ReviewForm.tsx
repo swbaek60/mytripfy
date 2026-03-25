@@ -78,21 +78,21 @@ export default function ReviewForm({
 
   if (success) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+      <div className="bg-success-light border border-green-200 rounded-xl p-6 text-center">
         <div className="text-4xl mb-2">⭐</div>
-        <p className="text-green-700 font-semibold">Review submitted!</p>
-        <p className="text-green-600 text-sm mt-1">Thank you for your feedback.</p>
+        <p className="text-success font-semibold">Review submitted!</p>
+        <p className="text-success text-sm mt-1">Thank you for your feedback.</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
-      <h3 className="font-bold text-gray-900 text-lg">⭐ Write a Review for {revieweeName}</h3>
+    <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-5">
+      <h3 className="font-bold text-heading text-lg">⭐ Write a Review for {revieweeName}</h3>
 
       {/* Star Rating */}
       <div>
-        <label className="text-sm font-medium text-gray-700 block mb-2">Rating *</label>
+        <label className="text-sm font-medium text-body block mb-2">Rating *</label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map(star => (
             <button
@@ -103,13 +103,13 @@ export default function ReviewForm({
               onMouseLeave={() => setHovered(0)}
               className="text-3xl transition-transform hover:scale-110 focus:outline-none"
             >
-              <span className={(hovered || rating) >= star ? 'text-yellow-400' : 'text-gray-300'}>
+              <span className={(hovered || rating) >= star ? 'text-yellow-400' : 'text-hint'}>
                 ★
               </span>
             </button>
           ))}
           {rating > 0 && (
-            <span className="text-sm text-gray-500 self-center ml-2">
+            <span className="text-sm text-subtle self-center ml-2">
               {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][rating]}
             </span>
           )}
@@ -118,7 +118,7 @@ export default function ReviewForm({
 
       {/* Tags */}
       <div>
-        <label className="text-sm font-medium text-gray-700 block mb-2">Tags (optional)</label>
+        <label className="text-sm font-medium text-body block mb-2">Tags (optional)</label>
         <div className="flex flex-wrap gap-2">
           {REVIEW_TAGS.map(tag => (
             <button
@@ -127,8 +127,8 @@ export default function ReviewForm({
               onClick={() => toggleTag(tag.id)}
               className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
                 selectedTags.includes(tag.id)
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-surface text-body border-edge-strong hover:border-blue-400'
               }`}
             >
               {tag.label}
@@ -139,24 +139,24 @@ export default function ReviewForm({
 
       {/* Content */}
       <div>
-        <label className="text-sm font-medium text-gray-700 block mb-2">Review (optional)</label>
+        <label className="text-sm font-medium text-body block mb-2">Review (optional)</label>
         <textarea
           value={content}
           onChange={e => setContent(e.target.value)}
           placeholder="Share your experience traveling with this person..."
           rows={4}
           maxLength={500}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
         />
-        <p className="text-xs text-gray-400 text-right mt-1">{content.length}/500</p>
+        <p className="text-xs text-hint text-right mt-1">{content.length}/500</p>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-danger text-sm">{error}</p>}
 
       <Button
         onClick={handleSubmit}
         disabled={loading || rating === 0}
-        className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl"
+        className="w-full bg-brand hover:bg-brand-hover rounded-xl"
       >
         {loading ? 'Submitting...' : '⭐ Submit Review'}
       </Button>

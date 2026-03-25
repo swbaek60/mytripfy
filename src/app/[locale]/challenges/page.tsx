@@ -57,13 +57,13 @@ export default async function ChallengesPage({
   const totalChallenges = CATEGORIES.length * 100  // 16 × 100 = 1600
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/challenges" />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
         {/* 딴지걸기 시스템 배너 */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="bg-amber-light border border-amber-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <Siren className="w-7 h-7 text-amber-600 shrink-0" />
             <div>
@@ -75,12 +75,12 @@ export default async function ChallengesPage({
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap">
             <Link href={`/${locale}/challenges/feed`}>
-              <button className="bg-purple-600 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-purple-700 transition-colors">
+              <button className="bg-purple text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-purple-700 transition-colors">
                 🌍 {t('communityFeed')}
               </button>
             </Link>
             <Link href={`/${locale}/challenges/guide`}>
-              <button className="border border-amber-300 bg-white text-amber-700 text-xs font-bold px-4 py-2 rounded-full hover:bg-amber-50 transition-colors">
+              <button className="border border-amber-300 bg-surface text-amber-700 text-xs font-bold px-4 py-2 rounded-full hover:bg-amber-light transition-colors">
                 📖 {L.systemName}
               </button>
             </Link>
@@ -102,7 +102,7 @@ export default async function ChallengesPage({
               </div>
               <div className="w-full bg-white/20 rounded-full h-3">
                 <div
-                  className="bg-white rounded-full h-3 transition-all duration-700"
+                  className="bg-surface rounded-full h-3 transition-all duration-700"
                   style={{ width: `${Math.min(100, (totalCertified / totalChallenges) * 100)}%` }}
                 />
               </div>
@@ -117,7 +117,7 @@ export default async function ChallengesPage({
                 ].map(m => (
                   <span key={m.at}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      totalCertified >= m.at ? 'bg-white text-purple-700' : 'bg-white/20 text-white/60'
+                      totalCertified >= m.at ? 'bg-surface text-purple' : 'bg-white/20 text-white/60'
                     }`}>
                     {m.emoji} {m.label}
                   </span>
@@ -126,7 +126,7 @@ export default async function ChallengesPage({
             </div>
           ) : (
             <Link href={`/${locale}/login`}>
-              <button className="bg-white text-purple-700 font-bold px-6 py-2.5 rounded-full text-sm hover:bg-purple-50 transition-colors">
+              <button className="bg-surface text-purple font-bold px-6 py-2.5 rounded-full text-sm hover:bg-purple-light transition-colors">
                 {t('loginToTrack')}
               </button>
             </Link>
@@ -135,29 +135,29 @@ export default async function ChallengesPage({
 
         {/* 카테고리 그리드 */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{t('chooseCategory')}</h2>
+          <h2 className="text-xl font-bold text-heading mb-4">{t('chooseCategory')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {CATEGORIES.map(cat => {
               const done = certCountByCategory[cat.key] || 0
               const pct = Math.round((done / 100) * 100)
               return (
                 <Link key={cat.key} href={`/${locale}/challenges/${cat.key}`}>
-                  <div className="bg-white rounded-2xl p-4 border-2 border-transparent hover:border-purple-300 hover:shadow-md transition-all cursor-pointer h-full">
+                  <div className="bg-surface rounded-2xl p-4 border-2 border-transparent hover:border-purple-300 hover:shadow-md transition-all cursor-pointer h-full">
                     <div className="text-3xl mb-2">{cat.emoji}</div>
-                    <p className="font-bold text-gray-900 text-sm leading-tight">{cat.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 mb-3">{cat.desc}</p>
+                    <p className="font-bold text-heading text-sm leading-tight">{cat.title}</p>
+                    <p className="text-xs text-hint mt-0.5 mb-3">{cat.desc}</p>
                     {user ? (
                       <>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
+                        <div className="w-full bg-surface-sunken rounded-full h-1.5 mb-1">
                           <div
-                            className="bg-purple-500 h-1.5 rounded-full"
+                            className="bg-purple h-1.5 rounded-full"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <p className="text-[10px] text-gray-400">{done}/100</p>
+                        <p className="text-[10px] text-hint">{done}/100</p>
                       </>
                     ) : (
-                      <p className="text-[10px] text-gray-300">100 items</p>
+                      <p className="text-[10px] text-hint">100 items</p>
                     )}
                   </div>
                 </Link>

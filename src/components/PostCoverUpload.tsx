@@ -55,7 +55,7 @@ export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props)
   return (
     <div className="space-y-2">
       <div
-        className="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer"
+        className="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-edge bg-surface-sunken hover:border-edge-brand hover:bg-brand-light transition-colors cursor-pointer"
         style={{ aspectRatio: '16/7' }}
         onClick={() => !preview && inputRef.current?.click()}
       >
@@ -66,21 +66,21 @@ export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props)
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); inputRef.current?.click() }}
-                className="bg-white text-gray-700 text-sm font-medium px-4 py-2 rounded-full shadow hover:bg-gray-50 transition"
+                className="bg-white text-body text-sm font-medium px-4 py-2 rounded-full shadow hover:bg-surface-hover transition"
               >
                 Change
               </button>
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); handleRemove() }}
-                className="bg-white text-red-500 text-sm font-medium px-4 py-2 rounded-full shadow hover:bg-red-50 transition flex items-center gap-1"
+                className="bg-white text-danger text-sm font-medium px-4 py-2 rounded-full shadow hover:bg-danger-light transition flex items-center gap-1"
               >
                 <X size={13} /> Remove
               </button>
             </div>
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-hint">
             {uploading ? (
               <Loader2 size={28} className="animate-spin text-blue-500" />
             ) : (
@@ -100,7 +100,7 @@ export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props)
         )}
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
 
       <input
         ref={inputRef}

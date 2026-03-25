@@ -57,11 +57,11 @@ export default function ApplyAsGuideButton({
   if (applied) {
     return (
       <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-          <p className="text-green-700 font-medium">You have applied as guide for this request.</p>
-          <p className="text-green-600 text-sm mt-1">Waiting for the traveler to respond.</p>
+        <div className="flex-1 bg-success-light border border-green-200 rounded-xl p-4 text-center">
+          <p className="text-success font-medium">You have applied as guide for this request.</p>
+          <p className="text-success text-sm mt-1">Waiting for the traveler to respond.</p>
         </div>
-        <Button variant="outline" onClick={handleCancel} disabled={loading} className="border-red-200 text-red-500 hover:bg-red-50 shrink-0">
+        <Button variant="outline" onClick={handleCancel} disabled={loading} className="border-red-200 text-danger hover:bg-danger-light shrink-0">
           Cancel Application
         </Button>
       </div>
@@ -71,13 +71,13 @@ export default function ApplyAsGuideButton({
   if (showForm) {
     return (
       <div className="space-y-3">
-        <label className="text-sm font-medium text-gray-700">Message to traveler (optional)</label>
+        <label className="text-sm font-medium text-body">Message to traveler (optional)</label>
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
           placeholder="Introduce yourself and your guide experience..."
           rows={4}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
         <div className="flex gap-3">
           <Button onClick={handleApply} disabled={loading} className="flex-1 bg-amber-500 hover:bg-amber-600 rounded-xl text-white">

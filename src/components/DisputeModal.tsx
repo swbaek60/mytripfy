@@ -56,7 +56,7 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !submitting && onClose()} />
-      <div className="relative bg-white rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
+      <div className="relative bg-surface rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
         {/* 헤더 */}
         <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-5 text-white">
           <div className="flex items-center justify-between">
@@ -71,7 +71,7 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
             </div>
             <button
               onClick={() => !submitting && onClose()}
-              className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30"
+              className="w-8 h-8 bg-surface/20 rounded-full flex items-center justify-center hover:bg-surface/30"
             >✕</button>
           </div>
         </div>
@@ -80,10 +80,10 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
           {success ? (
             <div className="text-center py-6">
               <div className="flex justify-center mb-3">
-                <Siren className="w-14 h-14 text-red-500" />
+                <Siren className="w-14 h-14 text-danger" />
               </div>
-              <p className="text-lg font-bold text-gray-900">딴지 접수 완료!</p>
-              <p className="text-sm text-gray-500 mt-1">3건 이상 신고 시 배심원 심사가 시작됩니다.</p>
+              <p className="text-lg font-bold text-heading">딴지 접수 완료!</p>
+              <p className="text-sm text-subtle mt-1">3건 이상 신고 시 배심원 심사가 시작됩니다.</p>
             </div>
           ) : (
             <>
@@ -92,39 +92,39 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
                 <img src={target.image_url} alt="" className="w-full h-full object-cover" />
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
+              <div className="bg-amber-light border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
                 ⚠️ 딴지를 걸면 <strong>5포인트</strong>가 예치됩니다. 딴지가 기각되면 예치금이 사라집니다.
               </div>
 
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                이유 <span className="text-red-500">*</span>
-                <span className="font-normal text-gray-400 ml-1">(최소 10자)</span>
+              <label className="block text-sm font-bold text-heading mb-2">
+                이유 <span className="text-danger">*</span>
+                <span className="font-normal text-hint ml-1">(최소 10자)</span>
               </label>
               <textarea
                 value={reason}
                 onChange={e => setReason(e.target.value)}
                 placeholder="이 인증이 조작되었거나 챌린지 조건에 맞지 않는 이유를 구체적으로 적어주세요."
                 rows={4}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
               />
               <p className={`text-xs mt-1 ${reason.length < 10 ? 'text-red-400' : 'text-green-500'}`}>
                 {reason.length} / 10자 이상 필요
               </p>
 
               {error && (
-                <div className="mt-3 text-red-500 text-sm bg-red-50 p-3 rounded-xl">{error}</div>
+                <div className="mt-3 text-danger text-sm bg-danger-light p-3 rounded-xl">{error}</div>
               )}
 
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={onClose}
                   disabled={submitting}
-                  className="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                  className="flex-1 border border-edge text-body font-semibold py-3 rounded-xl hover:bg-surface-hover transition-colors text-sm"
                 >취소</button>
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || reason.trim().length < 10}
-                  className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  className="flex-1 bg-danger text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   {submitting
                     ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />처리 중...</>

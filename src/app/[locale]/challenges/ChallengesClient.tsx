@@ -104,7 +104,7 @@ export default function ChallengesClient({
             <span>{earnedPoints} pts</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-3">
-            <div className="bg-white rounded-full h-3 transition-all duration-500" style={{ width: `${progressPct}%` }} />
+            <div className="bg-surface rounded-full h-3 transition-all duration-500" style={{ width: `${progressPct}%` }} />
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export default function ChallengesClient({
           ].map(m => (
             <div key={m.at}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                effectiveCount >= m.at ? 'bg-white text-purple-700' : 'bg-white/20 text-white/60'
+                effectiveCount >= m.at ? 'bg-surface text-purple' : 'bg-white/20 text-white/60'
               }`}>
               {m.emoji} {m.label}
             </div>
@@ -128,11 +128,11 @@ export default function ChallengesClient({
       </div>
 
       {/* 탭 */}
-      <div className="flex gap-1 bg-white rounded-xl shadow-sm p-1 w-fit">
+      <div className="flex gap-1 bg-surface rounded-xl shadow-sm p-1 w-fit">
         <button
           onClick={() => setActiveTab('challenges')}
           className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'challenges' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            activeTab === 'challenges' ? 'bg-purple text-white shadow-sm' : 'text-subtle hover:text-body'
           }`}
         >
           🏆 Challenges
@@ -140,12 +140,12 @@ export default function ChallengesClient({
         <button
           onClick={() => setActiveTab('countries')}
           className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
-            activeTab === 'countries' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            activeTab === 'countries' ? 'bg-brand text-white shadow-sm' : 'text-subtle hover:text-body'
           }`}
         >
           🌍 My Countries
           <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-            activeTab === 'countries' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+            activeTab === 'countries' ? 'bg-white/20 text-white' : 'bg-surface-sunken text-body'
           }`}>
             {countryCount}
           </span>
@@ -161,19 +161,19 @@ export default function ChallengesClient({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="🔍  Search challenges..."
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+              className="w-full rounded-xl border border-edge bg-surface px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
             />
             <div className="flex gap-2 overflow-x-auto pb-1">
               <button onClick={() => setActiveCategory('all')}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  activeCategory === 'all' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
+                  activeCategory === 'all' ? 'bg-purple text-white border-purple' : 'bg-surface text-body border-edge hover:border-purple-300'
                 }`}>
                 All Categories
               </button>
               {ALL_CATEGORIES.map(cat => (
                 <button key={cat} onClick={() => setActiveCategory(cat)}
                   className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    activeCategory === cat ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
+                    activeCategory === cat ? 'bg-purple text-white border-purple' : 'bg-surface text-body border-edge hover:border-purple-300'
                   }`}>
                   {CATEGORY_LABELS[cat]}
                 </button>
@@ -183,7 +183,7 @@ export default function ChallengesClient({
               {['all', 'easy', 'medium', 'hard', 'legendary'].map(d => (
                 <button key={d} onClick={() => setActiveDifficulty(d)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    activeDifficulty === d ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                    activeDifficulty === d ? 'bg-gray-800 text-white border-gray-800' : 'bg-surface text-subtle border-edge hover:border-gray-400'
                   }`}>
                   {d === 'all' ? 'All Levels' : DIFFICULTY_LABELS[d as keyof typeof DIFFICULTY_LABELS].label}
                 </button>
@@ -191,10 +191,10 @@ export default function ChallengesClient({
             </div>
           </div>
 
-          <div className="text-sm text-gray-500">
-            Showing <span className="font-semibold text-gray-700">{filtered.length}</span> challenges
-            · <span className="text-green-600 font-semibold">{filtered.filter(c => effectiveCompleted.has(c.id)).length} done</span>
-            · <span className="text-gray-400">{filtered.filter(c => !effectiveCompleted.has(c.id)).length} remaining</span>
+          <div className="text-sm text-subtle">
+            Showing <span className="font-semibold text-body">{filtered.length}</span> challenges
+            · <span className="text-success font-semibold">{filtered.filter(c => effectiveCompleted.has(c.id)).length} done</span>
+            · <span className="text-hint">{filtered.filter(c => !effectiveCompleted.has(c.id)).length} remaining</span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -208,34 +208,34 @@ export default function ChallengesClient({
                   className={`text-left rounded-2xl p-4 border-2 transition-all duration-200 ${
                     done
                       ? isAuto
-                        ? 'bg-blue-50 border-blue-200 shadow-sm cursor-default'
-                        : 'bg-green-50 border-green-300 shadow-sm'
-                      : 'bg-white border-gray-100 hover:border-purple-200 hover:shadow-sm'
+                        ? 'bg-brand-light border-edge-brand shadow-sm cursor-default'
+                        : 'bg-success-light border-success shadow-sm'
+                      : 'bg-surface border-edge hover:border-purple-200 hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`relative text-3xl shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
-                      done ? (isAuto ? 'bg-blue-100' : 'bg-green-100') : 'bg-gray-50'
+                      done ? (isAuto ? 'bg-brand-muted' : 'bg-success-light') : 'bg-surface-sunken'
                     }`}>
                       {challenge.emoji}
                       {done && (
-                        <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${isAuto ? 'bg-blue-500' : 'bg-green-500'}`}>
+                        <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${isAuto ? 'bg-brand' : 'bg-success'}`}>
                           <span className="text-white text-[10px] font-bold">{isAuto ? '🌍' : '✓'}</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`font-semibold text-sm leading-snug ${done ? (isAuto ? 'text-blue-800' : 'text-green-800') : 'text-gray-900'}`}>
+                        <p className={`font-semibold text-sm leading-snug ${done ? (isAuto ? 'text-heading' : 'text-success') : 'text-heading'}`}>
                           {challenge.title}
                         </p>
-                        <span className="shrink-0 text-xs font-bold text-purple-600">+{challenge.points}pts</span>
+                        <span className="shrink-0 text-xs font-bold text-purple">+{challenge.points}pts</span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{challenge.description}</p>
+                      <p className="text-xs text-subtle mt-0.5 leading-relaxed">{challenge.description}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${diff.color}`}>{diff.label}</span>
-                        {isAuto && <span className="text-[10px] text-blue-500 font-medium">🌍 Auto-completed</span>}
-                        <span className="text-[10px] text-gray-400">#{challenge.id}</span>
+                        {isAuto && <span className="text-[10px] text-brand font-medium">🌍 Auto-completed</span>}
+                        <span className="text-[10px] text-hint">#{challenge.id}</span>
                       </div>
                     </div>
                   </div>
@@ -245,7 +245,7 @@ export default function ChallengesClient({
           </div>
 
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-gray-400">
+            <div className="text-center py-16 text-hint">
               <div className="text-5xl mb-3">🔍</div>
               <p className="text-sm">No challenges found. Try adjusting filters.</p>
             </div>
@@ -257,16 +257,16 @@ export default function ChallengesClient({
       {activeTab === 'countries' && (
         <div className="space-y-4">
           {/* 국가 수 요약 */}
-          <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="bg-surface rounded-2xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="font-bold text-gray-900">🌍 Visited Countries</h2>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  <span className="font-bold text-blue-600">{countryCount}개국</span> 방문 완료
+                <h2 className="font-bold text-heading">🌍 Visited Countries</h2>
+                <p className="text-sm text-subtle mt-0.5">
+                  <span className="font-bold text-brand">{countryCount}개국</span> 방문 완료
                 </p>
               </div>
               <Link href={`/${locale}/profile/edit#countries`}>
-                <button className="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700 transition-colors">
+                <button className="px-4 py-2 bg-brand text-white text-xs font-medium rounded-full hover:bg-brand-hover transition-colors">
                   + 국가 추가
                 </button>
               </Link>
@@ -280,13 +280,13 @@ export default function ChallengesClient({
                 return (
                   <div key={c.id}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium ${
-                      achieved ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-400'
+                      achieved ? 'bg-brand-light border-edge-brand text-brand-hover' : 'bg-surface-sunken border-edge text-hint'
                     }`}>
                     {challenge.emoji}
                     <span>{challenge.title}</span>
                     {achieved
-                      ? <span className="text-blue-500">✓ Auto-done</span>
-                      : <span className="text-gray-400">({countryCount}/{c.threshold})</span>
+                      ? <span className="text-brand">✓ Auto-done</span>
+                      : <span className="text-hint">({countryCount}/{c.threshold})</span>
                     }
                   </div>
                 )
@@ -298,18 +298,18 @@ export default function ChallengesClient({
               <div className="flex flex-wrap gap-2">
                 {visitedCountries.map(vc => (
                   <span key={vc.code}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-800 rounded-full text-sm font-medium border border-blue-100">
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-light text-heading rounded-full text-sm font-medium border border-edge-brand">
                     <span className="text-base">{vc.emoji}</span>
                     <span>{vc.name}</span>
                   </span>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 text-gray-400">
+              <div className="text-center py-10 text-hint">
                 <div className="text-5xl mb-3">🗺️</div>
                 <p className="text-sm">아직 방문한 국가가 없습니다.</p>
                 <Link href={`/${locale}/profile/edit#countries`}>
-                  <button className="mt-3 text-blue-600 text-sm hover:underline">
+                  <button className="mt-3 text-brand text-sm hover:underline">
                     첫 번째 국가를 추가해보세요! →
                   </button>
                 </Link>

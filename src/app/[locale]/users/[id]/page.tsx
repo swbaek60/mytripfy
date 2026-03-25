@@ -164,19 +164,19 @@ export default async function UserProfilePage({
   ]
 
   const badges = [
-    { key: 'email_verified', label: 'Email Verified', icon: '📧', color: 'bg-green-100 text-green-700' },
-    { key: 'phone_verified', label: 'Phone Verified', icon: '📱', color: 'bg-blue-100 text-blue-700' },
-    { key: 'sns_verified', label: 'SNS Verified', icon: '✅', color: 'bg-purple-100 text-purple-700' },
+    { key: 'email_verified', label: 'Email Verified', icon: '📧', color: 'bg-success-light text-success' },
+    { key: 'phone_verified', label: 'Phone Verified', icon: '📱', color: 'bg-brand-muted text-brand-hover' },
+    { key: 'sns_verified', label: 'SNS Verified', icon: '✅', color: 'bg-purple-light text-purple-700' },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={currentUser} locale={locale} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             {/* Avatar */}
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl shrink-0">
@@ -188,7 +188,7 @@ export default async function UserProfilePage({
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-heading">
                   {profile.full_name || profile.username || 'Anonymous'}
                 </h1>
                 <span
@@ -198,7 +198,7 @@ export default async function UserProfilePage({
                   {levelInfo.badge} Lv.{levelInfo.level} {levelInfo.title}
                 </span>
                 {profile.is_guide && (
-                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-warning-light text-yellow-700">
                     🧭 Local Guide
                   </span>
                 )}
@@ -206,7 +206,7 @@ export default async function UserProfilePage({
 
               {/* Nationality */}
               {profile.nationality && (
-                <p className="text-sm text-gray-500 mb-2">
+                <p className="text-sm text-subtle mb-2">
                   {getCountryByCode(profile.nationality)?.emoji} {getCountryByCode(profile.nationality)?.name}
                 </p>
               )}
@@ -222,7 +222,7 @@ export default async function UserProfilePage({
 
               {/* Bio */}
               {profile.bio && (
-                <p className="text-gray-600 text-sm leading-relaxed">{profile.bio}</p>
+                <p className="text-body text-sm leading-relaxed">{profile.bio}</p>
               )}
             </div>
 
@@ -230,7 +230,7 @@ export default async function UserProfilePage({
             {!isOwnProfile && currentUser && (
               <div className="flex flex-col gap-2 shrink-0">
                 <Link href={`/${locale}/messages/${id}`}>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl text-sm">
+                  <Button className="w-full bg-brand hover:bg-brand-hover rounded-xl text-sm">
                     💬 Message
                   </Button>
                 </Link>
@@ -238,7 +238,7 @@ export default async function UserProfilePage({
             )}
             {isOwnProfile && (
               <Link href={`/${locale}/profile`}>
-                <Button variant="outline" className="rounded-xl text-sm border-gray-300">
+                <Button variant="outline" className="rounded-xl text-sm border-edge-strong">
                   ✏️ Edit Profile
                 </Button>
               </Link>
@@ -248,31 +248,31 @@ export default async function UserProfilePage({
 
         {/* Stats Row — 명예의 전당과 동일하게 경험·기여 점수 표시 */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-blue-600">{countriesCount}</p>
-            <p className="text-sm text-gray-500 mt-1">Countries</p>
+          <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
+            <p className="text-3xl font-bold text-brand">{countriesCount}</p>
+            <p className="text-sm text-subtle mt-1">Countries</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-amber-600 flex items-center justify-center gap-1">
+          <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
+            <p className="text-3xl font-bold text-amber flex items-center justify-center gap-1">
               <Trophy className="w-6 h-6" />
               {experiencePoints}
             </p>
-            <p className="text-sm text-gray-500 mt-1">{locale.startsWith('ko') ? '경험' : 'Experience'} pts</p>
+            <p className="text-sm text-subtle mt-1">{locale.startsWith('ko') ? '경험' : 'Experience'} pts</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-amber-600 flex items-center justify-center gap-1">
+          <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
+            <p className="text-3xl font-bold text-amber flex items-center justify-center gap-1">
               <Trophy className="w-6 h-6" />
               {contributionPoints}
             </p>
-            <p className="text-sm text-gray-500 mt-1">{locale.startsWith('ko') ? '기여' : 'Contribution'} pts</p>
+            <p className="text-sm text-subtle mt-1">{locale.startsWith('ko') ? '기여' : 'Contribution'} pts</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-green-600">{companionPosts?.length || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Trip Posts</p>
+          <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
+            <p className="text-3xl font-bold text-success">{companionPosts?.length || 0}</p>
+            <p className="text-sm text-subtle mt-1">Trip Posts</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{profile.review_count || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Reviews</p>
+          <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
+            <p className="text-3xl font-bold text-warning">{profile.review_count || 0}</p>
+            <p className="text-sm text-subtle mt-1">Reviews</p>
           </div>
         </div>
 
@@ -284,24 +284,24 @@ export default async function UserProfilePage({
           const scores = (travelPersonality.scores as Record<string, string> | null) ?? {}
           const hasScores = Object.keys(scores).length > 0
           return (
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">🧠 {t('travelPersonalityTitle')}</h2>
+            <div className="bg-surface rounded-2xl shadow-sm p-6">
+              <h2 className="text-lg font-bold text-heading mb-4">🧠 {t('travelPersonalityTitle')}</h2>
               <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex items-start gap-4 p-4 bg-surface-sunken rounded-xl border border-edge">
                   <span className="text-4xl shrink-0">{p.emoji}</span>
                   <div>
-                    <p className="font-bold text-gray-900 text-lg" style={{ color: p.color }}>{p.type}</p>
-                    {desc && <p className="text-gray-600 text-sm leading-relaxed mt-1">{desc}</p>}
+                    <p className="font-bold text-heading text-lg" style={{ color: p.color }}>{p.type}</p>
+                    {desc && <p className="text-body text-sm leading-relaxed mt-1">{desc}</p>}
                   </div>
                 </div>
                 {hasScores && (
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <p className="font-semibold text-gray-700 text-sm mb-3">{t('travelPersonalityDna')}</p>
+                  <div className="bg-surface-sunken rounded-xl p-4 border border-edge">
+                    <p className="font-semibold text-body text-sm mb-3">{t('travelPersonalityDna')}</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                       {Object.entries(scores).map(([key, val]) => (
                         <div key={key} className="flex justify-between">
-                          <span className="text-gray-500 capitalize">{key}</span>
-                          <span className="font-medium text-gray-700 capitalize">{String(val).replace(/_/g, ' ')}</span>
+                          <span className="text-subtle capitalize">{key}</span>
+                          <span className="font-medium text-body capitalize">{String(val).replace(/_/g, ' ')}</span>
                         </div>
                       ))}
                     </div>
@@ -340,11 +340,11 @@ export default async function UserProfilePage({
           {/* Guide Info (전체 너비) */}
           {profile.is_guide && (
             <div className="md:col-span-2 bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-100 rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-gray-900 text-lg mb-4">🧭 Guide Info</h2>
+              <h2 className="font-bold text-heading text-lg mb-4">🧭 Guide Info</h2>
               <div className="space-y-3">
                 {profile.guide_hourly_rate !== null && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Rate</span>
+                    <span className="text-body text-sm">Rate</span>
                     <span className="font-semibold text-sm">
                       {profile.guide_hourly_rate === 0 ? 'Free / Negotiable' : `$${profile.guide_hourly_rate}/hr`}
                     </span>
@@ -352,24 +352,24 @@ export default async function UserProfilePage({
                 )}
                 {profile.guide_has_vehicle && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Transport</span>
+                    <span className="text-body text-sm">Transport</span>
                     <span className="text-sm">🚗 {profile.guide_vehicle_info || 'Has vehicle'}</span>
                   </div>
                 )}
                 {profile.guide_has_accommodation && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600 text-sm">Accommodation</span>
+                    <span className="text-body text-sm">Accommodation</span>
                     <span className="text-sm">🏠 {profile.guide_accommodation_info || 'Available'}</span>
                   </div>
                 )}
                 {profile.guide_regions && profile.guide_regions.length > 0 && (
                   <div>
-                    <span className="text-gray-600 text-sm block mb-1.5">Regions</span>
+                    <span className="text-body text-sm block mb-1.5">Regions</span>
                     <div className="flex flex-wrap gap-1.5">
                       {(profile.guide_regions as string[]).map((r: string) => {
                         const country = getCountryByCode(r)
                         return (
-                          <span key={r} className="text-xs bg-white border border-yellow-200 rounded-full px-2.5 py-1">
+                          <span key={r} className="text-xs bg-surface border border-yellow-200 rounded-full px-2.5 py-1">
                             {country ? `${country.emoji} ${country.name}` : r}
                           </span>
                         )
@@ -379,13 +379,13 @@ export default async function UserProfilePage({
                 )}
                 {profile.spoken_languages && (profile.spoken_languages as LanguageSkill[]).length > 0 && (
                   <div>
-                    <span className="text-gray-600 text-sm block mb-1.5">Languages</span>
+                    <span className="text-body text-sm block mb-1.5">Languages</span>
                     <div className="flex flex-wrap gap-1.5">
                       {(profile.spoken_languages as LanguageSkill[]).map((sl: LanguageSkill) => {
                         const lang = getLanguageByCode(sl.lang)
                         const lvl = getLangLevel(sl.level)
                         return (
-                          <span key={sl.lang} className="flex items-center gap-1 text-xs bg-white border border-yellow-200 rounded-full px-2.5 py-1">
+                          <span key={sl.lang} className="flex items-center gap-1 text-xs bg-surface border border-yellow-200 rounded-full px-2.5 py-1">
                             {lang?.emoji || '🗣️'} {lang?.name || sl.lang}
                             <span className="text-yellow-500 ml-0.5">{lvl?.stars || ''}</span>
                           </span>
@@ -397,26 +397,26 @@ export default async function UserProfilePage({
                 {/* 가이드 활동 세부 지역 */}
                 {profile.guide_city_regions && (profile.guide_city_regions as GuideRegion[]).length > 0 && (
                   <div className="mt-2">
-                    <span className="text-gray-600 text-sm block mb-2">🗺️ Guide Areas</span>
+                    <span className="text-body text-sm block mb-2">🗺️ Guide Areas</span>
                     <div className="space-y-2">
                       {(profile.guide_city_regions as GuideRegion[]).map(region => {
                         const country = getCountryByCode(region.country)
                         return (
-                          <div key={region.country} className="bg-white rounded-xl border border-yellow-100 p-3">
+                          <div key={region.country} className="bg-surface rounded-xl border border-yellow-100 p-3">
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <span>{country?.emoji}</span>
-                              <span className="font-semibold text-sm text-gray-800">{country?.name || region.country}</span>
+                              <span className="font-semibold text-sm text-heading">{country?.name || region.country}</span>
                             </div>
                             {region.cities.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {region.cities.map(city => (
-                                  <span key={city} className="text-xs bg-amber-50 border border-amber-200 text-amber-700 px-2 py-0.5 rounded-full">
+                                  <span key={city} className="text-xs bg-amber-light border border-amber-200 text-amber-700 px-2 py-0.5 rounded-full">
                                     📍 {city}
                                   </span>
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-400">전국 지역 가능</span>
+                              <span className="text-xs text-hint">전국 지역 가능</span>
                             )}
                           </div>
                         )
@@ -430,20 +430,20 @@ export default async function UserProfilePage({
 
           {/* Spoken Languages (non-guide users) */}
           {!profile.is_guide && profile.spoken_languages && (profile.spoken_languages as LanguageSkill[]).length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-gray-900 text-lg mb-4">🗣️ Languages</h2>
+            <div className="bg-surface rounded-2xl shadow-sm p-6">
+              <h2 className="font-bold text-heading text-lg mb-4">🗣️ Languages</h2>
               <div className="flex flex-wrap gap-2">
                 {(profile.spoken_languages as LanguageSkill[]).map((sl: LanguageSkill) => {
                   const lang = getLanguageByCode(sl.lang)
                   const lvl = getLangLevel(sl.level)
                   return (
-                    <div key={sl.lang} className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                    <div key={sl.lang} className="flex items-center gap-2 bg-brand-light border border-edge-brand rounded-xl px-3 py-2">
                       <span className="text-lg">{lang?.emoji || '🌐'}</span>
                       <div>
-                        <div className="font-semibold text-sm text-gray-800">{lang?.name || sl.lang}</div>
+                        <div className="font-semibold text-sm text-heading">{lang?.name || sl.lang}</div>
                         <div className="flex items-center gap-1 mt-0.5">
                           <span className="text-xs text-yellow-500">{lvl?.stars || '★'}</span>
-                          <span className="text-xs text-gray-500">{lvl?.label || sl.level}</span>
+                          <span className="text-xs text-subtle">{lvl?.label || sl.level}</span>
                         </div>
                       </div>
                     </div>
@@ -455,8 +455,8 @@ export default async function UserProfilePage({
 
           {/* Visited Countries */}
           {visitedCountries && visitedCountries.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-gray-900 text-lg mb-4">
+            <div className="bg-surface rounded-2xl shadow-sm p-6">
+              <h2 className="font-bold text-heading text-lg mb-4">
                 🌍 Visited Countries ({visitedCountries.length})
               </h2>
               <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
@@ -465,7 +465,7 @@ export default async function UserProfilePage({
                   return (
                     <span
                       key={vc.country_code}
-                      className="text-sm bg-blue-50 text-blue-700 rounded-full px-3 py-1"
+                      className="text-sm bg-brand-light text-brand-hover rounded-full px-3 py-1"
                     >
                       {country?.emoji || '🏳'} {vc.country_name || country?.name || vc.country_code}
                     </span>
@@ -477,8 +477,8 @@ export default async function UserProfilePage({
 
           {/* Social Links */}
           {socialLinks.some(s => profile[s.key as keyof typeof profile]) && (
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-gray-900 text-lg mb-4">🔗 Social</h2>
+            <div className="bg-surface rounded-2xl shadow-sm p-6">
+              <h2 className="font-bold text-heading text-lg mb-4">🔗 Social</h2>
               <div className="space-y-3">
                 {socialLinks.map(s => {
                   const val = profile[s.key as keyof typeof profile] as string | null
@@ -489,7 +489,7 @@ export default async function UserProfilePage({
                       href={val.startsWith('http') ? val : `https://${val}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                      className="flex items-center gap-3 text-sm text-brand hover:text-brand-hover hover:underline"
                     >
                       <span className="text-lg">{s.icon}</span>
                       <span className="truncate">{val}</span>
@@ -501,7 +501,7 @@ export default async function UserProfilePage({
                     href={`https://wa.me/${profile.whatsapp.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-sm text-green-600 hover:text-green-700 hover:underline"
+                    className="flex items-center gap-3 text-sm text-success hover:text-success hover:underline"
                   >
                     <span className="text-lg">💬</span>
                     <span>WhatsApp: {profile.whatsapp}</span>
@@ -514,32 +514,32 @@ export default async function UserProfilePage({
 
         {/* Companion Posts */}
         {companionPosts && companionPosts.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="font-bold text-gray-900 text-lg mb-4">✈️ Trip Posts</h2>
+          <div className="bg-surface rounded-2xl shadow-sm p-6">
+            <h2 className="font-bold text-heading text-lg mb-4">✈️ Trip Posts</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {companionPosts.map(post => {
                 const country = getCountryByCode(post.destination_country)
                 const statusColor = post.status === 'open'
-                  ? 'bg-green-100 text-green-700'
+                  ? 'bg-success-light text-success'
                   : post.status === 'closed'
-                  ? 'bg-gray-100 text-gray-500'
-                  : 'bg-blue-100 text-blue-700'
+                  ? 'bg-surface-sunken text-subtle'
+                  : 'bg-brand-muted text-brand-hover'
                 return (
                   <Link
                     key={post.id}
                     href={`/${locale}/companions/${post.id}`}
-                    className="block border border-gray-100 rounded-xl p-4 hover:border-blue-200 hover:shadow-sm transition-all"
+                    className="block border border-edge rounded-xl p-4 hover:border-edge-brand hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-gray-900 text-sm line-clamp-2 flex-1">{post.title}</p>
+                      <p className="font-semibold text-heading text-sm line-clamp-2 flex-1">{post.title}</p>
                       <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${statusColor}`}>
                         {post.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-sm text-subtle mt-2">
                       {country?.emoji} {country?.name || post.destination_country}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-hint mt-1">
                       {new Date(post.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       {' ~ '}
                       {new Date(post.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -555,11 +555,11 @@ export default async function UserProfilePage({
         <div id="reviews" className="space-y-4">
           {/* Reviews header + avg */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-purple-500" />
+            <h2 className="text-xl font-bold text-heading flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-purple" />
               Reviews
               {reviewList.length > 0 && (
-                <span className="text-base font-normal text-gray-500 ml-1">
+                <span className="text-base font-normal text-subtle ml-1">
                   ({reviewList.length}) · {avgRating} avg
                 </span>
               )}
@@ -568,8 +568,8 @@ export default async function UserProfilePage({
 
           {/* 별점 분포 (리뷰 있을 때) */}
           {reviewList.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 p-4">
-              <div className="text-sm font-semibold text-gray-700 mb-2">
+            <div className="bg-surface rounded-xl border border-edge p-4">
+              <div className="text-sm font-semibold text-body mb-2">
                 {locale.startsWith('ko') ? '별점 분포' : 'Rating breakdown'}
               </div>
               <div className="space-y-2">
@@ -578,14 +578,14 @@ export default async function UserProfilePage({
                   const pct = Math.round((count / reviewList.length) * 100)
                   return (
                     <div key={star} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500 w-8">{star} ★</span>
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <span className="text-xs text-subtle w-8">{star} ★</span>
+                      <div className="flex-1 h-2 bg-surface-sunken rounded-full overflow-hidden">
                         <div
                           className="h-full bg-yellow-400 rounded-full transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 w-8">{count}</span>
+                      <span className="text-xs text-subtle w-8">{count}</span>
                     </div>
                   )
                 })}
@@ -602,9 +602,9 @@ export default async function UserProfilePage({
             />
           )}
           {currentUser && !isOwnProfile && alreadyReviewed && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-700 flex items-center justify-between gap-3">
+            <div className="bg-success-light border border-green-200 rounded-xl p-4 text-sm text-success flex items-center justify-between gap-3">
               <span>✅ You have already reviewed this user.</span>
-              <span className="text-xs text-green-600">You can edit or delete your review below.</span>
+              <span className="text-xs text-success">You can edit or delete your review below.</span>
             </div>
           )}
 
@@ -616,10 +616,10 @@ export default async function UserProfilePage({
                 const reviewer = Array.isArray(rawProfiles) ? rawProfiles[0] ?? null : rawProfiles
                 const levelInfo = getLevelInfo(reviewer?.travel_level || 1)
                 return (
-                  <div key={review.id} className="bg-white rounded-2xl shadow-sm p-5">
+                  <div key={review.id} className="bg-surface rounded-2xl shadow-sm p-5">
                     <div className="flex items-start gap-3">
                       <Link href={`/${locale}/users/${review.reviewer_id}`}>
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80">
+                        <div className="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80">
                           {reviewer?.avatar_url ? (
                             <img src={reviewer.avatar_url} alt="" className="w-full h-full object-cover" />
                           ) : '👤'}
@@ -628,7 +628,7 @@ export default async function UserProfilePage({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Link href={`/${locale}/users/${review.reviewer_id}`}>
-                            <span className="font-semibold text-sm text-gray-900 hover:text-blue-600">
+                            <span className="font-semibold text-sm text-heading hover:text-brand">
                               {reviewer?.full_name || 'Anonymous'}
                             </span>
                           </Link>
@@ -641,7 +641,7 @@ export default async function UserProfilePage({
                           <span className="text-yellow-400 text-sm">
                             {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                           </span>
-                          <span suppressHydrationWarning className="text-xs text-gray-400 ml-auto">
+                          <span suppressHydrationWarning className="text-xs text-hint ml-auto">
                             {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                           </span>
                         </div>
@@ -650,7 +650,7 @@ export default async function UserProfilePage({
                         {review.tags && review.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {(review.tags as string[]).map((tag: string) => (
-                              <span key={tag} className="text-xs bg-blue-50 text-blue-600 rounded-full px-2.5 py-0.5">
+                              <span key={tag} className="text-xs bg-brand-light text-brand rounded-full px-2.5 py-0.5">
                                 {tag}
                               </span>
                             ))}
@@ -659,7 +659,7 @@ export default async function UserProfilePage({
 
                         {/* Content */}
                         {review.content && (
-                          <p className="text-sm text-gray-600 mt-2 leading-relaxed">{review.content}</p>
+                          <p className="text-sm text-body mt-2 leading-relaxed">{review.content}</p>
                         )}
 
                         {/* 내가 쓴 리뷰: 수정/삭제 버튼 */}
@@ -677,9 +677,9 @@ export default async function UserProfilePage({
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <div className="bg-surface rounded-2xl shadow-sm p-8 text-center">
               <MessageSquare className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-500">No reviews yet.</p>
+              <p className="text-subtle">No reviews yet.</p>
             </div>
           )}
         </div>

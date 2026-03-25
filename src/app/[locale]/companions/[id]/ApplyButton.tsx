@@ -69,15 +69,15 @@ export default function ApplyButton({
   if (applied) {
     return (
       <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-          <p className="text-green-700 font-medium">✅ You have applied for this trip!</p>
-          <p className="text-green-600 text-sm mt-1">Waiting for the host to respond.</p>
+        <div className="flex-1 bg-success-light border border-green-200 rounded-xl p-4 text-center">
+          <p className="text-success font-medium">✅ You have applied for this trip!</p>
+          <p className="text-success text-sm mt-1">Waiting for the host to respond.</p>
         </div>
         <Button
           variant="outline"
           onClick={handleCancel}
           disabled={loading}
-          className="border-red-200 text-red-500 hover:bg-red-50 shrink-0"
+          className="border-red-200 text-danger hover:bg-danger-light shrink-0"
         >
           Cancel Application
         </Button>
@@ -88,19 +88,19 @@ export default function ApplyButton({
   if (showForm) {
     return (
       <div className="space-y-3">
-        <label className="text-sm font-medium text-gray-700">Message to host (optional)</label>
+        <label className="text-sm font-medium text-body">Message to host (optional)</label>
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
           placeholder="Introduce yourself briefly — your travel style, experience, etc."
           rows={4}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
         />
         <div className="flex gap-3">
           <Button
             onClick={handleApply}
             disabled={loading}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
+            className="flex-1 bg-brand hover:bg-brand-hover rounded-xl"
           >
             {loading ? 'Submitting...' : '🚀 Submit Application'}
           </Button>
@@ -119,7 +119,7 @@ export default function ApplyButton({
   return (
     <Button
       onClick={() => setShowForm(true)}
-      className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl py-6 text-lg font-bold"
+      className="w-full bg-brand hover:bg-brand-hover rounded-xl py-6 text-lg font-bold"
     >
       ✈️ Apply to Join This Trip
     </Button>

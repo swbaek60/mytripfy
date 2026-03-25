@@ -205,7 +205,7 @@ export default async function HallOfFamePage({
   const tabOverallHref = `/${locale}/hall-of-fame?tab=overall`
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/hall-of-fame" />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -218,24 +218,24 @@ export default async function HallOfFamePage({
           <p className="text-amber-100 text-sm sm:text-base">{t('subtitle')}</p>
 
           {/* 탭: 종합 | 경험 | 기여 */}
-          <div className="mt-4 flex flex-wrap gap-2 p-1 bg-white/15 rounded-xl w-fit">
+          <div className="mt-4 flex flex-wrap gap-2 p-1 bg-surface/15 rounded-xl w-fit">
             <Link
               href={tabOverallHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'overall' ? 'bg-white text-amber-700' : 'text-white/90 hover:bg-white/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'overall' ? 'bg-surface text-amber-700' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <LayoutList className="w-4 h-4" />
               {t('tabOverall')}
             </Link>
             <Link
               href={tabExperienceHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'experience' ? 'bg-white text-amber-700' : 'text-white/90 hover:bg-white/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'experience' ? 'bg-surface text-amber-700' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <Compass className="w-4 h-4" />
               {t('tabExperience')}
             </Link>
             <Link
               href={tabContributionHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'contribution' ? 'bg-white text-amber-700' : 'text-white/90 hover:bg-white/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'contribution' ? 'bg-surface text-amber-700' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <Users className="w-4 h-4" />
               {t('tabContribution')}
@@ -250,7 +250,7 @@ export default async function HallOfFamePage({
           )}
 
           {user && (currentUserRank !== null || myRankOutsideTop100 !== null || currentUserPoints > 0) && (
-            <div className="mt-4 p-4 bg-white/15 rounded-xl space-y-3">
+            <div className="mt-4 p-4 bg-surface/15 rounded-xl space-y-3">
               {(currentUserRank !== null || myRankOutsideTop100 !== null) && (
                 <p className="text-lg sm:text-xl font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
                   {t('myRank', { rank: currentUserRank ?? myRankOutsideTop100 ?? 0 })}
@@ -282,14 +282,14 @@ export default async function HallOfFamePage({
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href={`/${locale}/challenges`}
-              className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+              className="inline-flex items-center gap-1.5 bg-surface/20 hover:bg-surface/30 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
             >
               🏆 {t('goChallenges')}
             </Link>
             {user && (
               <Link
                 href={`/${locale}/users/${user.id}`}
-                className="inline-flex items-center gap-1.5 bg-white text-amber-700 hover:bg-amber-50 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+                className="inline-flex items-center gap-1.5 bg-surface text-amber-700 hover:bg-amber-light text-sm font-semibold px-4 py-2 rounded-full transition-colors"
               >
                 {t('myProfile')}
               </Link>
@@ -298,15 +298,15 @@ export default async function HallOfFamePage({
         </div>
 
         {/* Leaderboard */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <h2 className="text-lg font-bold text-gray-900 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <Medal className="w-5 h-5 text-amber-500" />
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+          <h2 className="text-lg font-bold text-heading px-6 py-4 border-b border-edge flex items-center gap-2">
+            <Medal className="w-5 h-5 text-amber" />
             {t('leaderboard')}
           </h2>
 
           {list.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-500">
-              <Award className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <div className="px-6 py-12 text-center text-subtle">
+              <Award className="w-12 h-12 mx-auto mb-3 text-hint" />
               <p className="font-medium">
                 {tab === 'experience' ? t('noLeadersYet') : tab === 'overall' ? t('noLeadersYet') : t('noContributorsYet')}
               </p>
@@ -314,7 +314,7 @@ export default async function HallOfFamePage({
                 {tab === 'experience' ? t('beFirst') : tab === 'overall' ? t('beFirst') : t('contributionCta')}
               </p>
               {(tab === 'experience' || tab === 'overall') && (
-                <Link href={`/${locale}/challenges`} className="inline-block mt-4 text-amber-600 font-semibold text-sm hover:underline">
+                <Link href={`/${locale}/challenges`} className="inline-block mt-4 text-amber font-semibold text-sm hover:underline">
                   {t('goChallenges')} →
                 </Link>
               )}
@@ -345,9 +345,9 @@ export default async function HallOfFamePage({
         </div>
 
         {/* 등급 안내 */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-1">{t('rankTiersTitle')}</h2>
-          <p className="text-sm text-gray-500 mb-4">{t('rankTiersIntro')}</p>
+        <div className="bg-surface rounded-2xl shadow-sm p-6">
+          <h2 className="text-lg font-bold text-heading mb-1">{t('rankTiersTitle')}</h2>
+          <p className="text-sm text-subtle mb-4">{t('rankTiersIntro')}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {tiers.map((tier) => {
               const label = t(`tier_${tier.key}` as any)
@@ -358,13 +358,13 @@ export default async function HallOfFamePage({
               return (
                 <div
                   key={tier.key}
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-gray-100"
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-edge"
                   style={{ borderLeftColor: tier.color, borderLeftWidth: 4 }}
                 >
                   <span className="text-xl">{tier.emoji}</span>
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{label}</p>
-                    <p className="text-xs text-gray-500">{range}</p>
+                    <p className="font-semibold text-heading text-sm truncate">{label}</p>
+                    <p className="text-xs text-subtle">{range}</p>
                   </div>
                 </div>
               )
@@ -372,7 +372,7 @@ export default async function HallOfFamePage({
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500">{t('rankingNote')}</p>
+        <p className="text-center text-sm text-subtle">{t('rankingNote')}</p>
       </main>
     </div>
   )

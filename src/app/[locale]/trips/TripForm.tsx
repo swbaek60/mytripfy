@@ -99,10 +99,10 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-heading">
           {isEdit ? '✏️ Edit Trip Plan' : '🗺️ Create Trip Plan'}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-subtle mt-1">
           {isEdit
             ? 'Update your itinerary details.'
             : 'Plan your own trip itinerary (private) or share it publicly later.'}
@@ -110,25 +110,25 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+        <div className="bg-danger-light border border-red-200 text-red-700 rounded-xl p-4 text-sm">
           ❌ {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-gray-900 border-b border-gray-100 pb-3">
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-bold text-heading border-b border-edge pb-3">
           Basic Trip Info
         </h2>
 
         <div className="space-y-1.5">
-          <Label>Trip Title <span className="text-red-500">*</span></Label>
+          <Label>Trip Title <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="e.g. 7 days in Italy (Rome · Florence · Venice)"
             maxLength={120}
           />
-          <p className="text-xs text-gray-400 text-right">{title.length}/120</p>
+          <p className="text-xs text-hint text-right">{title.length}/120</p>
         </div>
 
         <div className="space-y-1.5">
@@ -142,7 +142,7 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-red-500">*</span></Label>
+            <Label>Start Date <span className="text-danger">*</span></Label>
             <Input
               type="date"
               value={startDate}
@@ -151,7 +151,7 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
             />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-red-500">*</span></Label>
+            <Label>End Date <span className="text-danger">*</span></Label>
             <Input
               type="date"
               value={endDate}
@@ -169,8 +169,8 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
               onClick={() => setVisibility('private')}
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 visibility === 'private'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400'
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-surface text-body border-edge-strong hover:border-blue-400'
               }`}
             >
               🔒 Private
@@ -180,28 +180,28 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
               onClick={() => setVisibility('public')}
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 visibility === 'public'
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400'
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-surface text-body border-edge-strong hover:border-blue-400'
               }`}
             >
               🌍 Public
             </button>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-hint">
             Private trips are only visible to you. Public trips can be shared and discovered by others.
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-gray-900 border-b border-gray-100 pb-3">
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-bold text-heading border-b border-edge pb-3">
           Notes / Itinerary (optional)
         </h2>
         <textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
           rows={6}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-edge-strong px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
           placeholder="Rough plan for each day, must-visit spots, activities, restaurants, budget notes, etc."
         />
       </div>
@@ -209,7 +209,7 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
       <Button
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg rounded-xl"
+        className="w-full bg-brand hover:bg-brand-hover py-6 text-lg rounded-xl"
       >
         {saving
           ? (isEdit ? 'Saving changes...' : 'Saving trip...')

@@ -52,25 +52,25 @@ export default function GuideApplicationsList({
   const rejected = applications.filter(a => a.status === 'rejected')
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+    <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-6">
       <div>
-        <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+        <h3 className="font-bold text-heading text-lg flex items-center gap-2">
           🧭 Guide Applications
         </h3>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Accepted <span className="text-green-600 font-semibold">{accepted.length}</span>
+        <p className="text-sm text-subtle mt-0.5">
+          Accepted <span className="text-success font-semibold">{accepted.length}</span>
           &nbsp;· Pending <span className="text-yellow-600 font-semibold">{pending.length}</span>
-          &nbsp;· Rejected <span className="text-gray-400">{rejected.length}</span>
+          &nbsp;· Rejected <span className="text-hint">{rejected.length}</span>
         </p>
       </div>
 
       {applications.length === 0 ? (
-        <p className="text-center text-gray-400 py-6">No applications yet.</p>
+        <p className="text-center text-hint py-6">No applications yet.</p>
       ) : (
         <div className="space-y-3">
           {accepted.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-2">Accepted</p>
+              <p className="text-xs font-semibold text-success uppercase tracking-wider mb-2">Accepted</p>
               {accepted.map(app => (
                 <GuideAppCard
                   key={app.id}
@@ -101,7 +101,7 @@ export default function GuideApplicationsList({
           )}
           {rejected.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-4">Rejected</p>
+              <p className="text-xs font-semibold text-hint uppercase tracking-wider mb-2 mt-4">Rejected</p>
               {rejected.map(app => (
                 <GuideAppCard key={app.id} app={app} locale={locale} status="rejected" loading={loading} />
               ))}
@@ -135,9 +135,9 @@ function GuideAppCard({
 
   return (
     <div className={`rounded-xl p-4 border transition-all ${
-      status === 'accepted' ? 'bg-green-50 border-green-200'
-      : status === 'rejected' ? 'bg-gray-50 border-gray-200 opacity-50'
-      : 'bg-white border-gray-200 hover:border-amber-200'
+      status === 'accepted' ? 'bg-success-light border-green-200'
+      : status === 'rejected' ? 'bg-surface-sunken border-edge opacity-50'
+      : 'bg-surface border-edge hover:border-amber-200'
     }`}>
       <div className="flex items-start gap-3">
         <Link href={`/${locale}/guides/${app.guide_id}`}>
@@ -150,7 +150,7 @@ function GuideAppCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Link href={`/${locale}/guides/${app.guide_id}`}>
-              <span className="font-semibold text-gray-900 hover:text-amber-600 text-sm">
+              <span className="font-semibold text-heading hover:text-amber-600 text-sm">
                 {(profile?.full_name as string) || 'Guide'}
               </span>
             </Link>
@@ -159,11 +159,11 @@ function GuideAppCard({
             </span>
           </div>
           {app.message && (
-            <p className="text-sm text-gray-600 mt-1.5 line-clamp-2 bg-gray-50 rounded-lg px-2 py-1.5 italic">
+            <p className="text-sm text-body mt-1.5 line-clamp-2 bg-surface-sunken rounded-lg px-2 py-1.5 italic">
               &quot;{app.message}&quot;
             </p>
           )}
-          <p suppressHydrationWarning className="text-xs text-gray-400 mt-1">
+          <p suppressHydrationWarning className="text-xs text-hint mt-1">
             {new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
           </p>
         </div>
@@ -171,11 +171,11 @@ function GuideAppCard({
           {status === 'pending' && onAccept && onReject && (
             <>
               <Button size="sm" onClick={onAccept} disabled={loading === app.id}
-                className="bg-green-500 hover:bg-green-600 text-white rounded-full text-xs px-3 h-7">
+                className="bg-success text-white rounded-full text-xs px-3 h-7">
                 Accept
               </Button>
               <Button size="sm" variant="outline" onClick={onReject} disabled={loading === app.id}
-                className="border-red-200 text-red-500 hover:bg-red-50 rounded-full text-xs px-3 h-7">
+                className="border-red-200 text-danger hover:bg-danger-light rounded-full text-xs px-3 h-7">
                 Reject
               </Button>
             </>

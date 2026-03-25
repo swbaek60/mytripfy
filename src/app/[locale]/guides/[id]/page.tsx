@@ -146,16 +146,16 @@ export default async function GuideDetailPage({
   const isOwn = user?.id === id
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-        <Link href={`/${locale}/guides`} className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1">
+        <Link href={`/${locale}/guides`} className="text-sm text-subtle hover:text-brand flex items-center gap-1">
           ← Back to guides
         </Link>
 
         {/* Guide Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {/* Cover */}
           <div className="h-28 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 relative">
             {/* 레벨 배지 (커버 우상단) */}
@@ -171,7 +171,7 @@ export default async function GuideDetailPage({
             {/* 아바타 + 액션 버튼 */}
             <div className="flex items-end justify-between -mt-10 mb-3">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-white bg-blue-100 flex items-center justify-center text-3xl shadow-md overflow-hidden">
+                <div className="w-20 h-20 rounded-full border-4 border-white bg-brand-muted flex items-center justify-center text-3xl shadow-md overflow-hidden">
                   {guide.avatar_url
                     ? <img src={guide.avatar_url} alt="" className="w-full h-full object-cover" />
                     : '👤'}
@@ -191,11 +191,11 @@ export default async function GuideDetailPage({
             </div>
 
             {/* 이름 */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">{guide.full_name || 'Anonymous Guide'}</h1>
+            <h1 className="text-2xl font-bold text-heading mb-1">{guide.full_name || 'Anonymous Guide'}</h1>
 
             {/* 국적: 플래그 이미지 + 국가명만 (2자리 코드 텍스트는 노출하지 않음) */}
             {nationalityCode.length === 2 && (
-              <p className="text-gray-500 text-sm mb-2 flex items-center gap-2">
+              <p className="text-subtle text-sm mb-2 flex items-center gap-2">
                 <CountryFlag code={nationalityCode} size="sm" className="shrink-0" />
                 <span>{nationalityCountry ? nationalityCountry.name : ''}</span>
               </p>
@@ -204,9 +204,9 @@ export default async function GuideDetailPage({
             {/* 인증 배지 */}
             {(guide.email_verified || guide.phone_verified || guide.sns_verified) && (
               <div className="flex gap-2 flex-wrap mb-3">
-                {guide.email_verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full border border-green-200">✅ Email Verified</span>}
-                {guide.phone_verified && <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-200">📱 Phone Verified</span>}
-                {guide.sns_verified && <span className="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full border border-purple-200">🔗 SNS Verified</span>}
+                {guide.email_verified && <span className="px-2 py-0.5 bg-success-light text-success text-xs rounded-full border border-green-200">✅ Email Verified</span>}
+                {guide.phone_verified && <span className="px-2 py-0.5 bg-brand-light text-brand-hover text-xs rounded-full border border-edge-brand">📱 Phone Verified</span>}
+                {guide.sns_verified && <span className="px-2 py-0.5 bg-purple-light text-purple text-xs rounded-full border border-purple-200">🔗 SNS Verified</span>}
               </div>
             )}
 

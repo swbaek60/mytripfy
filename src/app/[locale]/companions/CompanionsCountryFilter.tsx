@@ -46,10 +46,10 @@ export default function CompanionsCountryFilter({
   const allHref = `/${locale}/companions${purpose || searchQuery ? `?${new URLSearchParams([...(purpose ? [['purpose', purpose]] : []), ...(searchQuery ? [['q', searchQuery]] : [])]).toString()}` : ''}`
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap gap-2 items-center">
-      <span className="text-sm text-gray-500 font-medium mr-1 shrink-0">{labelFilter}</span>
+    <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap gap-2 items-center">
+      <span className="text-sm text-subtle font-medium mr-1 shrink-0">{labelFilter}</span>
       <Link href={allHref}>
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!currentCountry ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!currentCountry ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>
           {labelAll}
         </span>
       </Link>
@@ -58,10 +58,10 @@ export default function CompanionsCountryFilter({
         const isActive = currentCountry === code
         return (
           <Link key={code} href={baseHref(code)}>
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${isActive ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>
               <CountryFlag code={code} size="sm" className="shrink-0" />
               <span>{info?.name ?? code}</span>
-              <span className={isActive ? 'text-blue-200' : 'text-gray-400'}>({count})</span>
+              <span className={isActive ? 'text-blue-200' : 'text-hint'}>({count})</span>
             </span>
           </Link>
         )
@@ -70,7 +70,7 @@ export default function CompanionsCountryFilter({
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-transparent hover:border-blue-200"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-surface-sunken text-body hover:bg-brand-light hover:text-brand transition-colors border border-transparent hover:border-edge-brand"
           aria-label={labelViewAll}
         >
           <ChevronDown className="w-3.5 h-3.5" />

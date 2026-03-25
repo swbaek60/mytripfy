@@ -51,7 +51,7 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${open ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-dashed border-gray-300 text-gray-500 hover:border-amber-300 hover:text-amber-600 bg-white'}`}
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${open ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-dashed border-edge-strong text-subtle hover:border-amber-300 hover:text-amber-600 bg-surface'}`}
       >
         <Search className="w-3 h-3" />
         More countries
@@ -59,21 +59,21 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
       </button>
 
       {open && (
-        <div className="absolute left-0 bottom-full mb-1.5 w-64 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute left-0 bottom-full mb-1.5 w-64 bg-surface rounded-xl shadow-lg border border-edge z-50 overflow-hidden">
           {/* 검색 입력 */}
-          <div className="p-2 border-b border-gray-100">
+          <div className="p-2 border-b border-edge">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hint" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Type to search (e.g. k, Korea)..."
-                className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-edge focus:outline-none focus:ring-2 focus:ring-amber-300"
               />
               {query && (
-                <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-body">
                   <X className="w-3 h-3" />
                 </button>
               )}
@@ -86,23 +86,23 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
               <button
                 key={c.code}
                 onClick={() => select(c.code)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-amber-50 transition-colors text-left ${currentCountry === c.code ? 'bg-amber-50 text-amber-700 font-medium' : 'text-gray-700'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-amber-50 transition-colors text-left ${currentCountry === c.code ? 'bg-amber-50 text-amber-700 font-medium' : 'text-body'}`}
               >
                 <CountryFlag code={c.code} size="sm" />
                 <span className="flex-1 truncate">{c.name}</span>
                 {currentCountry === c.code && <span className="text-amber-500 text-xs">✓</span>}
               </button>
             )) : (
-              <div className="px-4 py-3 text-sm text-gray-400 text-center">No results</div>
+              <div className="px-4 py-3 text-sm text-hint text-center">No results</div>
             )}
           </div>
 
           {/* 전체 초기화 */}
           {currentCountry && (
-            <div className="border-t border-gray-100 p-2">
+            <div className="border-t border-edge p-2">
               <button
                 onClick={() => select('')}
-                className="w-full text-xs text-red-400 hover:text-red-600 py-1 flex items-center justify-center gap-1"
+                className="w-full text-xs text-red-400 hover:text-danger py-1 flex items-center justify-center gap-1"
               >
                 <X className="w-3 h-3" /> Clear country filter
               </button>

@@ -171,7 +171,7 @@ export default async function MessagePage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-surface-sunken flex flex-col">
       <Header user={user} locale={locale} />
       <ChatRoom
         chatId={chatId!}

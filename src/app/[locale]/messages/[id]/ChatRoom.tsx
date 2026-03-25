@@ -193,9 +193,9 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
     <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 sm:px-6 py-4">
 
       {/* Chat Header */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4 flex items-center gap-3">
+      <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4 flex items-center gap-3">
         <Link href={`/${locale}/users/${otherProfile.id}`}>
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-xl cursor-pointer hover:opacity-80 shrink-0">
+          <div className="w-12 h-12 rounded-full bg-brand-muted flex items-center justify-center text-xl cursor-pointer hover:opacity-80 shrink-0">
             {otherProfile.avatar_url ? (
               <img src={otherProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
             ) : '👤'}
@@ -203,15 +203,15 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
         </Link>
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-900">{otherProfile.full_name || 'Anonymous'}</span>
+            <span className="font-bold text-heading">{otherProfile.full_name || 'Anonymous'}</span>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
               {levelInfo.badge} Lv.{otherProfile.travel_level || 1}
             </span>
             {otherProfile.is_guide && (
-              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">🧭 Guide</span>
+              <span className="text-xs bg-warning-light text-warning px-2 py-0.5 rounded-full">🧭 Guide</span>
             )}
           </div>
-          <p className="text-xs text-green-500 font-medium">● Online</p>
+          <p className="text-xs text-success font-medium">● Online</p>
         </div>
         <div className="ml-auto flex flex-col items-end gap-2">
           {trip && (
@@ -219,14 +219,14 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
+                className="rounded-full text-xs border-edge-brand text-brand hover:bg-brand-light"
               >
                 🗺️ Trip Room
               </Button>
             </Link>
           )}
           <Link href={`/${locale}/reviews/write?userId=${otherProfile.id}`}>
-            <Button variant="outline" size="sm" className="rounded-full text-xs border-purple-300 text-purple-600 hover:bg-purple-50 flex items-center gap-1">
+            <Button variant="outline" size="sm" className="rounded-full text-xs border-purple-300 text-purple hover:bg-purple-light flex items-center gap-1">
               <PenLine className="w-3 h-3" />
               Write Review
             </Button>
@@ -235,9 +235,9 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
       </div>
 
       {/* Messages */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm p-4 mb-4 overflow-y-auto" style={{ minHeight: '400px', maxHeight: '60vh' }}>
+      <div className="flex-1 bg-surface rounded-2xl shadow-sm p-4 mb-4 overflow-y-auto" style={{ minHeight: '400px', maxHeight: '60vh' }}>
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-400">
+          <div className="h-full flex flex-col items-center justify-center text-hint">
             <div className="text-4xl mb-3">💬</div>
             <p className="text-sm">Start the conversation!</p>
             <p className="text-xs mt-1">Messages are end-to-end encrypted</p>
@@ -249,7 +249,7 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
               return (
                 <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} gap-2`}>
                   {!isMe && (
-                    <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-sm shrink-0 mt-auto">
+                    <div className="w-7 h-7 rounded-full bg-brand-muted flex items-center justify-center text-sm shrink-0 mt-auto">
                       {otherProfile.avatar_url ? (
                         <img src={otherProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
                       ) : '👤'}
@@ -258,25 +258,25 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                   <div className={`max-w-xs sm:max-w-md`}>
                     <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                       isMe
-                        ? 'bg-blue-600 text-white rounded-br-md'
-                        : 'bg-gray-100 text-gray-800 rounded-bl-md'
+                        ? 'bg-brand text-white rounded-br-md'
+                        : 'bg-surface-sunken text-heading rounded-bl-md'
                     }`}>
                       {msg.content}
                     </div>
                     {/* Translation */}
                     {translations[msg.id] && (
-                      <div className="mt-1 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-gray-600">
+                      <div className="mt-1 px-4 py-2 bg-warning-light border border-yellow-200 rounded-xl text-xs text-body">
                         🌐 {translations[msg.id]}
                       </div>
                     )}
                     <div className={`flex items-center gap-2 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-hint">
                         {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {!isMe && (
                         <button
                           onClick={() => translateMessage(msg.id, msg.content)}
-                          className="text-xs text-gray-400 hover:text-blue-500 transition-colors"
+                          className="text-xs text-hint hover:text-blue-500 transition-colors"
                           title="Translate"
                         >
                           🌐
@@ -293,18 +293,18 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
       </div>
 
       {/* Input */}
-      <div className="bg-white rounded-2xl shadow-sm p-3 flex gap-2 items-center">
+      <div className="bg-surface rounded-2xl shadow-sm p-3 flex gap-2 items-center">
         <Input
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
           placeholder="Type a message... (Enter to send)"
-          className="flex-1 border-0 bg-gray-50 rounded-xl focus:ring-0"
+          className="flex-1 border-0 bg-surface-sunken rounded-xl focus:ring-0"
         />
         <Button
           onClick={sendMessage}
           disabled={sending || !newMessage.trim()}
-          className="bg-blue-600 hover:bg-blue-700 rounded-xl px-4 shrink-0"
+          className="bg-brand hover:bg-brand-hover rounded-xl px-4 shrink-0"
         >
           {sending ? '...' : '➤'}
         </Button>

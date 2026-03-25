@@ -71,7 +71,7 @@ export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
   return (
     <div className="flex flex-col items-center gap-3">
       <div
-        className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-blue-100 flex items-center justify-center text-4xl cursor-pointer overflow-hidden hover:opacity-80 transition-opacity relative"
+        className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-brand-muted flex items-center justify-center text-4xl cursor-pointer overflow-hidden hover:opacity-80 transition-opacity relative"
         onClick={() => inputRef.current?.click()}
       >
         {preview ? (
@@ -86,17 +86,17 @@ export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
       <button
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="text-sm text-blue-600 hover:underline font-medium disabled:opacity-50"
+        className="text-sm text-brand hover:underline font-medium disabled:opacity-50"
       >
         {uploading ? '⏳ Optimizing & Uploading...' : '📷 Change Photo'}
       </button>
       {sizeInfo && (
-        <p className="text-xs text-green-600 font-medium">✅ Compressed: {sizeInfo}</p>
+        <p className="text-xs text-success font-medium">✅ Compressed: {sizeInfo}</p>
       )}
       {error && (
-        <p className="text-xs text-red-500 font-medium text-center max-w-[200px]">❌ {error}</p>
+        <p className="text-xs text-danger font-medium text-center max-w-[200px]">❌ {error}</p>
       )}
-      <p className="text-xs text-gray-400">JPG, PNG, WebP · Auto-compressed to WebP</p>
+      <p className="text-xs text-hint">JPG, PNG, WebP · Auto-compressed to WebP</p>
       <input
         ref={inputRef}
         type="file"

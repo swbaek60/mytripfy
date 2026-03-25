@@ -62,7 +62,7 @@ export default async function GuideRequestsPage({
   const totalCount = requests?.length ?? 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -70,8 +70,8 @@ export default async function GuideRequestsPage({
         {/* ── 헤더 ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">📋 Guide Requests</h1>
-            <p className="text-gray-500 mt-1 text-sm">
+            <h1 className="text-3xl font-extrabold text-heading">📋 Guide Requests</h1>
+            <p className="text-subtle mt-1 text-sm">
               Travelers looking for local guides
               {totalCount > 0 && <span className="ml-1 text-amber-600 font-semibold">· {totalCount} open requests</span>}
             </p>
@@ -84,11 +84,11 @@ export default async function GuideRequestsPage({
         </div>
 
         {/* ── 필터 바 ── */}
-        <div className="bg-white rounded-2xl shadow-sm mb-6">
+        <div className="bg-surface rounded-2xl shadow-sm mb-6">
 
           {/* 탭 (로그인 시) */}
           {user && (
-            <div className="flex border-b border-gray-100 rounded-t-2xl overflow-hidden">
+            <div className="flex border-b border-edge rounded-t-2xl overflow-hidden">
               {[
                 { label: 'All Requests', value: undefined },
                 { label: 'My Requests', value: 'posted' },
@@ -100,7 +100,7 @@ export default async function GuideRequestsPage({
                   : `/${locale}/guides/requests${country ? `?country=${country}` : ''}`
                 return (
                   <Link key={tab.label ?? 'all'} href={href}
-                    className={`flex-1 text-center py-3 text-sm font-medium transition-colors border-b-2 ${active ? 'border-amber-500 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                    className={`flex-1 text-center py-3 text-sm font-medium transition-colors border-b-2 ${active ? 'border-amber-500 text-amber-600' : 'border-transparent text-subtle hover:text-body'}`}>
                     {tab.label}
                   </Link>
                 )
@@ -111,11 +111,11 @@ export default async function GuideRequestsPage({
           {/* 국가 필터 */}
           <div className="p-4">
             <div className="flex items-center gap-1.5 mb-2">
-              <MapPin className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Destination</span>
+              <MapPin className="w-3.5 h-3.5 text-hint" />
+              <span className="text-xs font-semibold text-hint uppercase tracking-wide">Destination</span>
               {selectedCountry && (
                 <Link href={my ? `/${locale}/guides/requests?my=${my}` : `/${locale}/guides/requests`}
-                  className="ml-auto text-xs text-red-400 hover:text-red-600">✕ Clear</Link>
+                  className="ml-auto text-xs text-red-400 hover:text-danger">✕ Clear</Link>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5 items-center">
@@ -123,7 +123,7 @@ export default async function GuideRequestsPage({
                 <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500 text-white">🌍 All</span>
               ) : (
                 <Link href={my ? `/${locale}/guides/requests?my=${my}` : `/${locale}/guides/requests`}>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200">🌍 All</span>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-surface-sunken text-body hover:bg-surface-hover">🌍 All</span>
                 </Link>
               )}
               {popularCountries.map(c => {
@@ -133,7 +133,7 @@ export default async function GuideRequestsPage({
                   : (my ? `/${locale}/guides/requests?country=${c.code}&my=${my}` : `/${locale}/guides/requests?country=${c.code}`)
                 return (
                   <Link key={c.code} href={href}>
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${isSelected ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-amber-50'}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${isSelected ? 'bg-amber-500 text-white' : 'bg-surface-sunken text-body hover:bg-amber-50'}`}>
                       <CountryFlag code={c.code} size="xs" />
                       {c.name}
                     </span>
@@ -169,7 +169,7 @@ export default async function GuideRequestsPage({
 
               return (
                 <Link key={req.id} href={`/${locale}/guides/requests/${req.id}`}>
-                  <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-amber-200 h-full flex flex-col overflow-hidden group">
+                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-amber-200 h-full flex flex-col overflow-hidden group">
 
                     {/* 커버 */}
                     {req.cover_image ? (
@@ -193,24 +193,24 @@ export default async function GuideRequestsPage({
                       {/* 상태 배지 + 커버 이미지일 때 국가 */}
                       <div className="flex items-center justify-between mb-2">
                         {req.cover_image && (
-                          <div className="flex items-center gap-1 text-sm font-semibold text-gray-800">
+                          <div className="flex items-center gap-1 text-sm font-semibold text-heading">
                             <span>{countryInfo?.emoji}</span>
                             <span>{countryInfo?.name || req.destination_country}</span>
-                            {req.destination_city && <span className="text-gray-400 font-normal text-xs">· {req.destination_city.split(', ')[0]}</span>}
+                            {req.destination_city && <span className="text-hint font-normal text-xs">· {req.destination_city.split(', ')[0]}</span>}
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 ml-auto">
-                          {isOwn && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">Mine</span>}
+                          {isOwn && <span className="text-[10px] bg-brand-muted text-brand px-1.5 py-0.5 rounded-full font-medium">Mine</span>}
                           {isExpired
-                            ? <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-medium">Expired</span>
-                            : <span className="text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-medium">Open</span>
+                            ? <span className="text-[10px] bg-surface-sunken text-subtle px-1.5 py-0.5 rounded-full font-medium">Expired</span>
+                            : <span className="text-[10px] bg-success-light text-success px-1.5 py-0.5 rounded-full font-medium">Open</span>
                           }
                           <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-100 px-1.5 py-0.5 rounded-full font-medium">{nights}N {nights + 1}D</span>
                         </div>
                       </div>
 
                       {/* 제목 */}
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 leading-snug text-sm">{req.title}</h3>
+                      <h3 className="font-bold text-heading mb-2 line-clamp-2 leading-snug text-sm">{req.title}</h3>
 
                       {/* 언어 */}
                       {req.preferred_languages && (req.preferred_languages as string[]).length > 0 && (
@@ -218,7 +218,7 @@ export default async function GuideRequestsPage({
                           {(req.preferred_languages as string[]).map((code: string) => {
                             const lang = getLanguageByCode(code)
                             return lang ? (
-                              <span key={code} className="text-[10px] bg-purple-50 text-purple-600 border border-purple-100 px-1.5 py-0.5 rounded-full">
+                              <span key={code} className="text-[10px] bg-purple-light text-purple border border-purple-100 px-1.5 py-0.5 rounded-full">
                                 {lang.emoji} {lang.name}
                               </span>
                             ) : null
@@ -227,7 +227,7 @@ export default async function GuideRequestsPage({
                       )}
 
                       {/* 날짜 */}
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
+                      <div className="flex items-center gap-1 text-xs text-subtle mb-3">
                         <Calendar className="w-3 h-3" />
                         <span suppressHydrationWarning>
                           {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -235,25 +235,25 @@ export default async function GuideRequestsPage({
                       </div>
 
                       {/* 하단: 작성자 + 지원자 수 */}
-                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center overflow-hidden shrink-0">
                             {(profile?.avatar_url as string)
                               ? <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover" />
                               : <span className="text-[10px] text-amber-600 font-bold">?</span>}
                           </div>
-                          <span className="text-xs text-gray-600 font-medium truncate max-w-[100px]">
+                          <span className="text-xs text-body font-medium truncate max-w-[100px]">
                             {(profile?.full_name as string) || 'Traveler'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs">
-                          <Users className="w-3 h-3 text-gray-400" />
+                          <Users className="w-3 h-3 text-hint" />
                           {appCount > 0 ? (
                             <span className="text-amber-600 font-semibold">{appCount} applied</span>
                           ) : (
-                            <span className="text-gray-400">Be first!</span>
+                            <span className="text-hint">Be first!</span>
                           )}
-                          <ChevronRight className="w-3 h-3 text-gray-300" />
+                          <ChevronRight className="w-3 h-3 text-hint" />
                         </div>
                       </div>
                     </div>
@@ -263,12 +263,12 @@ export default async function GuideRequestsPage({
             })}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
+          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
             <div className="text-5xl mb-4">📋</div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">
+            <h3 className="text-xl font-bold text-body mb-2">
               {my === 'posted' ? 'No requests posted yet' : my === 'applied' ? 'No applications yet' : 'No guide requests yet'}
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-subtle mb-6">
               {my === 'posted' ? "You haven't posted any guide requests." : my === 'applied' ? "You haven't applied to any requests." : 'Be the first to post a guide request!'}
             </p>
             {!my && (

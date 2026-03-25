@@ -112,34 +112,34 @@ export default async function CategoryChallengePage({
   const progressPercent = Math.min(100, Math.round((completedCount / totalCount) * 100))
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/challenges" />
 
       {/* Header Banner */}
-      <section className="bg-white border-b border-gray-200">
+      <section className="bg-surface border-b border-edge">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-          <Link href={`/${locale}/challenges`} className="text-sm text-gray-500 hover:text-purple-600 mb-4 inline-block">
+          <Link href={`/${locale}/challenges`} className="text-sm text-subtle hover:text-purple mb-4 inline-block">
             ← Back to Challenges
           </Link>
           <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
               <div className="text-4xl mb-2">{catInfo.emoji}</div>
-              <h1 className="text-3xl font-extrabold text-gray-900">{catInfo.title}</h1>
+              <h1 className="text-3xl font-extrabold text-heading">{catInfo.title}</h1>
             </div>
             
             {/* Progress UI */}
             {user ? (
-              <div className="w-full max-w-xs bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                <div className="flex justify-between text-sm font-bold text-gray-700 mb-2">
+              <div className="w-full max-w-xs bg-surface-sunken p-4 rounded-2xl border border-edge">
+                <div className="flex justify-between text-sm font-bold text-body mb-2">
                   <span>My Progress</span>
-                  <span className="text-purple-600">{completedCount} / 100</span>
+                  <span className="text-purple">{completedCount} / 100</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div className="bg-purple-600 h-2.5 rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
+                <div className="w-full bg-edge-strong rounded-full h-2.5">
+                  <div className="bg-purple h-2.5 rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
+              <div className="text-sm text-subtle bg-surface-sunken px-4 py-2 rounded-lg">
                 Login to track your progress
               </div>
             )}

@@ -17,8 +17,8 @@ export default function GuideRateDisplay({ rate, rateCurrency = 'USD', size = 's
 
   if (isFree) {
     const sizeClass = size === 'lg'
-      ? 'text-base font-bold text-green-600'
-      : 'text-xs font-semibold text-green-600'
+      ? 'text-base font-bold text-success'
+      : 'text-xs font-semibold text-success'
     return <span className={sizeClass}>FREE</span>
   }
 
@@ -28,10 +28,10 @@ export default function GuideRateDisplay({ rate, rateCurrency = 'USD', size = 's
   if (size === 'lg') {
     return (
       <div>
-        <span className="text-2xl font-bold text-gray-900">{converted}</span>
-        <span className="text-sm text-gray-500">/hr</span>
+        <span className="text-2xl font-bold text-heading">{converted}</span>
+        <span className="text-sm text-subtle">/hr</span>
         {!isSameCurrency && (
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-hint mt-0.5">
             원래 요금: {cur.symbol}{rate?.toLocaleString()} {fromCurrency}/hr
           </p>
         )}
@@ -40,7 +40,7 @@ export default function GuideRateDisplay({ rate, rateCurrency = 'USD', size = 's
   }
 
   return (
-    <span className="text-xs font-semibold text-blue-600">
+    <span className="text-xs font-semibold text-brand">
       {converted}/hr
     </span>
   )

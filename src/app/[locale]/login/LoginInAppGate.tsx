@@ -76,8 +76,8 @@ export default function LoginInAppGate({ children }: { children: React.ReactNode
   if (isInApp === null) {
     return (
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-          <div className="px-8 py-12 text-center text-gray-400 text-sm">
+        <div className="bg-surface rounded-3xl shadow-xl overflow-hidden">
+          <div className="px-8 py-12 text-center text-hint text-sm">
             잠시만요...
           </div>
         </div>
@@ -91,11 +91,11 @@ export default function LoginInAppGate({ children }: { children: React.ReactNode
     if (!autoAttempted) {
       return (
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+          <div className="bg-surface rounded-3xl shadow-xl overflow-hidden">
             <div className="px-8 py-12 text-center">
               <div className="text-2xl mb-3">🌐</div>
-              <p className="text-gray-600 text-sm font-medium">브라우저로 이동 중...</p>
-              <p className="text-gray-400 text-xs mt-1">잠시만 기다려 주세요</p>
+              <p className="text-body text-sm font-medium">브라우저로 이동 중...</p>
+              <p className="text-hint text-xs mt-1">잠시만 기다려 주세요</p>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function LoginInAppGate({ children }: { children: React.ReactNode
     // 자동 이동 실패 → 수동 안내 표시
     return (
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+        <div className="bg-surface rounded-3xl shadow-xl overflow-hidden">
           <div className="px-8 py-8">
             <InAppBrowserNotice standalone />
           </div>

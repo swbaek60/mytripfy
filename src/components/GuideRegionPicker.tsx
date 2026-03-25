@@ -82,11 +82,11 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
           onFocus={() => setCountryOpen(true)}
           onBlur={() => setTimeout(() => setCountryOpen(false), 150)}
           placeholder="Type to search (e.g. k, Korea, Japan)..."
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full rounded-xl border border-edge px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
         {countryOpen && (
           <div
-            className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-56 overflow-y-auto py-1"
+            className="absolute z-20 top-full left-0 right-0 mt-1 bg-surface border border-edge rounded-xl shadow-lg max-h-56 overflow-y-auto py-1"
             onMouseDown={e => e.preventDefault()}
           >
             {filteredCountries.length > 0 ? (
@@ -102,7 +102,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                 </button>
               ))
             ) : (
-              <div className="px-4 py-3 text-sm text-gray-400 text-center">
+              <div className="px-4 py-3 text-sm text-hint text-center">
                 {countrySearch.trim() ? 'No results' : 'Type to search country'}
               </div>
             )}
@@ -112,7 +112,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
 
       {/* 선택된 국가 + 도시 목록 */}
       {value.length === 0 && (
-        <p className="text-sm text-gray-400 text-center py-2">
+        <p className="text-sm text-hint text-center py-2">
           가이드 가능한 국가를 추가하고, 세부 지역/도시를 입력하세요
         </p>
       )}
@@ -130,13 +130,13 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{country?.emoji}</span>
-                  <span className="font-bold text-gray-900">{country?.name || region.country}</span>
-                  <span className="text-xs text-gray-400">({region.cities.length}개 지역)</span>
+                  <span className="font-bold text-heading">{country?.name || region.country}</span>
+                  <span className="text-xs text-hint">({region.cities.length}개 지역)</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeCountry(region.country)}
-                  className="text-red-400 hover:text-red-600 text-sm px-2 py-0.5 rounded hover:bg-red-50"
+                  className="text-danger hover:text-danger text-sm px-2 py-0.5 rounded hover:bg-danger-light"
                 >
                   ✕ 삭제
                 </button>
@@ -148,7 +148,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                   {region.cities.map(city => (
                     <span
                       key={city}
-                      className="inline-flex items-center gap-1 bg-white border border-amber-300 text-amber-800 text-xs px-2.5 py-1 rounded-full"
+                      className="inline-flex items-center gap-1 bg-surface border border-amber-300 text-amber-800 text-xs px-2.5 py-1 rounded-full"
                     >
                       📍 {city}
                       <button
@@ -184,7 +184,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                       }
                     }}
                     placeholder={`도시/지역 입력 (예: Tokyo, Osaka)...`}
-                    className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="flex-1 rounded-xl border border-edge bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
                   />
                   <button
                     type="button"
@@ -198,7 +198,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                 {/* 도시 자동완성 */}
                 {isCityOpen && suggestions.length > 0 && (
                   <div
-                    className="absolute z-20 top-full left-0 right-12 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"
+                    className="absolute z-20 top-full left-0 right-12 mt-1 bg-surface border border-edge rounded-xl shadow-lg max-h-48 overflow-y-auto"
                     onMouseDown={e => e.preventDefault()}
                   >
                     {suggestions.map(city => (
@@ -215,7 +215,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                       <button
                         type="button"
                         onClick={() => addCity(region.country, cityInput)}
-                        className="w-full text-left px-4 py-2 hover:bg-amber-50 text-sm text-amber-700 border-t border-gray-100 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 hover:bg-amber-50 text-sm text-amber-700 border-t border-edge flex items-center gap-2"
                       >
                         <span>➕</span> &ldquo;{cityInput}&rdquo; 직접 추가
                       </button>

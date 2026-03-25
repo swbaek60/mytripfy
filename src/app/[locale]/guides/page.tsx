@@ -131,7 +131,7 @@ export default async function GuidesPage({
     .limit(8)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -139,8 +139,8 @@ export default async function GuidesPage({
         {/* ── 헤더 ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">🧭 {t('title')}</h1>
-            <p className="text-gray-500 mt-1 text-sm">
+            <h1 className="text-3xl font-extrabold text-heading">🧭 {t('title')}</h1>
+            <p className="text-subtle mt-1 text-sm">
               {totalCount > 0
                 ? (hasMoreGuides ? t('subtitleCountOf', { displayed: displayedGuides.length, total: totalCount }) : t('subtitleGuidesFound', { total: totalCount }))
                 : t('discoverWorldwide')}
@@ -179,7 +179,7 @@ export default async function GuidesPage({
               const regions = (guide.guide_city_regions as GuideRegion[] | null) ?? []
 
               return (
-                <div key={guide.id} className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border border-transparent hover:border-amber-200 flex flex-col">
+                <div key={guide.id} className="group relative bg-surface rounded-2xl shadow-sm hover:shadow-lg transition-all border border-transparent hover:border-amber-200 flex flex-col">
 
                   {/* 커버 + 아바타 */}
                   <div className="h-16 bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 relative shrink-0 rounded-t-2xl overflow-hidden">
@@ -207,7 +207,7 @@ export default async function GuidesPage({
                   <Link href={`/${locale}/guides/${guide.id}`} className="flex flex-col flex-1 px-4 pb-4">
                     {/* 아바타 */}
                     <div className="-mt-7 mb-3 relative z-10">
-                      <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-2xl shadow-md overflow-hidden ring-3 ring-white" style={{ boxShadow: '0 0 0 3px white, 0 2px 8px rgba(0,0,0,0.12)' }}>
+                      <div className="w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center text-2xl shadow-md overflow-hidden ring-3 ring-white" style={{ boxShadow: '0 0 0 3px white, 0 2px 8px rgba(0,0,0,0.12)' }}>
                         {guide.avatar_url
                           ? <img src={guide.avatar_url} alt="" className="w-full h-full object-cover" />
                           : '👤'}
@@ -216,11 +216,11 @@ export default async function GuidesPage({
 
                     {/* 이름 + 국적 */}
                     <div className="mb-2">
-                      <div className="font-bold text-gray-900 text-sm leading-tight truncate">
+                      <div className="font-bold text-heading text-sm leading-tight truncate">
                         {guide.full_name || t('anonymousGuide')}
                       </div>
                       {nationalityCountry && (
-                        <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                        <div className="text-xs text-subtle mt-0.5 flex items-center gap-1">
                           <CountryFlag code={nationalityCountry.code} size="xs" />
                           {nationalityCountry.name}
                         </div>
@@ -233,14 +233,14 @@ export default async function GuidesPage({
                         <span className="text-yellow-400 text-xs">
                           {'★'.repeat(Math.round(guide.trust_score))}{'☆'.repeat(5 - Math.round(guide.trust_score))}
                         </span>
-                        <span className="text-xs font-bold text-gray-700">{Number(guide.trust_score).toFixed(1)}</span>
-                        <span className="text-xs text-gray-400">({guide.review_count})</span>
+                        <span className="text-xs font-bold text-body">{Number(guide.trust_score).toFixed(1)}</span>
+                        <span className="text-xs text-hint">({guide.review_count})</span>
                       </div>
                     )}
 
                     {/* Bio */}
                     {guide.bio && (
-                      <p className="text-xs text-gray-500 line-clamp-2 mb-2 leading-relaxed">{guide.bio}</p>
+                      <p className="text-xs text-subtle line-clamp-2 mb-2 leading-relaxed">{guide.bio}</p>
                     )}
 
                     {/* 언어 */}
@@ -256,7 +256,7 @@ export default async function GuidesPage({
                             </span>
                           ) : null
                         })}
-                        {skills.length > 3 && <span className="text-[10px] text-gray-400 self-center">+{skills.length - 3}</span>}
+                        {skills.length > 3 && <span className="text-[10px] text-hint self-center">+{skills.length - 3}</span>}
                       </div>
                     )}
 
@@ -277,22 +277,22 @@ export default async function GuidesPage({
                             </div>
                           )
                         })}
-                        {regions.length > 2 && <span className="text-[10px] text-gray-400 self-center">+{regions.length - 2}</span>}
+                        {regions.length > 2 && <span className="text-[10px] text-hint self-center">+{regions.length - 2}</span>}
                       </div>
                     )}
 
                     {/* 서비스 배지 */}
                     {(guide.guide_has_vehicle || guide.guide_has_accommodation || guide.email_verified) && (
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {guide.guide_has_vehicle && <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full border border-blue-100">🚗 {t('badgeVehicle')}</span>}
-                        {guide.guide_has_accommodation && <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full border border-green-100">🏠 {t('badgeStay')}</span>}
-                        {guide.email_verified && <span className="text-[10px] bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded-full border border-gray-100">✅ {t('badgeVerified')}</span>}
+                        {guide.guide_has_vehicle && <span className="text-[10px] bg-brand-light text-brand px-1.5 py-0.5 rounded-full border border-edge-brand">🚗 {t('badgeVehicle')}</span>}
+                        {guide.guide_has_accommodation && <span className="text-[10px] bg-success-light text-success px-1.5 py-0.5 rounded-full border border-green-100">🏠 {t('badgeStay')}</span>}
+                        {guide.email_verified && <span className="text-[10px] bg-surface-sunken text-subtle px-1.5 py-0.5 rounded-full border border-edge">✅ {t('badgeVerified')}</span>}
                       </div>
                     )}
 
                     {/* 하단: 방문 국가 수 + 요금 */}
-                    <div className="mt-auto pt-2 border-t border-gray-50 flex items-center justify-between">
-                      <span className="text-[10px] text-gray-400">
+                    <div className="mt-auto pt-2 border-t border-edge flex items-center justify-between">
+                      <span className="text-[10px] text-hint">
                         🌍 {t('countriesCount', { count: guide.travel_count || 0 })}
                       </span>
                       <GuideRateDisplay
@@ -318,7 +318,7 @@ export default async function GuidesPage({
           {showAllGuides && totalCount > GUIDES_PREVIEW_LIMIT && (
             <div className="mt-4 text-center">
               <Link href={`/${locale}/guides${guidesQueryString(false)}`}>
-                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+                <Button variant="ghost" size="sm" className="text-subtle hover:text-body">
                   {t('showLess')}
                 </Button>
               </Link>
@@ -326,10 +326,10 @@ export default async function GuidesPage({
           )}
           </>
         ) : (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
+          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
             <div className="text-5xl mb-4">🧭</div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">{t('noGuidesFound')}</h3>
-            <p className="text-gray-500 mb-6">{t('adjustFiltersOrRegister')}</p>
+            <h3 className="text-xl font-bold text-body mb-2">{t('noGuidesFound')}</h3>
+            <p className="text-subtle mb-6">{t('adjustFiltersOrRegister')}</p>
             <Link href={user ? `/${locale}/profile/edit` : `/${locale}/login`}>
               <Button className="bg-amber-500 hover:bg-amber-600 text-white rounded-full px-8">
                 {t('registerAsGuideBtn')}
@@ -341,14 +341,14 @@ export default async function GuidesPage({
         {/* ── Guide Requests 섹션 ── */}
         <section className="mt-12">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl font-extrabold text-gray-900">📋 {t('guideRequestsSection')}</h2>
+            <h2 className="text-3xl font-extrabold text-heading">📋 {t('guideRequestsSection')}</h2>
             <Link href={`/${locale}/guides/requests`}>
               <Button variant="outline" size="sm" className="rounded-full border-amber-300 text-amber-700 hover:bg-amber-50 text-xs">
                 {t('viewAll')}
               </Button>
             </Link>
           </div>
-          <p className="text-sm text-gray-500 mb-4">{t('travelersLookingForGuides')}</p>
+          <p className="text-sm text-subtle mb-4">{t('travelersLookingForGuides')}</p>
           {guideRequests && guideRequests.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {guideRequests.map((req: { id: string; title: string; destination_country: string; destination_city?: string | null; start_date: string; end_date: string }) => {
@@ -358,18 +358,18 @@ export default async function GuidesPage({
                 const nights = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
                 return (
                   <Link key={req.id} href={`/${locale}/guides/requests/${req.id}`}>
-                    <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-amber-200 p-4 transition-all h-full flex flex-col">
+                    <div className="bg-surface rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-amber-200 p-4 transition-all h-full flex flex-col">
                       <div className="flex items-start gap-2 mb-2">
                         <span className="text-lg shrink-0">{countryInfo?.emoji || '🌍'}</span>
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-gray-900 text-sm line-clamp-2">{req.title}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="font-semibold text-heading text-sm line-clamp-2">{req.title}</div>
+                          <div className="text-xs text-subtle mt-0.5">
                             {countryInfo?.name || req.destination_country}
                             {req.destination_city ? ` · ${req.destination_city}` : ''}
                           </div>
                         </div>
                       </div>
-                      <div className="text-xs text-amber-600 font-medium mt-auto pt-2 border-t border-gray-50">
+                      <div className="text-xs text-amber-600 font-medium mt-auto pt-2 border-t border-edge">
                         {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} · {nights}N
                       </div>
                     </div>
@@ -378,8 +378,8 @@ export default async function GuidesPage({
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm py-8 px-4 text-center">
-              <p className="text-gray-500 text-sm mb-3">{t('noOpenGuideRequests')}</p>
+            <div className="bg-surface rounded-2xl shadow-sm py-8 px-4 text-center">
+              <p className="text-subtle text-sm mb-3">{t('noOpenGuideRequests')}</p>
               <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login`}>
                 <Button size="sm" variant="outline" className="rounded-full border-amber-300 text-amber-700 hover:bg-amber-50">
                   {t('postRequest')}

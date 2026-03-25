@@ -25,10 +25,10 @@ export default async function EditSponsorPage({
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit: {sponsor.name}</h1>
+        <h1 className="text-2xl font-bold text-heading mb-6">Edit: {sponsor.name}</h1>
         <SponsorEditForm sponsor={sponsor} benefits={benefits ?? []} locale={locale} />
       </main>
     </div>

@@ -53,46 +53,46 @@ export default async function TripDetailPage({
   const totalDays = start && end ? Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1 : null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user || null} locale={locale} currentPath="/trips" />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
         {/* Trip Header Card */}
-        <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <section className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {/* Cover gradient */}
           <div className="h-20 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-end px-6 pb-3">
             <span className="text-4xl">{country?.emoji || '✈️'}</span>
           </div>
           <div className="p-6">
             <div className="flex items-start justify-between gap-3 mb-3">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-snug">{trip.title}</h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-heading leading-snug">{trip.title}</h1>
               {isOwner && (
                 <Link
                   href={`/${locale}/trips/${trip.id}/edit`}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 shrink-0 font-medium"
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-edge-brand text-brand hover:bg-brand-light shrink-0 font-medium"
                 >
                   <Pencil size={12} /> Edit
                 </Link>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-3 text-sm text-subtle">
               {country && (
                 <span className="flex items-center gap-1.5">
-                  <Globe size={14} className="text-gray-400" />
+                  <Globe size={14} className="text-hint" />
                   {country.emoji} {country.name}
                 </span>
               )}
               {dateLabel && (
                 <span className="flex items-center gap-1.5">
-                  <CalendarDays size={14} className="text-gray-400" />
+                  <CalendarDays size={14} className="text-hint" />
                   {dateLabel}
-                  {totalDays && <span className="text-gray-400">({totalDays}d)</span>}
+                  {totalDays && <span className="text-hint">({totalDays}d)</span>}
                 </span>
               )}
               <span className={`flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
-                trip.visibility === 'public' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                trip.visibility === 'public' ? 'bg-success-light text-green-700' : 'bg-surface-sunken text-subtle'
               }`}>
                 {trip.visibility === 'public' ? <Globe size={11} /> : <Lock size={11} />}
                 {trip.visibility === 'public' ? 'Public' : 'Private'}
@@ -100,7 +100,7 @@ export default async function TripDetailPage({
             </div>
 
             {trip.description && (
-              <p className="mt-4 text-sm text-gray-600 leading-relaxed bg-gray-50 rounded-xl p-4">
+              <p className="mt-4 text-sm text-body leading-relaxed bg-surface-sunken rounded-xl p-4">
                 {trip.description}
               </p>
             )}
@@ -108,11 +108,11 @@ export default async function TripDetailPage({
         </section>
 
         {/* Itinerary Section */}
-        <section className="bg-white rounded-2xl shadow-sm p-6">
+        <section className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Day-by-Day Itinerary</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h2 className="text-lg font-bold text-heading">Day-by-Day Itinerary</h2>
+              <p className="text-xs text-hint mt-0.5">
                 {days.length > 0
                   ? `${days.length} day${days.length > 1 ? 's' : ''} · ${days.flatMap(d => d.trip_activities).length} activities`
                   : 'Plan your trip step by step'}

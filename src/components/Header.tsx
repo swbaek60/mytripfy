@@ -69,7 +69,7 @@ export default async function Header({
   )
 
   return (
-    <header className="w-full bg-white border-b border-gray-100 sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
+    <header className="w-full bg-surface border-b border-edge sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <HeaderNav
           logoSlot={logoSlot}

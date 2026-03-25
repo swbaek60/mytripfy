@@ -221,21 +221,21 @@ export default function GroupChatRoom({
     <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 sm:px-6 py-4">
 
       {/* 헤더 카드 */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4 flex items-center gap-3">
-        <Link href={`/${locale}/messages`} className="text-gray-400 hover:text-gray-600 text-lg font-medium">
+      <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4 flex items-center gap-3">
+        <Link href={`/${locale}/messages`} className="text-hint hover:text-body text-lg font-medium">
           ←
         </Link>
-        <div className="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white shrink-0">
+        <div className="w-11 h-11 rounded-full bg-brand flex items-center justify-center text-white shrink-0">
           <Users className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 truncate">{chatName}</p>
-          <p className="text-xs text-gray-400">{members.length} members</p>
+          <p className="font-bold text-heading truncate">{chatName}</p>
+          <p className="text-xs text-hint">{members.length} members</p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {postId && (
             <Link href={`/${locale}/companions/${postId}`}>
-              <Button variant="outline" size="sm" className="rounded-full text-xs border-blue-200 text-blue-600 hover:bg-blue-50 hidden sm:flex">
+              <Button variant="outline" size="sm" className="rounded-full text-xs border-edge-brand text-brand hover:bg-brand-light hidden sm:flex">
                 View Trip
               </Button>
             </Link>
@@ -243,7 +243,7 @@ export default function GroupChatRoom({
           <Button
             variant="ghost" size="sm"
             onClick={() => setShowMembers(v => !v)}
-            className={`rounded-full ${showMembers ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+            className={`rounded-full ${showMembers ? 'bg-brand-light text-brand' : 'text-subtle hover:bg-surface-hover'}`}
             title="Members"
           >
             <Users className="w-4 h-4" />
@@ -252,7 +252,7 @@ export default function GroupChatRoom({
             <Button
               variant="ghost" size="sm"
               onClick={leaveGroup}
-              className="rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50"
+              className="rounded-full text-hint hover:text-danger hover:bg-danger-light"
               title="Leave group"
             >
               <LogOut className="w-4 h-4" />
@@ -263,10 +263,10 @@ export default function GroupChatRoom({
 
       {/* 멤버 패널 (펼쳤을 때) */}
       {showMembers && (
-        <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+        <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-sm text-gray-900">Members ({members.length})</p>
-            <button onClick={() => setShowMembers(false)} className="text-gray-400 hover:text-gray-600">
+            <p className="font-bold text-sm text-heading">Members ({members.length})</p>
+            <button onClick={() => setShowMembers(false)} className="text-hint hover:text-body">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -277,9 +277,9 @@ export default function GroupChatRoom({
               const isMe = member.user_id === currentUserId
               const lvl = getLevelInfo(p?.travel_level ?? 1)
               return (
-                <div key={member.user_id} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                <div key={member.user_id} className="flex items-center gap-2 bg-surface-sunken rounded-xl px-3 py-2">
                   <Link href={`/${locale}/users/${member.user_id}`} className="shrink-0 relative">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 overflow-hidden flex items-center justify-center text-sm">
+                    <div className="w-8 h-8 rounded-full bg-brand-muted overflow-hidden flex items-center justify-center text-sm">
                       {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : '👤'}
                     </div>
                     {isHostMember && (
@@ -287,9 +287,9 @@ export default function GroupChatRoom({
                     )}
                   </Link>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-900 truncate max-w-[80px]">
+                    <p className="text-xs font-medium text-heading truncate max-w-[80px]">
                       {p?.full_name || 'Member'}
-                      {isMe && <span className="text-gray-400 ml-1">(me)</span>}
+                      {isMe && <span className="text-hint ml-1">(me)</span>}
                     </p>
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: lvl.color }}>
                       Lv.{lvl.level}
@@ -298,7 +298,7 @@ export default function GroupChatRoom({
                   {isHost && !isHostMember && !isMe && (
                     <button
                       onClick={() => removeMember(member.user_id)}
-                      className="text-gray-300 hover:text-red-400 ml-1"
+                      className="text-hint hover:text-danger ml-1"
                       title="Remove member"
                     >
                       <X className="w-3 h-3" />
@@ -312,9 +312,9 @@ export default function GroupChatRoom({
       )}
 
       {/* 메시지 목록 */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm p-4 mb-4 overflow-y-auto space-y-3" style={{ minHeight: '400px', maxHeight: '60vh' }}>
+      <div className="flex-1 bg-surface rounded-2xl shadow-sm p-4 mb-4 overflow-y-auto space-y-3" style={{ minHeight: '400px', maxHeight: '60vh' }}>
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-400">
+          <div className="h-full flex flex-col items-center justify-center text-hint">
             <div className="text-4xl mb-3">💬</div>
             <p className="text-sm">Start the group conversation!</p>
           </div>
@@ -333,7 +333,7 @@ export default function GroupChatRoom({
                   <div className="shrink-0 mt-auto">
                     {!sameAsPrev ? (
                       <Link href={`/${locale}/users/${msg.sender_id}`}>
-                        <div className="w-7 h-7 rounded-full bg-blue-100 overflow-hidden flex items-center justify-center text-sm relative">
+                        <div className="w-7 h-7 rounded-full bg-brand-muted overflow-hidden flex items-center justify-center text-sm relative">
                           {profile?.avatar_url
                             ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                             : '👤'}
@@ -348,7 +348,7 @@ export default function GroupChatRoom({
                 <div className={`max-w-[70%] flex flex-col gap-0.5 ${isMine ? 'items-end' : 'items-start'}`}>
                   {!isMine && !sameAsPrev && (
                     <div className="flex items-center gap-1.5 px-1">
-                      <span className="text-xs font-semibold text-gray-700">
+                      <span className="text-xs font-semibold text-body">
                         {profile?.full_name || 'Member'}
                       </span>
                       {msgIsHost && <Crown className="w-3 h-3 text-yellow-500" />}
@@ -359,12 +359,12 @@ export default function GroupChatRoom({
                   )}
                   <div className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed break-words ${
                     isMine
-                      ? 'bg-blue-600 text-white rounded-br-sm'
-                      : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                      ? 'bg-brand text-white rounded-br-sm'
+                      : 'bg-surface-sunken text-heading rounded-bl-sm'
                   }`}>
                     {msg.content}
                   </div>
-                  <span className="text-[10px] text-gray-400 px-1">{formatTime(msg.created_at)}</span>
+                  <span className="text-[10px] text-hint px-1">{formatTime(msg.created_at)}</span>
                 </div>
               </div>
             )
@@ -374,19 +374,19 @@ export default function GroupChatRoom({
       </div>
 
       {/* 입력창 */}
-      <div className="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center gap-2">
+      <div className="bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-center gap-2">
         <Input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
           placeholder="Message the group..."
-          className="flex-1 rounded-full border-gray-200 bg-gray-50 text-sm"
+          className="flex-1 rounded-full border-edge bg-surface-sunken text-sm"
         />
         <Button
           onClick={sendMessage}
           disabled={!input.trim() || sending}
           size="sm"
-          className="rounded-full w-9 h-9 p-0 bg-blue-600 hover:bg-blue-700 shrink-0"
+          className="rounded-full w-9 h-9 p-0 bg-brand hover:bg-brand-hover shrink-0"
         >
           <Send className="w-4 h-4" />
         </Button>

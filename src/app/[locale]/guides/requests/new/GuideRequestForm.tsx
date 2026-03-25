@@ -130,22 +130,22 @@ export default function GuideRequestForm({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Post a Guide Request</h2>
-        <Link href={`/${locale}/guides/requests`} className="text-sm text-gray-500 hover:text-amber-600">
+        <h2 className="text-xl font-bold text-heading">Post a Guide Request</h2>
+        <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600">
           ← Back to list
         </Link>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-danger-light border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Trip Details</h3>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h3 className="font-bold text-heading border-b border-edge pb-3">Trip Details</h3>
         <div className="space-y-1.5">
-          <Label>Title <span className="text-red-500">*</span></Label>
+          <Label>Title <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -155,7 +155,7 @@ export default function GuideRequestForm({
         </div>
 
         <div className="space-y-1.5">
-          <Label>Destination Country <span className="text-red-500">*</span></Label>
+          <Label>Destination Country <span className="text-danger">*</span></Label>
           <CountrySelect
             value={country}
             onChange={handleCountryChange}
@@ -187,7 +187,7 @@ export default function GuideRequestForm({
                     type="button"
                     onClick={() => toggleCity(city)}
                     className={`px-3 py-1.5 rounded-full text-sm border ${
-                      selectedCities.includes(city) ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200 hover:border-amber-400'
+                      selectedCities.includes(city) ? 'bg-amber-500 text-white border-amber-500' : 'bg-surface text-body border-edge hover:border-amber-400'
                     }`}
                   >
                     {selectedCities.includes(city) ? '✓ ' : ''}{city}
@@ -212,18 +212,18 @@ export default function GuideRequestForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-red-500">*</span></Label>
+            <Label>Start Date <span className="text-danger">*</span></Label>
             <Input type="date" value={startDate} min={today} onChange={e => setStartDate(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-red-500">*</span></Label>
+            <Label>End Date <span className="text-danger">*</span></Label>
             <Input type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} />
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Description</h3>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h3 className="font-bold text-heading border-b border-edge pb-3">Description</h3>
         <div className="space-y-1.5">
           <Label>What do you need from a guide? (optional)</Label>
           <textarea
@@ -231,16 +231,16 @@ export default function GuideRequestForm({
             onChange={e => setDescription(e.target.value)}
             placeholder="Preferred language, group size, activities you're interested in, etc."
             rows={5}
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
 
       {/* 선호 언어 */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <div className="border-b border-gray-100 pb-3">
-          <h3 className="font-bold text-gray-900">🗣️ Preferred Guide Languages (optional)</h3>
-          <p className="text-xs text-gray-500 mt-1">
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <div className="border-b border-edge pb-3">
+          <h3 className="font-bold text-heading">🗣️ Preferred Guide Languages (optional)</h3>
+          <p className="text-xs text-subtle mt-1">
             가이드가 사용할 수 있으면 좋을 언어를 선택하세요.
             해당 언어를 할 수 있는 가이드에게 우선적으로 알림이 발송됩니다.
           </p>
@@ -260,8 +260,8 @@ export default function GuideRequestForm({
         )}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-gray-900 border-b border-gray-100 pb-3">Cover Image (optional)</h3>
+      <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <h3 className="font-bold text-heading border-b border-edge pb-3">Cover Image (optional)</h3>
         <PostCoverUpload userId={userId} currentUrl={coverImage} onUpload={setCoverImage} />
       </div>
 

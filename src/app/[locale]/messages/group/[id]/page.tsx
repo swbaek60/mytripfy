@@ -122,7 +122,7 @@ export default async function GroupChatPage({
   const postId = chat.reference_id ?? null
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-surface-sunken flex flex-col">
       <Header user={user} locale={locale} />
       <GroupChatRoom
         chatId={chatId}

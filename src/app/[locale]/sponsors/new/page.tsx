@@ -15,11 +15,11 @@ export default async function NewSponsorPage({
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">+ {t('addSponsor')}</h1>
-        <p className="text-gray-500 text-sm mb-6">{t('subtitle')}</p>
+        <h1 className="text-2xl font-bold text-heading mb-2">+ {t('addSponsor')}</h1>
+        <p className="text-subtle text-sm mb-6">{t('subtitle')}</p>
         <SponsorForm userId={user.id} locale={locale} />
       </main>
     </div>

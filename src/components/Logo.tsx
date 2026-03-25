@@ -14,7 +14,7 @@ export default function Logo({ className = '', darkBg = false }: LogoProps) {
   if (failed) {
     return (
       <span
-        className={`font-bold text-xl tracking-tight drop-shadow-sm ${darkBg ? 'text-white' : 'text-gray-900'} ${className}`}
+        className={`font-bold text-xl tracking-tight drop-shadow-sm ${darkBg ? 'text-white' : 'text-heading'} ${className}`}
         style={{ fontFamily: 'system-ui, sans-serif' }}
       >
         mytripfy

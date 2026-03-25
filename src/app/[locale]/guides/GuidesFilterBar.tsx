@@ -78,24 +78,24 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
     : SORTED_COUNTRIES
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm mb-6 overflow-hidden transition-opacity ${isPending ? 'opacity-70' : ''}`}>
+    <div className={`bg-surface rounded-2xl shadow-sm mb-6 overflow-hidden transition-opacity ${isPending ? 'opacity-70' : ''}`}>
 
       {/* ── 검색 + 정렬 바 ── */}
       <div className="p-4 flex flex-col sm:flex-row gap-3">
         {/* 이름 검색 */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hint" />
           <input
             type="text"
             value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder={t('searchPlaceholder')}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-edge text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
           />
           {q && (
             <button onClick={() => { setQ(''); navigate({ q: '' }) }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-hint hover:text-body">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -106,20 +106,20 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           <select
             value={sort}
             onChange={e => { setSort(e.target.value); navigate({ sort: e.target.value }) }}
-            className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 bg-white cursor-pointer"
+            className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-edge text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 bg-surface cursor-pointer"
           >
             <option value="rating">⭐ {t('sortTopRated')}</option>
             <option value="reviews">💬 {t('sortMostReviews')}</option>
             <option value="level">🏆 {t('sortHighestLevel')}</option>
             <option value="newest">🆕 {t('sortNewest')}</option>
           </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-hint pointer-events-none" />
         </div>
 
         {/* 고급 필터 토글 */}
         <button
           onClick={() => setShowAdvanced(v => !v)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${showAdvanced ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${showAdvanced ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-edge text-body hover:bg-surface-hover'}`}
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filters
@@ -140,20 +140,20 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
 
       {/* ── 고급 필터 패널 ── */}
       {showAdvanced && (
-        <div className="border-t border-gray-100 p-4 space-y-4">
+        <div className="border-t border-edge p-4 space-y-4">
 
           {/* 서비스 토글 */}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => { setVehicle(v => { navigate({ vehicle: !v ? '1' : '' }); return !v }) }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${vehicle ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${vehicle ? 'bg-brand text-white border-brand' : 'bg-surface border-edge text-body hover:border-blue-300'}`}>
               🚗 {t('filterVehicle')}
             </button>
             <button onClick={() => { setAccommodation(v => { navigate({ accommodation: !v ? '1' : '' }); return !v }) }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${accommodation ? 'bg-green-600 text-white border-green-600' : 'bg-white border-gray-200 text-gray-600 hover:border-green-300'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${accommodation ? 'bg-success text-white border-success' : 'bg-surface border-edge text-body hover:border-green-300'}`}>
               🏠 {t('filterAccommodation')}
             </button>
             <button onClick={() => { setFree(v => { navigate({ free: !v ? '1' : '' }); return !v }) }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${free ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-gray-200 text-gray-600 hover:border-emerald-300'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${free ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-surface border-edge text-body hover:border-emerald-300'}`}>
               🎁 {t('filterFreeService')}
             </button>
           </div>
@@ -161,7 +161,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           {/* 국가 필터 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🌍 Country</span>
+              <span className="text-xs font-semibold text-subtle uppercase tracking-wide">🌍 Country</span>
               {country && (
                 <button onClick={() => { setCountry(''); setCity(''); navigate({ country: '', city: '' }) }}
                   className="text-xs text-red-400 hover:text-red-600 flex items-center gap-0.5">
@@ -184,13 +184,13 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
               value={countrySearch}
               onChange={e => setCountrySearch(e.target.value)}
               placeholder={t('typeToSearchCountry')}
-              className="w-full mb-2 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+              className="w-full mb-2 px-3 py-2 rounded-xl border border-edge text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
             />
             <div className="max-h-52 overflow-y-auto flex flex-wrap gap-1.5">
               {filteredCountries.map(c => (
                 <button key={c.code}
                   onClick={() => { setCountry(c.code === country ? '' : c.code); setCity(''); setCountrySearch(''); navigate({ country: c.code === country ? '' : c.code, city: '' }) }}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${country === c.code ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-amber-50'}`}>
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${country === c.code ? 'bg-amber-500 text-white' : 'bg-surface-sunken text-body hover:bg-amber-50'}`}>
                   <CountryFlag code={c.code} size="xs" />
                   {c.name}
                 </button>
@@ -205,12 +205,12 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
                   onChange={e => setCity(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && navigate({})}
                   placeholder={`City in ${selectedCountry?.name ?? country}...`}
-                  className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                  className="flex-1 px-3 py-2 rounded-xl border border-edge text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
                 />
                 <button onClick={() => navigate({})} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm rounded-xl font-medium">
                   {t('go')}
                 </button>
-                {city && <button onClick={() => { setCity(''); navigate({ city: '' }) }} className="px-3 py-2 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}
+                {city && <button onClick={() => { setCity(''); navigate({ city: '' }) }} className="px-3 py-2 text-hint hover:text-body"><X className="w-4 h-4" /></button>}
               </div>
             )}
           </div>
@@ -218,7 +218,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           {/* 언어 필터 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🗣️ Language</span>
+              <span className="text-xs font-semibold text-subtle uppercase tracking-wide">🗣️ Language</span>
               {lang && (
                 <button onClick={() => { setLang(''); navigate({ lang: '' }) }}
                   className="text-xs text-red-400 hover:text-red-600 flex items-center gap-0.5">
@@ -230,7 +230,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
               {LANGUAGES.filter(l => POPULAR_LANGS.includes(l.code)).sort((a, b) => a.name.localeCompare(b.name)).map(l => (
                 <button key={l.code}
                   onClick={() => { setLang(l.code === lang ? '' : l.code); navigate({ lang: l.code === lang ? '' : l.code }) }}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${lang === l.code ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-purple-50'}`}>
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${lang === l.code ? 'bg-purple text-white' : 'bg-surface-sunken text-body hover:bg-purple-50'}`}>
                   {l.emoji} {l.name}
                 </button>
               ))}
@@ -239,7 +239,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
             <select
               value={lang}
               onChange={e => { setLang(e.target.value); navigate({ lang: e.target.value }) }}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="w-full rounded-xl border border-edge px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
             >
               <option value="">— {t('allLanguages')} —</option>
               {LANGUAGES.map(l => (
@@ -250,13 +250,13 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
 
           {/* 적용 중인 필터 + 전체 초기화 */}
           {activeCount > 0 && (
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between pt-2 border-t border-edge">
               <div className="flex flex-wrap gap-1.5">
                 {selectedCountry && <span className="flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full"><CountryFlag code={selectedCountry.code} size="xs" />{selectedCountry.name}</span>}
                 {city && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">📍 {city}</span>}
-                {selectedLang && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{selectedLang.emoji} {selectedLang.name}</span>}
-                {vehicle && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">🚗 {t('filterVehicle')}</span>}
-                {accommodation && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">🏠 {t('filterAccommodation')}</span>}
+                {selectedLang && <span className="text-xs bg-purple-light text-purple-700 px-2 py-0.5 rounded-full">{selectedLang.emoji} {selectedLang.name}</span>}
+                {vehicle && <span className="text-xs bg-brand-muted text-brand-hover px-2 py-0.5 rounded-full">🚗 {t('filterVehicle')}</span>}
+                {accommodation && <span className="text-xs bg-success-light text-success px-2 py-0.5 rounded-full">🏠 {t('filterAccommodation')}</span>}
                 {free && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">🎁 {t('filterFreeTag')}</span>}
               </div>
               <button onClick={clearAll} className="text-xs text-red-400 hover:text-red-600 font-medium flex items-center gap-1 shrink-0">

@@ -75,41 +75,41 @@ export default async function CouponCapturePage({
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-center">
         <Link
           href={`/${locale}/sponsors/${id}`}
-          className="text-sm text-gray-400 hover:text-gray-600"
+          className="text-sm text-hint hover:text-gray-600"
         >
           ← {isKo ? '매장으로 돌아가기' : 'Back to store'}
         </Link>
       </div>
 
       {/* 쿠폰 카드 - 캡처용 중앙 배치, 깔끔한 디자인 */}
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border-2 border-dashed border-emerald-300 p-8 text-center mt-8">
-        <p className="text-xs text-gray-400 uppercase tracking-widest mb-3">mytripfy Sponsor</p>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight">
+      <div className="w-full max-w-md bg-surface rounded-3xl shadow-xl border-2 border-dashed border-emerald-300 p-8 text-center mt-8">
+        <p className="text-xs text-hint uppercase tracking-widest mb-3">mytripfy Sponsor</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-heading mb-4 leading-tight">
           {displayName}
         </h1>
         <div className="my-6 py-4 border-y border-emerald-100">
           <p className="text-xl sm:text-2xl font-extrabold text-emerald-600">
             {benefitTitle}
           </p>
-          <p className="text-base text-gray-600 mt-2">{benefitLabel}</p>
+          <p className="text-base text-body mt-2">{benefitLabel}</p>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-subtle">
           {t('validUntil', { date: endDate })}
         </p>
 
         {/* 국가 · 주소 · 연락처 */}
-        <div className="mt-6 pt-6 border-t border-gray-100 text-left space-y-2">
+        <div className="mt-6 pt-6 border-t border-edge text-left space-y-2">
           {countryInfo && (
-            <p className="text-sm text-gray-700 flex items-center gap-2">
+            <p className="text-sm text-body flex items-center gap-2">
               <CountryFlag code={countryInfo.code} size="sm" />
               <span>{countryInfo.name}{sponsor.city ? ` · ${sponsor.city}` : ''}</span>
             </p>
           )}
           {fullAddress && (
-            <p className="text-sm text-gray-600">📍 {fullAddress}</p>
+            <p className="text-sm text-body">📍 {fullAddress}</p>
           )}
           {hasContact && (
-            <div className="text-xs text-gray-500 space-y-0.5 pt-1 break-all">
+            <div className="text-xs text-subtle space-y-0.5 pt-1 break-all">
               {sponsor.phone && <p>📞 {sponsor.phone}</p>}
               {sponsor.website_url && <p>🔗 {sponsor.website_url}</p>}
               {sponsor.instagram_url && <p>📷 {sponsor.instagram_url}</p>}
@@ -119,12 +119,12 @@ export default async function CouponCapturePage({
           )}
         </div>
 
-        <p className="text-xs text-gray-400 mt-6">
+        <p className="text-xs text-hint mt-6">
           {isKo ? '매장에서 이 화면을 보여주세요' : 'Show this screen at the store'}
         </p>
       </div>
 
-      <p className="text-[10px] text-gray-300 mt-6">
+      <p className="text-[10px] text-hint mt-6">
         mytripfy · {isKo ? '캡처 후 매장에서 사용' : 'Screenshot to use at store'}
       </p>
     </div>

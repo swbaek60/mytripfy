@@ -238,16 +238,16 @@ export default function ChallengeClient({
           placeholder="Search..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-surface"
           suppressHydrationWarning
         />
-        <div className="flex items-center gap-3 text-sm text-gray-500 shrink-0">
+        <div className="flex items-center gap-3 text-sm text-subtle shrink-0">
           <span>
-            <span className="font-bold text-purple-700">{completedCount}</span>
-            <span className="text-gray-400"> / {challenges.length} completed</span>
+            <span className="font-bold text-purple">{completedCount}</span>
+            <span className="text-hint"> / {challenges.length} completed</span>
           </span>
           {completedCount > 0 && (
-            <span className="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-xs">
+            <span className="bg-purple-light text-purple font-bold px-2.5 py-1 rounded-full text-xs">
               {Math.round((completedCount / challenges.length) * 100)}%
             </span>
           )}
@@ -276,10 +276,10 @@ export default function ChallengeClient({
           return (
             <div
               key={challenge.id}
-              className={`group bg-white rounded-2xl overflow-hidden border-2 transition-all duration-200 flex flex-col
+              className={`group bg-surface rounded-2xl overflow-hidden border-2 transition-all duration-200 flex flex-col
                 ${isCompleted
                   ? 'border-purple-300 shadow-md shadow-purple-100'
-                  : 'border-gray-100 hover:border-purple-200 hover:shadow-md'}`}
+                  : 'border-edge hover:border-purple-200 hover:shadow-md'}`}
             >
               {/* ── Photo area ── */}
               <div className="relative">
@@ -304,7 +304,7 @@ export default function ChallengeClient({
                     </span>
                   )}
                   {isCompleted && (
-                    <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+                    <span className="bg-success text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
                       ✓ Done
                     </span>
                   )}
@@ -330,12 +330,12 @@ export default function ChallengeClient({
               {/* ── Card body ── */}
               <div className="flex flex-col flex-1 p-4 gap-2">
                 <div>
-                  <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2">
+                  <h3 className="font-bold text-heading text-base leading-snug line-clamp-2">
                     {challenge.title}
                   </h3>
                 </div>
 
-                <p className="text-xs text-gray-500 line-clamp-2 flex-1 leading-relaxed">
+                <p className="text-xs text-subtle line-clamp-2 flex-1 leading-relaxed">
                   {challenge.description}
                 </p>
 
@@ -346,7 +346,7 @@ export default function ChallengeClient({
                       href={mapsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-brand hover:text-brand-hover hover:underline"
                     >
                       <span>📍</span>
                       <span className="truncate max-w-[180px]">
@@ -360,7 +360,7 @@ export default function ChallengeClient({
                 <div className="mt-auto pt-1 flex flex-col gap-1.5">
                   {isCompleted ? (
                     <div className="flex items-center justify-between gap-2 w-full">
-                      <div className="flex items-center gap-1.5 text-green-600 text-xs font-semibold">
+                      <div className="flex items-center gap-1.5 text-success text-xs font-semibold">
                         <span className="text-base">✅</span>
                         <span>Certified</span>
                       </div>
@@ -370,7 +370,7 @@ export default function ChallengeClient({
                           suppressHydrationWarning
                           onClick={(e) => { e.stopPropagation(); deleteCert(challenge.id) }}
                           disabled={deletingCertId === challenge.id}
-                          className="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                          className="p-1 rounded-lg text-hint hover:text-danger hover:bg-danger-light disabled:opacity-50 transition-colors"
                           title="인증 취소"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -384,7 +384,7 @@ export default function ChallengeClient({
                         if (!userId) { router.push(`/${locale}/login`); return }
                         setSelectedChallenge(challenge)
                       }}
-                      className="w-full py-2 rounded-xl border-2 border-dashed border-purple-200 text-purple-600 text-xs font-bold hover:bg-purple-50 hover:border-purple-400 transition-colors"
+                      className="w-full py-2 rounded-xl border-2 border-dashed border-purple-200 text-purple text-xs font-bold hover:bg-purple-light hover:border-purple-400 transition-colors"
                     >
                       {t(getVerifyKey(challenge.category))}
                     </button>
@@ -397,7 +397,7 @@ export default function ChallengeClient({
                         type="button"
                         suppressHydrationWarning
                         onClick={(e) => openCertViewer(challenge, e)}
-                        className="flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 border border-blue-100 hover:border-blue-300 transition-colors"
+                        className="flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-brand hover:bg-brand-light border border-edge-brand hover:border-edge-brand transition-colors"
                       >
                         <Users className="w-3.5 h-3.5" />
                         {count > 0 ? `${count}명 인증` : '인증 현황 보기'}
@@ -412,8 +412,8 @@ export default function ChallengeClient({
                       onClick={() => toggleWish(challenge.id)}
                       className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                         wishIds.has(challenge.id)
-                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                          : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50/50 border border-transparent'
+                          ? 'bg-amber-light text-amber-700 border border-amber-200'
+                          : 'text-hint hover:text-amber-600 hover:bg-amber-light/50 border border-transparent'
                       }`}
                     >
                       {wishIds.has(challenge.id) ? '♥' : '♡'} {t(getWishKey(challenge.category))}
@@ -427,7 +427,7 @@ export default function ChallengeClient({
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-hint">
           <div className="text-4xl mb-2">🔍</div>
           <p className="font-medium">No results for "{search}"</p>
         </div>
@@ -437,15 +437,15 @@ export default function ChallengeClient({
       {commCerts.length > 0 && (
         <div className="mt-14">
           <div className="flex items-center gap-3 mb-5">
-            <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-extrabold text-heading flex items-center gap-2">
               👥 Community Certifications
             </h2>
-            <span className="text-sm text-gray-400 font-normal">{commCerts.length}건</span>
+            <span className="text-sm text-hint font-normal">{commCerts.length}건</span>
             {!userId && (
-              <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full">로그인하면 딴지걸기 가능</span>
+              <span className="text-xs text-amber-600 bg-amber-light border border-amber-200 px-2 py-1 rounded-full">로그인하면 딴지걸기 가능</span>
             )}
             {userId && myCertCount < 3 && (
-              <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> 인증 3개 이상이면 딴지걸기 가능</span>
+              <span className="text-xs text-amber-600 bg-amber-light border border-amber-200 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> 인증 3개 이상이면 딴지걸기 가능</span>
             )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -456,11 +456,11 @@ export default function ChallengeClient({
               return (
                 <div
                   key={`${cert.user_id}-${cert.challenge_id}`}
-                  className={`group relative rounded-2xl overflow-hidden bg-white border-2 shadow-sm hover:shadow-md transition-all ${
-                    cert.dispute_status === 'reviewing' ? 'border-blue-200' :
+                  className={`group relative rounded-2xl overflow-hidden bg-surface border-2 shadow-sm hover:shadow-md transition-all ${
+                    cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
                     cert.dispute_status === 'flagged' ? 'border-amber-200' :
                     cert.dispute_status === 'invalidated' ? 'border-red-200 opacity-60' :
-                    'border-gray-100 hover:border-purple-200'
+                    'border-edge hover:border-purple-200'
                   }`}
                 >
                   {/* 사진 영역 */}
@@ -480,7 +480,7 @@ export default function ChallengeClient({
                           deleteCert(cert.challenge_id)
                         }}
                         disabled={deletingCertId === cert.challenge_id}
-                        className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+                        className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
                         title="인증 취소"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -494,7 +494,7 @@ export default function ChallengeClient({
                           if (myCertCount < 3) { alert('딴지걸기는 인증 3개 이상인 회원만 가능합니다.'); return }
                           setDisputeTarget(cert)
                         }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                        className="absolute top-2 right-2 w-8 h-8 bg-danger/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
                         title="딴지걸기"
                       >
                         <Siren className="w-4 h-4" />
@@ -511,9 +511,9 @@ export default function ChallengeClient({
                     {/* 상태 뱃지 */}
                     {cert.dispute_status !== 'clean' && (
                       <div className={`absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                        cert.dispute_status === 'reviewing' ? 'bg-blue-500 text-white' :
+                        cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
                         cert.dispute_status === 'flagged' ? 'bg-amber-400 text-white' :
-                        'bg-red-500 text-white'
+                        'bg-danger text-white'
                       }`}>
                         {cert.dispute_status === 'reviewing' ? '⚖️ 심사중' :
                          cert.dispute_status === 'flagged' ? '🚨 신고' : '❌ 무효'}
@@ -525,7 +525,7 @@ export default function ChallengeClient({
                       <Link
                         href={`/${locale}/challenges/disputes/${cert.user_id}/${cert.challenge_id}`}
                         onClick={e => e.stopPropagation()}
-                        className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-blue-500/80 hover:bg-blue-600/90 py-1 transition-colors"
+                        className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-brand/80 hover:bg-brand-hover/90 py-1 transition-colors"
                       >
                         ⚖️ 배심원 참여
                       </Link>
@@ -536,7 +536,7 @@ export default function ChallengeClient({
                       <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-200 flex items-center justify-center">
                         {cert.avatar_url
                           ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
-                          : <span className="text-[9px] font-bold text-purple-700">{cert.full_name[0]?.toUpperCase()}</span>
+                          : <span className="text-[9px] font-bold text-purple">{cert.full_name[0]?.toUpperCase()}</span>
                         }
                       </div>
                       <p className="text-white text-[10px] font-semibold truncate">{cert.full_name}</p>
@@ -545,7 +545,7 @@ export default function ChallengeClient({
 
                   {/* 챌린지명 */}
                   {challenge && (
-                    <p className="text-[11px] font-medium text-gray-700 px-2.5 py-2 truncate">
+                    <p className="text-[11px] font-medium text-body px-2.5 py-2 truncate">
                       {challenge.title || challenge.title_en}
                     </p>
                   )}
@@ -560,25 +560,25 @@ export default function ChallengeClient({
       {certViewChallenge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setCertViewChallenge(null)} />
-          <div className="relative bg-white rounded-3xl w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <div className="relative bg-surface rounded-3xl w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-5 border-b border-edge flex items-center justify-between shrink-0">
               <div>
-                <h2 className="font-extrabold text-gray-900 text-lg">{certViewChallenge.title || certViewChallenge.title_en}</h2>
-                <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1.5">
+                <h2 className="font-extrabold text-heading text-lg">{certViewChallenge.title || certViewChallenge.title_en}</h2>
+                <p className="text-sm text-subtle mt-0.5 flex items-center gap-1.5">
                   <Users className="w-4 h-4" />
                   {certViewLoading ? '불러오는 중...' : `${certViewData.length}명이 인증했습니다`}
                 </p>
               </div>
-              <button suppressHydrationWarning onClick={() => setCertViewChallenge(null)} className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200">✕</button>
+              <button suppressHydrationWarning onClick={() => setCertViewChallenge(null)} className="w-8 h-8 bg-surface-sunken rounded-full flex items-center justify-center hover:bg-surface-hover">✕</button>
             </div>
             <div className="overflow-y-auto p-6">
               {certViewLoading ? (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-hint">
                   <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                   불러오는 중...
                 </div>
               ) : certViewData.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-hint">
                   <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
                   아직 인증한 사람이 없습니다.
                 </div>
@@ -587,15 +587,15 @@ export default function ChallengeClient({
                   {certViewData.map(cert => {
                     const canFlag = cert.user_id !== userId && !cert.already_disputed && cert.dispute_status !== 'reviewing' && cert.dispute_status !== 'invalidated'
                     return (
-                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-gray-100 hover:border-purple-200 shadow-sm hover:shadow-md transition-all">
+                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-purple-200 shadow-sm hover:shadow-md transition-all">
                         <div className="relative h-36 cursor-zoom-in" onClick={() => setExpandedImg(cert.image_url)}>
                           <img src={cert.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           {/* 상태 뱃지 */}
                           {cert.dispute_status !== 'clean' && (
                             <div className={`absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                              cert.dispute_status === 'reviewing' ? 'bg-blue-500 text-white' :
-                              cert.dispute_status === 'flagged' ? 'bg-amber-400 text-white' : 'bg-red-500 text-white'
+                              cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
+                              cert.dispute_status === 'flagged' ? 'bg-amber-400 text-white' : 'bg-danger text-white'
                             }`}>
                               {cert.dispute_status === 'reviewing' ? '⚖️ 심사중' : cert.dispute_status === 'flagged' ? '🚨 신고' : '❌ 무효'}
                             </div>
@@ -610,7 +610,7 @@ export default function ChallengeClient({
                                 setCertViewData(prev => prev.filter(c => !(c.user_id === cert.user_id && c.challenge_id === cert.challenge_id)))
                               }}
                               disabled={deletingCertId === cert.challenge_id}
-                              className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+                              className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
                               title="인증 취소"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -630,7 +630,7 @@ export default function ChallengeClient({
                                   challenge_title: certViewChallenge.title || certViewChallenge.title_en,
                                 })
                               }}
-                              className="absolute top-2 right-2 w-8 h-8 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                              className="absolute top-2 right-2 w-8 h-8 bg-danger/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
                               title="딴지걸기"
                             >
                               <Siren className="w-4 h-4" />
@@ -640,7 +640,7 @@ export default function ChallengeClient({
                             <div className="absolute top-2 right-2 bg-gray-600/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">딴지접수</div>
                           )}
                           {cert.dispute_status === 'reviewing' && (
-                            <Link href={`/${locale}/challenges/disputes/${cert.user_id}/${cert.challenge_id}`} onClick={e => e.stopPropagation()} className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-blue-500/80 hover:bg-blue-600/90 py-1 transition-colors">
+                            <Link href={`/${locale}/challenges/disputes/${cert.user_id}/${cert.challenge_id}`} onClick={e => e.stopPropagation()} className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-brand/80 hover:bg-brand-hover/90 py-1 transition-colors">
                               ⚖️ 배심원 참여
                             </Link>
                           )}
@@ -648,13 +648,13 @@ export default function ChallengeClient({
                             <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-200 flex items-center justify-center">
                               {cert.avatar_url
                                 ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
-                                : <span className="text-[9px] font-bold text-purple-700">{cert.full_name[0]?.toUpperCase()}</span>
+                                : <span className="text-[9px] font-bold text-purple">{cert.full_name[0]?.toUpperCase()}</span>
                               }
                             </div>
                             <p className="text-white text-[10px] font-semibold truncate">{cert.full_name}</p>
                           </div>
                         </div>
-                        <p className="text-[10px] text-gray-400 px-2.5 py-1.5">
+                        <p className="text-[10px] text-hint px-2.5 py-1.5">
                           {new Date(cert.created_at).toLocaleDateString('ko-KR')}
                         </p>
                       </div>
@@ -703,7 +703,7 @@ export default function ChallengeClient({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => !uploading && setSelectedChallenge(null)}
           />
-          <div className="relative bg-white rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
+          <div className="relative bg-surface rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
             {/* Header image */}
             <div className="relative h-36">
               <ChallengeImage
@@ -732,25 +732,25 @@ export default function ChallengeClient({
               {showSuccess ? (
                 <div className="py-6 animate-in zoom-in duration-300">
                   <div className="text-6xl mb-3">🎊</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">Challenge Complete!</h3>
-                  <p className="text-purple-600 font-bold text-lg">+{selectedChallenge.points} Points Earned</p>
+                  <h3 className="text-2xl font-bold text-heading mb-1">Challenge Complete!</h3>
+                  <p className="text-purple font-bold text-lg">+{selectedChallenge.points} Points Earned</p>
                 </div>
               ) : (
                 <>
                   {selectedChallenge.description && (
-                    <p className="text-sm text-gray-600 text-left leading-relaxed mb-4 px-1">
+                    <p className="text-sm text-body text-left leading-relaxed mb-4 px-1">
                       {selectedChallenge.description}
                     </p>
                   )}
 
                   {error && (
-                    <div className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-xl">{error}</div>
+                    <div className="text-danger text-sm mb-4 bg-danger-light p-3 rounded-xl">{error}</div>
                   )}
 
-                  <div className="border-2 border-dashed border-purple-200 rounded-2xl p-8 hover:bg-purple-50 transition-colors relative cursor-pointer group">
+                  <div className="border-2 border-dashed border-purple-200 rounded-2xl p-8 hover:bg-purple-light transition-colors relative cursor-pointer group">
                     <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
-                    <div className="text-sm font-bold text-purple-700">Upload your photo</div>
-                    <div className="text-xs text-gray-400 mt-1">{t(getVerifyHintKey(selectedChallenge.category))}</div>
+                    <div className="text-sm font-bold text-purple">Upload your photo</div>
+                    <div className="text-xs text-hint mt-1">{t(getVerifyHintKey(selectedChallenge.category))}</div>
                     <input
                       type="file"
                       accept="image/*"
@@ -762,8 +762,8 @@ export default function ChallengeClient({
                   </div>
 
                   {uploading && (
-                    <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-purple-600">
-                      <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-purple">
+                      <div className="w-4 h-4 border-2 border-purple border-t-transparent rounded-full animate-spin" />
                       Uploading and verifying...
                     </div>
                   )}
@@ -772,7 +772,7 @@ export default function ChallengeClient({
                     suppressHydrationWarning
                     onClick={() => setSelectedChallenge(null)}
                     disabled={uploading}
-                    className="mt-5 text-sm text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                    className="mt-5 text-sm text-hint hover:text-body disabled:opacity-50"
                   >
                     Cancel
                   </button>

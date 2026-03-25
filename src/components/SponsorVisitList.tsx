@@ -41,8 +41,8 @@ export default function SponsorVisitList({
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2 mb-4">
+      <div className="bg-surface rounded-2xl shadow-sm p-6">
+        <h2 className="font-bold text-heading text-lg flex items-center gap-2 mb-4">
           <Store className="w-5 h-5 text-emerald-500" />
           {isKo ? '스폰서 매장 방문 인증' : 'Sponsor store visits'}
         </h2>
@@ -54,9 +54,9 @@ export default function SponsorVisitList({
             const alreadyDisputed = disputedIds.has(v.id)
 
             return (
-              <div key={v.id} className="group relative rounded-xl border border-gray-100 overflow-hidden hover:border-emerald-200 hover:shadow-md transition-all">
+              <div key={v.id} className="group relative rounded-xl border border-edge overflow-hidden hover:border-emerald-200 hover:shadow-md transition-all">
                 <Link href={`/${locale}/sponsors/${v.sponsor_id}`} className="block">
-                  <div className="aspect-square bg-gray-100 relative group/img">
+                  <div className="aspect-square bg-surface-sunken relative group/img">
                     <img
                       src={v.photo_url}
                       alt=""
@@ -73,7 +73,7 @@ export default function SponsorVisitList({
                           e.stopPropagation()
                           setDisputeTarget({ visitId: v.id, storeName: displayName, photoUrl: v.photo_url })
                         }}
-                        className="absolute top-1 right-1 w-6 h-6 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-all shadow-lg z-10"
+                        className="absolute top-1 right-1 w-6 h-6 bg-danger/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-all shadow-lg z-10"
                         title={isKo ? '딴지걸기' : 'Report'}
                       >
                         <Siren className="w-3 h-3" />
@@ -86,13 +86,13 @@ export default function SponsorVisitList({
                     )}
                   </div>
                   <div className="p-2.5">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{displayName}</p>
+                    <p className="font-semibold text-heading text-sm truncate">{displayName}</p>
                     {countryInfo && (
-                      <p className="text-xs text-gray-500 flex items-center gap-0.5 mt-0.5">
+                      <p className="text-xs text-subtle flex items-center gap-0.5 mt-0.5">
                         {countryInfo.emoji} {sponsor?.city || countryInfo.name}
                       </p>
                     )}
-                    <p className="text-[10px] text-gray-400 mt-1">
+                    <p className="text-[10px] text-hint mt-1">
                       {new Date(v.created_at).toLocaleDateString(isKo ? 'ko-KR' : 'en-US')}
                     </p>
                   </div>
@@ -172,7 +172,7 @@ function SponsorVisitDisputeModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !submitting && onClose()} />
-      <div className="relative bg-white rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
+      <div className="relative bg-surface rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
         <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-5 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -182,44 +182,44 @@ function SponsorVisitDisputeModal({
               <h2 className="text-lg font-extrabold leading-tight">{storeName}</h2>
               <p className="text-sm opacity-80 mt-0.5">{isKo ? '스폰서 방문 인증' : 'Sponsor visit'}</p>
             </div>
-            <button type="button" onClick={() => !submitting && onClose()} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30">✕</button>
+            <button type="button" onClick={() => !submitting && onClose()} className="w-8 h-8 bg-surface/20 rounded-full flex items-center justify-center hover:bg-surface/30">✕</button>
           </div>
         </div>
         <div className="p-6">
           {success ? (
             <div className="text-center py-6">
-              <Siren className="w-14 h-14 text-red-500 mx-auto mb-3" />
-              <p className="text-lg font-bold text-gray-900">{isKo ? '딴지 접수 완료!' : 'Report submitted!'}</p>
+              <Siren className="w-14 h-14 text-danger mx-auto mb-3" />
+              <p className="text-lg font-bold text-heading">{isKo ? '딴지 접수 완료!' : 'Report submitted!'}</p>
             </div>
           ) : (
             <>
               <div className="relative h-32 rounded-2xl overflow-hidden mb-4">
                 <img src={photoUrl} alt="" className="w-full h-full object-cover" />
               </div>
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                {isKo ? '이유' : 'Reason'} <span className="text-red-500">*</span>
-                <span className="font-normal text-gray-400 ml-1">({isKo ? '최소 10자' : 'min 10 chars'})</span>
+              <label className="block text-sm font-bold text-heading mb-2">
+                {isKo ? '이유' : 'Reason'} <span className="text-danger">*</span>
+                <span className="font-normal text-hint ml-1">({isKo ? '최소 10자' : 'min 10 chars'})</span>
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder={isKo ? '방문 인증이 허위이거나 조건에 맞지 않는 이유를 구체적으로 적어주세요.' : 'Describe why this visit certification is invalid...'}
                 rows={4}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
               />
-              <p className={`text-xs mt-1 ${reason.length < 10 ? 'text-red-400' : 'text-green-500'}`}>
+              <p className={`text-xs mt-1 ${reason.length < 10 ? 'text-red-400' : 'text-success'}`}>
                 {reason.length} / 10
               </p>
-              {error && <div className="mt-3 text-red-500 text-sm bg-red-50 p-3 rounded-xl">{error}</div>}
+              {error && <div className="mt-3 text-danger text-sm bg-danger-light p-3 rounded-xl">{error}</div>}
               <div className="flex gap-2 mt-4">
-                <button type="button" onClick={onClose} disabled={submitting} className="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 text-sm">
+                <button type="button" onClick={onClose} disabled={submitting} className="flex-1 border border-edge text-body font-semibold py-3 rounded-xl hover:bg-surface-hover text-sm">
                   {isKo ? '취소' : 'Cancel'}
                 </button>
                 <button
                   type="button"
                   onClick={handleSubmit}
                   disabled={submitting || reason.trim().length < 10}
-                  className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 text-sm disabled:opacity-40 flex items-center justify-center gap-1.5"
+                  className="flex-1 bg-danger text-white font-bold py-3 rounded-xl hover:bg-red-600 text-sm disabled:opacity-40 flex items-center justify-center gap-1.5"
                 >
                   {submitting ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Siren className="w-4 h-4" />{isKo ? '딴지 접수' : 'Submit'}</>}
                 </button>

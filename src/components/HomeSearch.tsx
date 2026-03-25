@@ -38,7 +38,7 @@ export default function HomeSearch({ locale }: Props) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder={`${tSection('searchPlaceholderPrefix')} (e.g. France, Bangkok)`}
-          className="flex-1 min-w-0 py-3 sm:py-3 px-2 text-gray-800 placeholder-gray-400 bg-transparent outline-none text-sm sm:text-base font-medium"
+          className="flex-1 min-w-0 py-3 sm:py-3 px-2 text-heading placeholder-hint bg-transparent outline-none text-sm sm:text-base font-medium"
           autoComplete="off"
         />
         <button

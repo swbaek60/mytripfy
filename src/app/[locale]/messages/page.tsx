@@ -116,11 +116,11 @@ export default async function MessagesPage({
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <MessageSquare className="w-6 h-6 text-blue-500" />
+        <h1 className="text-2xl font-bold text-heading mb-6 flex items-center gap-2">
+          <MessageSquare className="w-6 h-6 text-brand" />
           {t('title')}
         </h1>
         <MessagesList

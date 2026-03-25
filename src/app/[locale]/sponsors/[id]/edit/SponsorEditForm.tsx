@@ -181,8 +181,8 @@ export default function SponsorEditForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">{error}</p>}
+    <form onSubmit={handleSubmit} className="space-y-6 bg-surface rounded-2xl p-6 shadow-sm border border-edge">
+      {error && <p className="text-sm text-danger bg-danger-light p-3 rounded-xl">{error}</p>}
       <div>
         <Label>Store name *</Label>
         <Input value={name} onChange={e => setName(e.target.value)} required />
@@ -193,11 +193,11 @@ export default function SponsorEditForm({
       </div>
       <div>
         <Label>Description</Label>
-        <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full min-h-[80px] rounded-xl border border-gray-200 px-3 py-2 text-sm" />
+        <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
       </div>
       <div>
         <Label>Business type</Label>
-        <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm">
+        <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full rounded-xl border border-edge px-3 py-2 text-sm">
           {BUSINESS_TYPES.map(tp => (
             <option key={tp} value={tp}>{t(tp)}</option>
           ))}
@@ -250,12 +250,12 @@ export default function SponsorEditForm({
         <Label>{t('logoImage')}</Label>
         {currentLogoUrl ? (
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <img src={currentLogoUrl} alt="Logo" className="h-16 w-16 rounded-xl border border-gray-200 object-cover" />
+            <img src={currentLogoUrl} alt="Logo" className="h-16 w-16 rounded-xl border border-edge object-cover" />
             <div className="flex flex-col gap-1">
-              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveLogo(true); setLogoFile(null) }} className="rounded-full text-red-600 border-red-200 hover:bg-red-50 w-fit">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveLogo(true); setLogoFile(null) }} className="rounded-full text-danger border-red-200 hover:bg-danger-light w-fit">
                 {t('remove')}
               </Button>
-              <label className="text-sm text-gray-500 cursor-pointer">
+              <label className="text-sm text-subtle cursor-pointer">
                 <span className="inline-block rounded-full border border-emerald-300 px-3 py-1 text-emerald-700 text-xs font-medium hover:bg-emerald-50">
                   {t('replace')}
                 </span>
@@ -265,8 +265,8 @@ export default function SponsorEditForm({
           </div>
         ) : (
           <div className="mt-1">
-            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveLogo(false); setLogoFile(f || null) }} className="block w-full text-sm text-gray-500 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
-            {removeLogo && <p className="text-xs text-amber-600 mt-1">{t('logoRemovedOnSave')}</p>}
+            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveLogo(false); setLogoFile(f || null) }} className="block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
+            {removeLogo && <p className="text-xs text-amber mt-1">{t('logoRemovedOnSave')}</p>}
           </div>
         )}
       </div>
@@ -275,9 +275,9 @@ export default function SponsorEditForm({
         <Label>{t('coverImage')}</Label>
         {currentCoverUrl ? (
           <div className="mt-2 space-y-2">
-            <img src={currentCoverUrl} alt="Cover" className="w-full max-h-40 rounded-xl border border-gray-200 object-cover" />
+            <img src={currentCoverUrl} alt="Cover" className="w-full max-h-40 rounded-xl border border-edge object-cover" />
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveCover(true); setCoverFile(null) }} className="rounded-full text-red-600 border-red-200 hover:bg-red-50">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveCover(true); setCoverFile(null) }} className="rounded-full text-danger border-red-200 hover:bg-danger-light">
                 {t('remove')}
               </Button>
               <label className="cursor-pointer">
@@ -290,15 +290,15 @@ export default function SponsorEditForm({
           </div>
         ) : (
           <div className="mt-1">
-            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveCover(false); setCoverFile(f || null) }} className="block w-full text-sm text-gray-500 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
-            {removeCover && <p className="text-xs text-amber-600 mt-1">{t('coverRemovedOnSave')}</p>}
+            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveCover(false); setCoverFile(f || null) }} className="block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
+            {removeCover && <p className="text-xs text-amber mt-1">{t('coverRemovedOnSave')}</p>}
           </div>
         )}
       </div>
 
-      <hr className="border-gray-200" />
+      <hr className="border-edge" />
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-gray-900">{t('benefits')}</h3>
+        <h3 className="font-bold text-heading">{t('benefits')}</h3>
         <Button type="button" variant="outline" size="sm" onClick={addBenefit} className="rounded-full text-emerald-600 border-emerald-300">
           + {t('addBenefit')}
         </Button>
@@ -306,10 +306,10 @@ export default function SponsorEditForm({
       {benefitRows.map((benefit, index) => {
         const meta = BENEFIT_TYPES.find(b => b.value === benefit.benefit_type)
         return (
-          <div key={benefit.id} className="rounded-xl border border-gray-200 p-4 bg-gray-50/50 space-y-3">
+          <div key={benefit.id} className="rounded-xl border border-edge p-4 bg-gray-50/50 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">{t('benefit')} #{index + 1}</span>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeBenefit(benefit.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+              <span className="text-sm font-medium text-body">{t('benefit')} #{index + 1}</span>
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeBenefit(benefit.id)} className="text-danger hover:text-danger hover:bg-danger-light">
                 {t('remove')}
               </Button>
             </div>
@@ -323,7 +323,7 @@ export default function SponsorEditForm({
             </div>
             <div>
               <Label>{t('benefitType')}</Label>
-              <select value={benefit.benefit_type} onChange={e => updateBenefit(benefit.id, 'benefit_type', e.target.value)} className="w-full mt-1 rounded-xl border border-gray-200 px-3 py-2 text-sm">
+              <select value={benefit.benefit_type} onChange={e => updateBenefit(benefit.id, 'benefit_type', e.target.value)} className="w-full mt-1 rounded-xl border border-edge px-3 py-2 text-sm">
                 <option value="discount_percent">{t('discountPercent', { value: '' }).replace('{value}', '…')}</option>
                 <option value="discount_fixed">{t('discountFixed', { value: '' }).replace('{value}', '…')}</option>
                 <option value="free_item">{t('freeItem')}</option>

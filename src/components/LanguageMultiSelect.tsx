@@ -85,12 +85,12 @@ export default function LanguageMultiSelect({
             onFocus={() => setOpen(true)}
             onBlur={handleBlur}
             placeholder={placeholder}
-            className="w-full h-10 rounded-xl border border-gray-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            className="w-full h-10 rounded-xl border border-edge px-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
           />
 
           {open && filtered.length > 0 && (
             <div
-              className="absolute z-20 top-12 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg overflow-y-auto max-h-72"
+              className="absolute z-20 top-12 left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg overflow-y-auto max-h-72"
               onMouseDown={handleDropdownMouseDown}
             >
               {filtered.map(lang => (
@@ -102,8 +102,8 @@ export default function LanguageMultiSelect({
                 >
                   <span className="text-lg">{lang.emoji}</span>
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{lang.name}</div>
-                    <div className="text-xs text-gray-400">{lang.nativeName}</div>
+                    <div className="text-sm font-medium text-heading">{lang.name}</div>
+                    <div className="text-xs text-hint">{lang.nativeName}</div>
                   </div>
                 </button>
               ))}
@@ -112,10 +112,10 @@ export default function LanguageMultiSelect({
 
           {open && search.length > 0 && filtered.length === 0 && (
             <div
-              className="absolute z-20 top-12 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg"
+              className="absolute z-20 top-12 left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg"
               onMouseDown={handleDropdownMouseDown}
             >
-              <div className="px-4 py-3 text-sm text-gray-400 text-center">검색 결과 없음</div>
+              <div className="px-4 py-3 text-sm text-hint text-center">검색 결과 없음</div>
             </div>
           )}
         </div>

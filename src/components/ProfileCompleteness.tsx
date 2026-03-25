@@ -62,7 +62,7 @@ export default function ProfileCompleteness({
 
   const barColor =
     percent >= 80 ? 'bg-emerald-500' :
-    percent >= 50 ? 'bg-blue-500'    : 'bg-orange-400'
+    percent >= 50 ? 'bg-brand-light0'    : 'bg-orange-400'
 
   const gradientClass =
     percent >= 80 ? 'from-emerald-400 to-green-500' :
@@ -71,13 +71,13 @@ export default function ProfileCompleteness({
   const nextStep = steps.find(s => !s.done)
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-surface rounded-2xl shadow-sm border border-edge overflow-hidden">
       {/* 헤더 */}
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="font-bold text-gray-900 text-sm">{t('completenessTitle')}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="font-bold text-heading text-sm">{t('completenessTitle')}</p>
+            <p className="text-xs text-hint mt-0.5">
               {t('completenessScore', { earned, total })}
             </p>
           </div>
@@ -85,7 +85,7 @@ export default function ProfileCompleteness({
             {percent}%
           </span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-surface-sunken rounded-full h-2 overflow-hidden">
           <div
             className={`h-2 rounded-full ${barColor} transition-all duration-700`}
             style={{ width: `${percent}%` }}
@@ -100,23 +100,23 @@ export default function ProfileCompleteness({
             <div
               key={step.key}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-                step.done ? 'bg-green-50' : 'bg-gray-50 hover:bg-gray-100'
+                step.done ? 'bg-success-light' : 'bg-surface-sunken hover:bg-surface-hover'
               }`}
             >
               <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-                step.done ? 'bg-green-500 text-white' : 'bg-white border-2 border-gray-300 text-gray-300'
+                step.done ? 'bg-success-light0 text-white' : 'bg-surface border-2 border-edge-strong text-hint'
               }`}>
                 {step.done ? '✓' : ''}
               </div>
               <div className="flex-1 min-w-0">
-                <span className={`text-xs font-semibold ${step.done ? 'text-green-700 line-through decoration-green-400' : 'text-gray-700'}`}>
+                <span className={`text-xs font-semibold ${step.done ? 'text-success line-through decoration-green-400' : 'text-body'}`}>
                   {step.label}
                 </span>
                 {!step.done && (
-                  <p className="text-[11px] text-gray-400 mt-0.5 leading-none">{step.desc}</p>
+                  <p className="text-[11px] text-hint mt-0.5 leading-none">{step.desc}</p>
                 )}
               </div>
-              <span className={`text-xs font-bold shrink-0 ${step.done ? 'text-green-500' : 'text-gray-300'}`}>
+              <span className={`text-xs font-bold shrink-0 ${step.done ? 'text-success' : 'text-hint'}`}>
                 +{step.points}pt
               </span>
             </div>
@@ -128,16 +128,16 @@ export default function ProfileCompleteness({
       <div className="px-5 pb-5">
         {percent === 100 ? (
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-3 text-center">
-            <p className="font-bold text-green-700 text-sm">{t('completenessComplete')}</p>
+            <p className="font-bold text-success text-sm">{t('completenessComplete')}</p>
           </div>
         ) : nextStep ? (
           <Link href={`/${locale}/profile/edit`}>
-            <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-center justify-between hover:bg-blue-100 transition-colors cursor-pointer">
+            <div className="bg-brand-light border border-edge-brand rounded-xl px-4 py-3 flex items-center justify-between hover:bg-brand-muted transition-colors cursor-pointer">
               <div>
-                <p className="text-xs font-semibold text-blue-800">{t('completenessNextStep')}</p>
-                <p className="text-sm font-bold text-blue-700 mt-0.5">{nextStep.label}</p>
+                <p className="text-xs font-semibold text-brand">{t('completenessNextStep')}</p>
+                <p className="text-sm font-bold text-brand-hover mt-0.5">{nextStep.label}</p>
               </div>
-              <span className="text-xs font-bold text-blue-500 bg-blue-100 px-2 py-1 rounded-lg">+{nextStep.points}pt →</span>
+              <span className="text-xs font-bold text-brand bg-brand-muted px-2 py-1 rounded-lg">+{nextStep.points}pt →</span>
             </div>
           </Link>
         ) : null}

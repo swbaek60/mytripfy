@@ -397,17 +397,3 @@
     }
   }
 }
-
-/*
- * Clerk <SignIn> / <SignUp> 컴포넌트 내부의 소셜 버튼·구분선 숨김
- * → OAuthButtons 컴포넌트(커스텀)로 대체했으므로 중복 제거
- * → 모바일 Chrome Facebook 이슈 방지를 위해 OAuthButtons 유지
- */
-.cl-socialButtonsBlock,
-.cl-socialButtonsProviderGroup,
-.cl-dividerRow,
-.cl-dividerLine,
-.cl-dividerText,
-[data-localization-key="dividerText"] {
-  display: none !important;
-}

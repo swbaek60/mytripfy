@@ -16,8 +16,8 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: post } = await supabase.from('companion_posts').select('title, description, country_code, start_date').eq('id', id).single()
+  const admin = createAdminClient()
+  const { data: post } = await admin.from('companion_posts').select('title, description, country_code, start_date').eq('id', id).single()
   if (!post) return { title: 'Trip Not Found' }
   const country = getCountryByCode(post.country_code)
   return {

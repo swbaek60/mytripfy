@@ -15,7 +15,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body suppressHydrationWarning className="min-h-screen antialiased">
-        <ClerkProvider>
+        <ClerkProvider
+          appearance={{
+            variables: { colorPrimary: '#2563eb' },
+          }}
+        >
           {children}
         </ClerkProvider>
       </body>

@@ -44,12 +44,17 @@ const getCachedClerkUserId = cache(async (): Promise<string | null> => {
 
 /**
  * Clerk userId → Supabase profiles UUID 조회/자동생성 (요청당 캐시)
+ *
+ * 조회 순서:
+ * 1. clerk_id 컬럼으로 직접 조회 (가장 빠름)
+ * 2. 이메일로 기존 프로필 조회 후 clerk_id 업데이트 (Clerk 마이그레이션 전 가입자 처리)
+ * 3. 새 프로필 생성
  */
 const getCachedProfile = cache(async (clerkUserId: string): Promise<{ id: string; email: string } | null> => {
   const admin = getAdminClientSafe()
   if (!admin) return null
 
-  // 기존 프로필 조회
+  // 1. clerk_id로 직접 조회
   const { data: existing } = await admin
     .from('profiles')
     .select('id, email')
@@ -58,18 +63,47 @@ const getCachedProfile = cache(async (clerkUserId: string): Promise<{ id: string
 
   if (existing) return { id: existing.id, email: existing.email ?? '' }
 
-  // 없으면 Clerk 정보로 자동 생성
+  // Clerk에서 유저 정보 가져오기 (2, 3단계 공통)
+  let clerkUserObj: Awaited<ReturnType<typeof currentUser>> = null
   try {
-    const clerk = await currentUser()
-    if (!clerk) return null
-    const email = clerk.emailAddresses?.[0]?.emailAddress ?? ''
+    clerkUserObj = await currentUser()
+  } catch {
+    return null
+  }
+  if (!clerkUserObj) return null
+
+  const email = clerkUserObj.emailAddresses?.[0]?.emailAddress ?? ''
+
+  // 2. 이메일로 기존 프로필 조회 후 clerk_id 업데이트
+  //    (Clerk 도입 전에 가입한 사용자 또는 webhook 실패 케이스 처리)
+  if (email) {
+    const { data: byEmail } = await admin
+      .from('profiles')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (byEmail) {
+      await admin
+        .from('profiles')
+        .update({
+          clerk_id: clerkUserId,
+          avatar_url: clerkUserObj.imageUrl ?? undefined,
+        })
+        .eq('id', byEmail.id)
+      return { id: byEmail.id, email: byEmail.email ?? '' }
+    }
+  }
+
+  // 3. 없으면 새 프로필 생성
+  try {
     const { data: created } = await admin
       .from('profiles')
       .insert({
         clerk_id: clerkUserId,
         email,
-        full_name: clerk.fullName ?? null,
-        avatar_url: clerk.imageUrl ?? null,
+        full_name: clerkUserObj.fullName ?? null,
+        avatar_url: clerkUserObj.imageUrl ?? null,
         preferred_locale: 'en',
       })
       .select('id, email')

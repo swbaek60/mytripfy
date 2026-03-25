@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { getLevelInfo } from '@/data/countries'
-import { PenLine } from 'lucide-react'
+import { PenLine, Check, CheckCheck } from 'lucide-react'
 
 interface Message {
   id: string
@@ -40,19 +40,36 @@ interface Props {
   } | null
 }
 
+/** 내 메시지에 붙는 읽음 표시 아이콘 */
+function ReadReceipt({ messageCreatedAt, otherLastReadAt }: { messageCreatedAt: string; otherLastReadAt: string | null }) {
+  const isRead = otherLastReadAt !== null && new Date(otherLastReadAt) >= new Date(messageCreatedAt)
+  if (isRead) {
+    return (
+      <span className="flex items-center gap-0.5 text-brand" title="읽음">
+        <CheckCheck className="w-3.5 h-3.5" />
+      </span>
+    )
+  }
+  return (
+    <span className="flex items-center gap-0.5 text-hint" title="전송됨">
+      <Check className="w-3.5 h-3.5" />
+    </span>
+  )
+}
+
 export default function ChatRoom({ chatId, currentUserId, otherProfile, initialMessages, locale, trip }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [translating, setTranslating] = useState(false)
   const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const supabase = createClient()
   const levelInfo = getLevelInfo(otherProfile.travel_level || 1)
 
   // 입장 시 읽음 처리 → 배지 숫자 감소 (last_read_at + 메시지 알림 읽음)
-  // 완료 후 router.refresh()로 헤더 배지가 즉시 갱신되도록 함
   useEffect(() => {
     const now = new Date().toISOString()
     Promise.all([
@@ -70,6 +87,40 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
         .eq('reference_id', otherProfile.id),
     ]).then(() => router.refresh())
   }, [chatId, currentUserId, otherProfile.id, router])
+
+  // 상대방 last_read_at 초기 로드
+  useEffect(() => {
+    const fetchReadStatus = async () => {
+      try {
+        const res = await fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`)
+        if (!res.ok) return
+        const { participants } = await res.json()
+        const other = participants?.find((p: { user_id: string; last_read_at: string | null }) => p.user_id === otherProfile.id)
+        if (other) setOtherLastReadAt(other.last_read_at)
+      } catch {}
+    }
+    fetchReadStatus()
+  }, [chatId, otherProfile.id])
+
+  // 상대방 last_read_at 실시간 구독 (Realtime)
+  useEffect(() => {
+    const channel = supabase
+      .channel(`read-receipt:${chatId}:${otherProfile.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_participants',
+        filter: `chat_id=eq.${chatId}`,
+      }, (payload) => {
+        const updated = payload.new as { user_id: string; last_read_at: string | null }
+        if (updated.user_id === otherProfile.id) {
+          setOtherLastReadAt(updated.last_read_at)
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [chatId, otherProfile.id])
 
   // 실시간 메시지 구독 (Realtime 미동작 시 폴링으로 보완)
   useEffect(() => {
@@ -96,23 +147,35 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
     return () => { supabase.removeChannel(channel) }
   }, [chatId, currentUserId])
 
-  // Realtime 미수신 시 보완: 탭 포커스·주기 재조회로 상대방 메시지 즉시 반영
+  // Realtime 미수신 시 보완: 탭 포커스·주기 재조회
   useEffect(() => {
     const refetch = async () => {
       try {
-        const res = await fetch(`/api/group-chat/messages?chatId=${encodeURIComponent(chatId)}`)
-        if (!res.ok) return
-        const { messages: raw } = await res.json()
-        if (!Array.isArray(raw)) return
-        const next: Message[] = raw.map((m: { id: string; sender_id: string; content: string; created_at: string }) => ({
-          id: m.id,
-          chat_id: chatId,
-          sender_id: m.sender_id,
-          content: m.content,
-          created_at: m.created_at,
-          profiles: m.sender_id === otherProfile.id ? { full_name: otherProfile.full_name, avatar_url: otherProfile.avatar_url } : null,
-        }))
-        setMessages(next)
+        const [msgRes, readRes] = await Promise.all([
+          fetch(`/api/group-chat/messages?chatId=${encodeURIComponent(chatId)}`),
+          fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`),
+        ])
+
+        if (msgRes.ok) {
+          const { messages: raw } = await msgRes.json()
+          if (Array.isArray(raw)) {
+            const next: Message[] = raw.map((m: { id: string; sender_id: string; content: string; created_at: string }) => ({
+              id: m.id,
+              chat_id: chatId,
+              sender_id: m.sender_id,
+              content: m.content,
+              created_at: m.created_at,
+              profiles: m.sender_id === otherProfile.id ? { full_name: otherProfile.full_name, avatar_url: otherProfile.avatar_url } : null,
+            }))
+            setMessages(next)
+          }
+        }
+
+        if (readRes.ok) {
+          const { participants } = await readRes.json()
+          const other = participants?.find((p: { user_id: string; last_read_at: string | null }) => p.user_id === otherProfile.id)
+          if (other) setOtherLastReadAt(other.last_read_at)
+        }
       } catch {}
     }
     const onFocus = () => refetch()
@@ -174,7 +237,6 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
   // 무료 번역 (MyMemory API)
   const translateMessage = async (msgId: string, text: string) => {
     if (translations[msgId]) {
-      // 이미 번역된 경우 토글
       setTranslations(prev => { const n = { ...prev }; delete n[msgId]; return n })
       return
     }
@@ -269,10 +331,17 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                         🌐 {translations[msg.id]}
                       </div>
                     )}
-                    <div className={`flex items-center gap-2 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex items-center gap-1.5 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <span className="text-xs text-hint">
                         {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      {/* 읽음 표시: 내가 보낸 메시지에만 표시 */}
+                      {isMe && !msg.id.startsWith('temp-') && (
+                        <ReadReceipt
+                          messageCreatedAt={msg.created_at}
+                          otherLastReadAt={otherLastReadAt}
+                        />
+                      )}
                       {!isMe && (
                         <button
                           onClick={() => translateMessage(msg.id, msg.content)}

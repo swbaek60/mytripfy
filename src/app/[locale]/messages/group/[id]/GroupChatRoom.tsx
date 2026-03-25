@@ -26,12 +26,16 @@ interface Member {
   } | null
 }
 
-/** API로 받은 프로필 (UUID 소문자 키 → 이 데이터만 표시에 사용) */
 interface ProfileByUserId {
   id: string
   full_name: string | null
   avatar_url: string | null
   travel_level: number | null
+}
+
+interface ParticipantReadAt {
+  user_id: string
+  last_read_at: string | null
 }
 
 interface Props {
@@ -53,14 +57,79 @@ function formatTime(ts: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+/**
+ * 그룹 메시지 읽음 표시: 멤버 중 나와 발신자를 제외하고 last_read_at >= created_at인 인원수 + 미니 아바타
+ */
+function GroupReadReceipt({
+  messageCreatedAt,
+  senderId,
+  currentUserId,
+  participantsReadAt,
+  profilesByUserId,
+  totalMembers,
+}: {
+  messageCreatedAt: string
+  senderId: string
+  currentUserId: string
+  participantsReadAt: ParticipantReadAt[]
+  profilesByUserId: Record<string, ProfileByUserId>
+  totalMembers: number
+}) {
+  const readers = participantsReadAt.filter(
+    p =>
+      p.user_id !== senderId &&
+      p.user_id !== currentUserId &&
+      p.last_read_at !== null &&
+      new Date(p.last_read_at) >= new Date(messageCreatedAt)
+  )
+
+  const unreadCount = totalMembers - 1 - readers.length // 발신자 제외한 수신 대상 - 읽은 수
+
+  if (readers.length === 0) return null
+
+  const displayReaders = readers.slice(0, 3)
+  const extraCount = readers.length - displayReaders.length
+
+  return (
+    <div className="flex items-center gap-1 mt-0.5">
+      {/* 읽은 사람 미니 아바타 */}
+      <div className="flex -space-x-1">
+        {displayReaders.map(r => {
+          const p = profilesByUserId[r.user_id.toLowerCase()]
+          return (
+            <div
+              key={r.user_id}
+              className="w-4 h-4 rounded-full border border-white bg-brand-muted overflow-hidden flex items-center justify-center"
+              title={p?.full_name || ''}
+            >
+              {p?.avatar_url
+                ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                : <span className="text-[6px]">👤</span>
+              }
+            </div>
+          )
+        })}
+        {extraCount > 0 && (
+          <div className="w-4 h-4 rounded-full border border-white bg-surface-sunken flex items-center justify-center">
+            <span className="text-[7px] text-hint font-bold">+{extraCount}</span>
+          </div>
+        )}
+      </div>
+      <span className="text-[10px] text-hint">
+        {readers.length === totalMembers - 1 ? '모두 읽음' : `${readers.length} 읽음`}
+      </span>
+    </div>
+  )
+}
+
 export default function GroupChatRoom({
   chatId, chatName, postId, currentUserId, hostId,
   initialMessages, initialMembers, locale,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [members, setMembers]   = useState<Member[]>(initialMembers)
-  /** 프로필: 클라이언트에서 Supabase로 직접 조회 (RLS profiles_select=true, 직렬화/API 우회) */
   const [profilesByUserId, setProfilesByUserId] = useState<Record<string, ProfileByUserId>>({})
+  const [participantsReadAt, setParticipantsReadAt] = useState<ParticipantReadAt[]>([])
   const [input, setInput]       = useState('')
   const [sending, setSending]   = useState(false)
   const [showMembers, setShowMembers] = useState(false)
@@ -69,8 +138,7 @@ export default function GroupChatRoom({
   const supabase  = createClient()
   const isHost    = currentUserId === hostId
 
-  // 입장 시 읽음 처리 → 배지 숫자 감소 (last_read_at + 메시지 알림 읽음)
-  // 완료 후 router.refresh()로 헤더 배지가 즉시 갱신되도록 함
+  // 입장 시 읽음 처리
   useEffect(() => {
     const now = new Date().toISOString()
     Promise.all([
@@ -89,7 +157,7 @@ export default function GroupChatRoom({
     ]).then(() => router.refresh())
   }, [chatId, currentUserId, router])
 
-  // 프로필은 클라이언트에서 Supabase로 직접 조회 (.in()은 UUID 시 400 나와서 .or(eq,eq,...) 사용)
+  // 프로필 조회
   useEffect(() => {
     const userIds = new Set<string>()
     members.forEach(m => { const id = m?.user_id; if (id != null && String(id).trim()) userIds.add(String(id).trim()) })
@@ -121,7 +189,44 @@ export default function GroupChatRoom({
     return () => { cancelled = true }
   }, [members, messages])
 
-  // 실시간 메시지 구독 (다른 사람 메시지 또는 본인 메시지 중복 수신 시 반영)
+  // 참여자 읽음 상태 초기 로드
+  useEffect(() => {
+    const fetchReadStatus = async () => {
+      try {
+        const res = await fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`)
+        if (!res.ok) return
+        const { participants } = await res.json()
+        if (Array.isArray(participants)) setParticipantsReadAt(participants)
+      } catch {}
+    }
+    fetchReadStatus()
+  }, [chatId])
+
+  // 참여자 읽음 상태 Realtime 구독
+  useEffect(() => {
+    const channel = supabase
+      .channel(`read-receipt-group:${chatId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_participants',
+        filter: `chat_id=eq.${chatId}`,
+      }, (payload) => {
+        const updated = payload.new as { user_id: string; last_read_at: string | null }
+        setParticipantsReadAt(prev => {
+          const exists = prev.some(p => p.user_id === updated.user_id)
+          if (exists) {
+            return prev.map(p => p.user_id === updated.user_id ? { ...p, last_read_at: updated.last_read_at } : p)
+          }
+          return [...prev, { user_id: updated.user_id, last_read_at: updated.last_read_at }]
+        })
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [chatId])
+
+  // 실시간 메시지 구독
   useEffect(() => {
     const channel = supabase
       .channel(`group-chat-${chatId}`)
@@ -141,14 +246,22 @@ export default function GroupChatRoom({
     return () => { supabase.removeChannel(channel) }
   }, [chatId])
 
-  // 탭 포커스·주기 재조회 (실시간이 등록자에게 안 올 때도 신청자 메시지 표시)
+  // 폴링: 메시지 + 읽음 상태 동시 갱신
   useEffect(() => {
     const refetch = async () => {
       try {
-        const res = await fetch(`/api/group-chat/messages?chatId=${encodeURIComponent(chatId)}`)
-        if (!res.ok) return
-        const { messages: next } = await res.json()
-        if (Array.isArray(next)) setMessages(next)
+        const [msgRes, readRes] = await Promise.all([
+          fetch(`/api/group-chat/messages?chatId=${encodeURIComponent(chatId)}`),
+          fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`),
+        ])
+        if (msgRes.ok) {
+          const { messages: next } = await msgRes.json()
+          if (Array.isArray(next)) setMessages(next)
+        }
+        if (readRes.ok) {
+          const { participants } = await readRes.json()
+          if (Array.isArray(participants)) setParticipantsReadAt(participants)
+        }
       } catch {}
     }
     const onFocus = () => refetch()
@@ -183,10 +296,9 @@ export default function GroupChatRoom({
       const body = await res.json().catch(() => ({}))
       if (!res.ok) {
         console.error('Send failed:', body)
-        setInput(text) // 실패 시 입력값 복원
+        setInput(text)
         alert(`메시지 전송 실패: ${body?.error || '알 수 없는 오류'}`)
       } else if (body.message) {
-        // 전송 성공 시 즉시 화면에 표시 (실시간 수신 전/실패 시에도 보이도록)
         setMessages(prev => [...prev, body.message as Message])
       }
     } catch (e) {
@@ -261,7 +373,7 @@ export default function GroupChatRoom({
         </div>
       </div>
 
-      {/* 멤버 패널 (펼쳤을 때) */}
+      {/* 멤버 패널 */}
       {showMembers && (
         <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
@@ -365,6 +477,17 @@ export default function GroupChatRoom({
                     {msg.content}
                   </div>
                   <span className="text-[10px] text-hint px-1">{formatTime(msg.created_at)}</span>
+                  {/* 읽음 표시: 내가 보낸 메시지에만 표시 */}
+                  {isMine && (
+                    <GroupReadReceipt
+                      messageCreatedAt={msg.created_at}
+                      senderId={msg.sender_id}
+                      currentUserId={currentUserId}
+                      participantsReadAt={participantsReadAt}
+                      profilesByUserId={profilesByUserId}
+                      totalMembers={members.length}
+                    />
+                  )}
                 </div>
               </div>
             )

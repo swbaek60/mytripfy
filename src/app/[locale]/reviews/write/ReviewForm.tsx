@@ -2,13 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
-import Header from '@/components/Header'
-import type { User } from '@supabase/supabase-js'
 
 interface Props {
-  user: User
+  user: { id: string }
   targetProfile: { id: string; full_name: string | null; avatar_url: string | null }
   locale: string
   existingReview?: { id: string; rating: number; content: string | null } | null
@@ -29,26 +26,27 @@ export default function ReviewForm({ user, targetProfile, locale, existingReview
     if (rating === 0) { setError('Please select a rating.'); return }
     setSaving(true)
     setError('')
-    const supabase = createClient()
 
-    if (isEdit) {
-      // 수정
-      const { error: dbError } = await supabase
-        .from('reviews')
-        .update({ rating, content: comment.trim() || null })
-        .eq('id', existingReview.id)
-      setSaving(false)
-      if (dbError) { setError('Failed to update review. ' + dbError.message); return }
-    } else {
-      // 새 작성
-      const { error: dbError } = await supabase.from('reviews').insert({
-        reviewer_id: user.id,
-        reviewee_id: targetProfile.id,
-        rating,
-        content: comment.trim() || null,
+    try {
+      const res = await fetch('/api/reviews', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          isEdit
+            ? { reviewId: existingReview.id, rating, content: comment.trim() || null }
+            : { revieweeId: targetProfile.id, rating, content: comment.trim() || null }
+        ),
       })
+      const body = await res.json().catch(() => ({}))
       setSaving(false)
-      if (dbError) { setError('Failed to submit review. ' + dbError.message); return }
+      if (!res.ok) {
+        setError(body?.error || 'Failed to submit review.')
+        return
+      }
+    } catch {
+      setSaving(false)
+      setError('Network error. Please try again.')
+      return
     }
 
     router.push(`/${locale}/users/${targetProfile.id}`)
@@ -59,13 +57,21 @@ export default function ReviewForm({ user, targetProfile, locale, existingReview
     if (!existingReview) return
     if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) return
     setDeleting(true)
-    const supabase = createClient()
-    const { error: dbError } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', existingReview.id)
-    setDeleting(false)
-    if (dbError) { setError('Failed to delete review. ' + dbError.message); return }
+
+    try {
+      const res = await fetch(`/api/reviews?reviewId=${existingReview.id}`, { method: 'DELETE' })
+      const body = await res.json().catch(() => ({}))
+      setDeleting(false)
+      if (!res.ok) {
+        setError(body?.error || 'Failed to delete review.')
+        return
+      }
+    } catch {
+      setDeleting(false)
+      setError('Network error. Please try again.')
+      return
+    }
+
     router.push(`/${locale}/users/${targetProfile.id}`)
     router.refresh()
   }

@@ -113,7 +113,8 @@
     "searchPlaceholder": "Search destination... (e.g. France, Bangkok)",
     "searchHint": "Try: Japan · Thailand · Italy · Seoul · London",
     "searchPlaceholderPrefix": "Search destination...",
-    "searchHintPrefix": "Try: "
+    "searchHintPrefix": "Try: ",
+    "privacyPolicy": "Dasar Privasi"
   },
   "Common": {
     "save": "Simpan",
@@ -162,7 +163,11 @@
     "applied": "Telah mohon",
     "openStatus": "Terbuka",
     "closedStatus": "Ditutup",
-    "viewPost": "Lihat siaran"
+    "viewPost": "Lihat siaran",
+    "filterByCountry": "Negara:",
+    "allCountries": "Semua negara",
+    "viewAllCountries": "Lihat semua",
+    "filterByPurpose": "Tujuan:"
   },
   "Guides": {
     "title": "Cari Pemandu Tempatan",
@@ -463,7 +468,8 @@
     "contributionSubtitle": "By companion, guide & review activity",
     "contributionFormula": "Post 5pts · Join accepted 10pts · Guide match 15pts · Review received 3pts",
     "noContributorsYet": "No one on the contribution leaderboard yet.",
-    "contributionCta": "Post a trip or join as a guide to get started."
+    "contributionCta": "Post a trip or join as a guide to get started.",
+    "myRank": "Kedudukan saya #{rank}"
   },
   "Sponsors": {
     "title": "Sponsors",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "Ujian personaliti perjalanan",
     "subtitle": "Jawab 8 soalan dan ketahui jenis personaliti perjalanan anda"
+  },
+  "Privacy": {
+    "pageTitle": "Dasar Privasi",
+    "effectiveDate": "Tarikh berkuat kuasa: 1 Mac 2026",
+    "intro": "mytripfy (\"kami\" atau \"Perkhidmatan\") komited untuk melindungi maklumat peribadi anda.",
+    "s1Title": "Maklumat Yang Kami Kumpul",
+    "s1Body": "We collect the following types of information:\n• Account information: name, email address, profile photo, and password (stored securely via Supabase Auth).\n• Profile information: nationality, travel level, biography, and any other details you choose to add.\n• Travel content: companion posts, guide requests, trip records, reviews, and challenge certifications you create.\n• Usage data: pages visited, search queries, and interactions within the Service (collected via server logs).\n• Device information: browser type, operating system, IP address, and language settings.",
+    "s2Title": "Penggunaan Maklumat",
+    "s2Body": "We use the information we collect to:\n• Provide and operate the mytripfy platform.\n• Match you with travel companions and local guides.\n• Send service notifications, application updates, and messages within the platform.\n• Improve our features and user experience.\n• Detect and prevent fraud, abuse, or violations of our Terms of Service.\n• Comply with applicable legal obligations.",
+    "s3Title": "Perkongsian Maklumat",
+    "s3Body": "We do not sell your personal information. We may share information in the following circumstances:\n• With other users: your public profile, posts, and reviews are visible to other registered users.\n• With service providers: we use Supabase (database & auth), Vercel (hosting), and similar infrastructure providers who process data on our behalf under confidentiality agreements.\n• For legal reasons: we may disclose information if required by law or to protect the rights and safety of our users.\n• Business transfers: in the event of a merger or acquisition, your data may be transferred to the new entity.",
+    "s4Title": "Penyimpanan Data",
+    "s4Body": "We retain your personal data for as long as your account is active or as needed to provide the Service. If you request account deletion, we will delete your personal information within 30 days, except where retention is required by law.",
+    "s5Title": "Hak Anda",
+    "s5Body": "You have the right to:\n• Access the personal data we hold about you.\n• Correct inaccurate or incomplete data.\n• Request deletion of your account and personal data.\n• Withdraw consent for optional data uses.\n• Lodge a complaint with your local data protection authority.\n\nTo exercise these rights, please contact us at swbaek60@gmail.com.",
+    "s6Title": "Kuki dan Storan Setempat",
+    "s6Body": "mytripfy uses cookies and browser local storage to maintain your session, remember your language and currency preferences, and improve site performance. You can control cookie settings through your browser. Disabling cookies may affect some features of the Service.",
+    "s7Title": "Keselamatan",
+    "s7Body": "We implement industry-standard security measures including HTTPS encryption, access controls, and secure password hashing. However, no online service can guarantee absolute security. Please use a strong, unique password and contact us immediately if you suspect unauthorized access to your account.",
+    "s8Title": "Pautan Pihak Ketiga",
+    "s8Body": "Our Service may contain links to third-party websites (e.g., social media profiles, external guides). We are not responsible for the privacy practices of those sites. We encourage you to review their privacy policies before sharing any information.",
+    "contactTitle": "Hubungi Kami",
+    "contactBody": "If you have any questions about this Privacy Policy or how we handle your data, please contact us:",
+    "backHome": "Kembali ke laman utama"
   }
 }

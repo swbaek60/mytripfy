@@ -113,7 +113,8 @@
     "searchPlaceholder": "搜索目的地...（如：France, Bangkok）",
     "searchHint": "试试：Japan · Thailand · Italy · Seoul · London",
     "searchPlaceholderPrefix": "搜索目的地...",
-    "searchHintPrefix": "试试："
+    "searchHintPrefix": "试试：",
+    "privacyPolicy": "隐私政策"
   },
   "Common": {
     "save": "保存",
@@ -162,7 +163,11 @@
     "applied": "已申请",
     "openStatus": "招募中",
     "closedStatus": "已关闭",
-    "viewPost": "查看帖子"
+    "viewPost": "查看帖子",
+    "filterByCountry": "国家：",
+    "allCountries": "所有国家",
+    "viewAllCountries": "查看全部",
+    "filterByPurpose": "目的："
   },
   "Guides": {
     "title": "找本地向导",
@@ -463,7 +468,8 @@
     "contributionSubtitle": "By companion, guide & review activity",
     "contributionFormula": "Post 5pts · Join accepted 10pts · Guide match 15pts · Review received 3pts",
     "noContributorsYet": "No one on the contribution leaderboard yet.",
-    "contributionCta": "Post a trip or join as a guide to get started."
+    "contributionCta": "Post a trip or join as a guide to get started.",
+    "myRank": "我的排名 #{rank}"
   },
   "Sponsors": {
     "title": "Sponsors",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "旅行性格测试",
     "subtitle": "回答8个问题，发现你的旅行性格类型"
+  },
+  "Privacy": {
+    "pageTitle": "隐私政策",
+    "effectiveDate": "生效日期：2026年3月1日",
+    "intro": "mytripfy（\"我们\"或\"本服务\"）致力于保护您的个人信息。本隐私政策说明了我们收集的信息、使用方式以及您的选择。",
+    "s1Title": "我们收集的信息",
+    "s1Body": "我们收集以下类型的信息：\n• 账户信息：姓名、电子邮件、头像、密码。\n• 个人资料：国籍、旅行等级、简介等。\n• 旅行内容：同伴帖子、导游请求、旅行记录、评价、挑战认证。\n• 使用数据：访问页面、搜索查询、互动记录。\n• 设备信息：浏览器类型、操作系统、IP地址、语言设置。",
+    "s2Title": "信息使用方式",
+    "s2Body": "我们使用收集的信息来：\n• 提供和运营mytripfy平台。\n• 匹配旅行伙伴和当地导游。\n• 发送通知和消息。\n• 改进功能和用户体验。\n• 检测和防止欺诈。\n• 遵守法律义务。",
+    "s3Title": "信息共享",
+    "s3Body": "我们不出售您的个人信息。\n• 与其他用户：您的公开资料对其他注册用户可见。\n• 与服务提供商：Supabase、Vercel等。\n• 法律原因。\n• 业务转让。",
+    "s4Title": "数据保留",
+    "s4Body": "在您的账户有效期间保留您的个人数据。如果您请求删除账户，我们将在30天内删除您的个人信息。",
+    "s5Title": "您的权利",
+    "s5Body": "您有权：\n• 访问我们持有的个人数据。\n• 更正不准确的数据。\n• 请求删除账户和个人数据。\n• 撤回同意。\n\n请联系swbaek60@gmail.com行使这些权利。",
+    "s6Title": "Cookie和本地存储",
+    "s6Body": "mytripfy使用Cookie和本地存储来维持会话、记住语言和货币偏好设置并改善网站性能。",
+    "s7Title": "安全性",
+    "s7Body": "我们实施行业标准的安全措施，包括HTTPS加密、访问控制和安全密码哈希。",
+    "s8Title": "第三方链接",
+    "s8Body": "本服务可能包含第三方网站的链接。我们不对这些网站的隐私做法负责。",
+    "contactTitle": "联系我们",
+    "contactBody": "如果您对本隐私政策有任何疑问，请联系我们：",
+    "backHome": "返回首页"
   }
 }

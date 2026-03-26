@@ -113,7 +113,8 @@
     "searchPlaceholder": "Rechercher une destination... (ex. France, Bangkok)",
     "searchPlaceholderPrefix": "Rechercher une destination...",
     "searchHintPrefix": "Ex. ",
-    "searchHint": "Essayez : Japon · Thaïlande · Italie · Séoul · Londres"
+    "searchHint": "Essayez : Japon · Thaïlande · Italie · Séoul · Londres",
+    "privacyPolicy": "Politique de confidentialité"
   },
   "Common": {
     "save": "Enregistrer",
@@ -162,7 +163,11 @@
     "applied": "Postulé",
     "openStatus": "Ouvert",
     "closedStatus": "Fermé",
-    "viewPost": "Voir l'annonce"
+    "viewPost": "Voir l'annonce",
+    "filterByCountry": "Pays :",
+    "allCountries": "Tous les pays",
+    "viewAllCountries": "Voir tout",
+    "filterByPurpose": "Objectif :"
   },
   "Dashboard": {
     "title": "Mon tableau de bord",
@@ -397,7 +402,8 @@
     "contributionSubtitle": "Par activité compagnon, guide et avis",
     "contributionFormula": "Publier 5 pts · Rejoindre accepté 10 pts · Match guide 15 pts · Avis reçu 3 pts",
     "noContributorsYet": "Personne au classement contribution pour l'instant.",
-    "contributionCta": "Publiez un voyage ou devenez guide pour commencer."
+    "contributionCta": "Publiez un voyage ou devenez guide pour commencer.",
+    "myRank": "Mon rang #{rank}"
   },
   "Sponsors": {
     "title": "Partenaires",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "Test de personnalité voyageuse",
     "subtitle": "Répondez à 8 questions et découvrez votre type de personnalité voyageuse"
+  },
+  "Privacy": {
+    "pageTitle": "Politique de confidentialité",
+    "effectiveDate": "Date d'entrée en vigueur : 1er mars 2026",
+    "intro": "mytripfy (« nous » ou « le Service ») s'engage à protéger vos informations personnelles. Cette politique explique les informations que nous collectons et comment nous les utilisons.",
+    "s1Title": "Informations collectées",
+    "s1Body": "Nous collectons les types d'informations suivants :\n• Informations de compte : nom, e-mail, photo de profil, mot de passe.\n• Informations de profil : nationalité, niveau de voyage, biographie.\n• Contenu de voyage : posts, demandes de guide, avis, certifications de défis.\n• Données d'utilisation : pages visitées, requêtes de recherche, interactions.\n• Informations sur l'appareil : type de navigateur, OS, adresse IP, paramètres de langue.",
+    "s2Title": "Utilisation des informations",
+    "s2Body": "Nous utilisons les informations collectées pour :\n• Fournir et exploiter la plateforme mytripfy.\n• Vous mettre en relation avec des compagnons de voyage et des guides locaux.\n• Envoyer des notifications et des messages.\n• Améliorer les fonctionnalités et l'expérience utilisateur.\n• Détecter et prévenir la fraude.\n• Respecter les obligations légales.",
+    "s3Title": "Partage des informations",
+    "s3Body": "Nous ne vendons pas vos informations personnelles.\n• Avec d'autres utilisateurs : votre profil public est visible par les utilisateurs inscrits.\n• Avec les prestataires de services : Supabase, Vercel, etc.\n• Pour des raisons légales.\n• En cas de transfert d'entreprise.",
+    "s4Title": "Conservation des données",
+    "s4Body": "Nous conservons vos données tant que votre compte est actif. En cas de suppression, nous supprimerons vos informations dans les 30 jours.",
+    "s5Title": "Vos droits",
+    "s5Body": "Vous avez le droit de :\n• Accéder à vos données personnelles.\n• Corriger les données inexactes.\n• Demander la suppression de votre compte.\n• Retirer votre consentement.\n\nContactez swbaek60@gmail.com pour exercer ces droits.",
+    "s6Title": "Cookies et stockage local",
+    "s6Body": "mytripfy utilise des cookies et le stockage local pour maintenir votre session et améliorer les performances du site.",
+    "s7Title": "Sécurité",
+    "s7Body": "Nous mettons en œuvre des mesures de sécurité standard, notamment le chiffrement HTTPS, les contrôles d'accès et le hachage sécurisé des mots de passe.",
+    "s8Title": "Liens vers des tiers",
+    "s8Body": "Notre service peut contenir des liens vers des sites tiers. Nous ne sommes pas responsables de leurs pratiques de confidentialité.",
+    "contactTitle": "Nous contacter",
+    "contactBody": "Pour toute question concernant cette politique de confidentialité, veuillez nous contacter :",
+    "backHome": "Retour à l'accueil"
   }
 }

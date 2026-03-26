@@ -113,7 +113,8 @@
     "searchPlaceholder": "Destination suchen... (z.B. France, Bangkok)",
     "searchPlaceholderPrefix": "Destination suchen...",
     "searchHintPrefix": "z.B. ",
-    "searchHint": "Probier: Japan · Thailand · Italien · Seoul · London"
+    "searchHint": "Probier: Japan · Thailand · Italien · Seoul · London",
+    "privacyPolicy": "Datenschutzrichtlinie"
   },
   "Common": {
     "save": "Speichern",
@@ -162,7 +163,11 @@
     "applied": "Beworben",
     "openStatus": "Offen",
     "closedStatus": "Geschlossen",
-    "viewPost": "Beitrag ansehen"
+    "viewPost": "Beitrag ansehen",
+    "filterByCountry": "Land:",
+    "allCountries": "Alle Länder",
+    "viewAllCountries": "Alle anzeigen",
+    "filterByPurpose": "Zweck:"
   },
   "Dashboard": {
     "title": "Mein Dashboard",
@@ -397,7 +402,8 @@
     "contributionSubtitle": "Nach Begleiter-, Guide- und Bewertungsaktivität",
     "contributionFormula": "Posten 5 Pkt. · Angenommener Beitritt 10 Pkt. · Guide-Match 15 Pkt. · Erhaltene Bewertung 3 Pkt.",
     "noContributorsYet": "Noch niemand in der Beitrags-Rangliste.",
-    "contributionCta": "Poste eine Reise oder werde Guide, um loszulegen."
+    "contributionCta": "Poste eine Reise oder werde Guide, um loszulegen.",
+    "myRank": "Mein Rang #{rank}"
   },
   "Sponsors": {
     "title": "Partner",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "Reise-Persönlichkeitstest",
     "subtitle": "Beantworten Sie 8 kurze Fragen und entdecken Sie Ihren Reise-Persönlichkeitstyp"
+  },
+  "Privacy": {
+    "pageTitle": "Datenschutzrichtlinie",
+    "effectiveDate": "Gültig ab: 1. März 2026",
+    "intro": "mytripfy (\"wir\" oder \"der Dienst\") ist dem Schutz Ihrer persönlichen Daten verpflichtet. Diese Datenschutzrichtlinie erklärt, welche Informationen wir erheben und wie wir sie verwenden.",
+    "s1Title": "Erhobene Informationen",
+    "s1Body": "Wir erheben folgende Informationen:\n• Kontodaten: Name, E-Mail, Profilbild, Passwort.\n• Profildaten: Nationalität, Reisestufe, Biografie.\n• Reiseinhalte: Begleiterbeiträge, Guide-Anfragen, Reiseaufzeichnungen, Bewertungen, Challenge-Zertifizierungen.\n• Nutzungsdaten: besuchte Seiten, Suchanfragen, Interaktionen.\n• Gerätedaten: Browsertyp, Betriebssystem, IP-Adresse, Spracheinstellungen.",
+    "s2Title": "Verwendung der Informationen",
+    "s2Body": "Wir verwenden die gesammelten Informationen, um:\n• Die mytripfy-Plattform bereitzustellen und zu betreiben.\n• Reisepartner und lokale Guides zu vermitteln.\n• Benachrichtigungen und Nachrichten zu senden.\n• Funktionen und Nutzererfahrung zu verbessern.\n• Betrug zu erkennen und zu verhindern.\n• Gesetzliche Pflichten zu erfüllen.",
+    "s3Title": "Weitergabe von Informationen",
+    "s3Body": "Wir verkaufen Ihre persönlichen Daten nicht.\n• Mit anderen Nutzern: Ihr öffentliches Profil ist für registrierte Nutzer sichtbar.\n• Mit Dienstanbietern: Supabase, Vercel usw.\n• Aus rechtlichen Gründen.\n• Bei Geschäftsübertragungen.",
+    "s4Title": "Datenspeicherung",
+    "s4Body": "Wir speichern Ihre persönlichen Daten, solange Ihr Konto aktiv ist. Bei Kontolöschung löschen wir Ihre Daten innerhalb von 30 Tagen.",
+    "s5Title": "Ihre Rechte",
+    "s5Body": "Sie haben das Recht auf:\n• Zugang zu Ihren persönlichen Daten.\n• Berichtigung ungenauer Daten.\n• Löschung Ihres Kontos und Ihrer Daten.\n• Widerruf der Einwilligung.\n\nKontaktieren Sie swbaek60@gmail.com zur Ausübung dieser Rechte.",
+    "s6Title": "Cookies & Lokaler Speicher",
+    "s6Body": "mytripfy verwendet Cookies und lokalen Speicher zur Sitzungsverwaltung und Verbesserung der Website-Leistung.",
+    "s7Title": "Sicherheit",
+    "s7Body": "Wir setzen branchenübliche Sicherheitsmaßnahmen ein, darunter HTTPS-Verschlüsselung, Zugriffskontrollen und sicheres Passwort-Hashing.",
+    "s8Title": "Links zu Drittanbietern",
+    "s8Body": "Unser Dienst kann Links zu Drittanbieter-Websites enthalten. Wir sind nicht für deren Datenschutzpraktiken verantwortlich.",
+    "contactTitle": "Kontakt",
+    "contactBody": "Bei Fragen zu dieser Datenschutzrichtlinie kontaktieren Sie uns bitte:",
+    "backHome": "Zurück zur Startseite"
   }
 }

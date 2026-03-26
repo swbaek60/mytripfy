@@ -113,7 +113,8 @@
     "searchPlaceholder": "Search destination... (e.g. France, Bangkok)",
     "searchHint": "Try: Japan · Thailand · Italy · Seoul · London",
     "searchPlaceholderPrefix": "Search destination...",
-    "searchHintPrefix": "Try: "
+    "searchHintPrefix": "Try: ",
+    "privacyPolicy": "隱私權政策"
   },
   "Common": {
     "save": "儲存",
@@ -162,7 +163,11 @@
     "applied": "已申請",
     "openStatus": "招募中",
     "closedStatus": "已關閉",
-    "viewPost": "查看貼文"
+    "viewPost": "查看貼文",
+    "filterByCountry": "國家：",
+    "allCountries": "所有國家",
+    "viewAllCountries": "查看全部",
+    "filterByPurpose": "目的："
   },
   "Guides": {
     "title": "找在地嚮導",
@@ -463,7 +468,8 @@
     "contributionSubtitle": "By companion, guide & review activity",
     "contributionFormula": "Post 5pts · Join accepted 10pts · Guide match 15pts · Review received 3pts",
     "noContributorsYet": "No one on the contribution leaderboard yet.",
-    "contributionCta": "Post a trip or join as a guide to get started."
+    "contributionCta": "Post a trip or join as a guide to get started.",
+    "myRank": "我的排名 #{rank}"
   },
   "Sponsors": {
     "title": "Sponsors",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "旅行性格測驗",
     "subtitle": "回答8個問題，發現你的旅行性格類型"
+  },
+  "Privacy": {
+    "pageTitle": "隱私權政策",
+    "effectiveDate": "生效日期：2026年3月1日",
+    "intro": "mytripfy（「我們」或「本服務」）致力於保護您的個人資訊。本隱私權政策說明了我們收集的資訊、使用方式及您的選擇。",
+    "s1Title": "我們收集的資訊",
+    "s1Body": "我們收集以下類型的資訊：\n• 帳戶資訊：姓名、電子郵件、大頭照、密碼。\n• 個人資料：國籍、旅行等級、簡介等。\n• 旅行內容：同伴貼文、導遊請求、旅行記錄、評價、挑戰認證。\n• 使用數據：瀏覽頁面、搜尋查詢、互動記錄。\n• 裝置資訊：瀏覽器類型、作業系統、IP位址、語言設定。",
+    "s2Title": "資訊使用方式",
+    "s2Body": "我們使用收集的資訊來：\n• 提供和營運mytripfy平台。\n• 配對旅行夥伴和當地導遊。\n• 發送通知和訊息。\n• 改善功能和使用者體驗。\n• 偵測和防止詐騙。\n• 遵守法律義務。",
+    "s3Title": "資訊共享",
+    "s3Body": "我們不出售您的個人資訊。\n• 與其他使用者：您的公開資料對其他註冊使用者可見。\n• 與服務提供商：Supabase、Vercel等。\n• 法律原因。\n• 業務轉讓。",
+    "s4Title": "資料保留",
+    "s4Body": "在您的帳戶有效期間保留您的個人資料。如果您請求刪除帳戶，我們將在30天內刪除您的個人資訊。",
+    "s5Title": "您的權利",
+    "s5Body": "您有權：\n• 存取我們持有的個人資料。\n• 更正不準確的資料。\n• 請求刪除帳戶和個人資料。\n• 撤回同意。\n\n請聯繫swbaek60@gmail.com行使這些權利。",
+    "s6Title": "Cookie和本地儲存",
+    "s6Body": "mytripfy使用Cookie和本地儲存來維持工作階段、記住語言和貨幣偏好設定並改善網站效能。",
+    "s7Title": "安全性",
+    "s7Body": "我們實施業界標準的安全措施，包括HTTPS加密、存取控制和安全密碼雜湊。",
+    "s8Title": "第三方連結",
+    "s8Body": "本服務可能包含第三方網站的連結。我們不對這些網站的隱私做法負責。",
+    "contactTitle": "聯絡我們",
+    "contactBody": "如果您對本隱私權政策有任何疑問，請聯絡我們：",
+    "backHome": "返回首頁"
   }
 }

@@ -113,7 +113,8 @@
     "searchPlaceholder": "目的地を検索...（例：France, Bangkok）",
     "searchHint": "例：Japan · Thailand · Italy · Seoul · London",
     "searchPlaceholderPrefix": "目的地を検索...",
-    "searchHintPrefix": "例： "
+    "searchHintPrefix": "例： ",
+    "privacyPolicy": "プライバシーポリシー"
   },
   "Common": {
     "save": "保存",
@@ -162,7 +163,11 @@
     "applied": "応募済み",
     "openStatus": "募集中",
     "closedStatus": "締切",
-    "viewPost": "投稿を見る"
+    "viewPost": "投稿を見る",
+    "filterByCountry": "国:",
+    "allCountries": "すべての国",
+    "viewAllCountries": "すべて表示",
+    "filterByPurpose": "目的:"
   },
   "Guides": {
     "title": "現地ガイドを探す",
@@ -478,7 +483,8 @@
     "contributionSubtitle": "By companion, guide & review activity",
     "contributionFormula": "Post 5pts · Join accepted 10pts · Guide match 15pts · Review received 3pts",
     "noContributorsYet": "No one on the contribution leaderboard yet.",
-    "contributionCta": "Post a trip or join as a guide to get started."
+    "contributionCta": "Post a trip or join as a guide to get started.",
+    "myRank": "私のランク #{rank}"
   },
   "Sponsors": {
     "title": "Sponsors",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "旅行性格テスト",
     "subtitle": "8つの簡単な質問に答えて、あなたの旅行性格タイプを発見しよう"
+  },
+  "Privacy": {
+    "pageTitle": "プライバシーポリシー",
+    "effectiveDate": "施行日: 2026年3月1日",
+    "intro": "mytripfy（「当社」または「本サービス」）は、お客様の個人情報の保護に努めています。本プライバシーポリシーは、当社が収集する情報、その使用方法、およびお客様の選択肢について説明します。",
+    "s1Title": "収集する情報",
+    "s1Body": "当社は以下の種類の情報を収集します：\n• アカウント情報：名前、メールアドレス、プロフィール写真、パスワード。\n• プロフィール情報：国籍、旅行レベル、自己紹介など。\n• 旅行コンテンツ：同行者募集、ガイドリクエスト、旅行記録、レビュー、チャレンジ認定。\n• 利用データ：閲覧ページ、検索クエリ、サービス内でのやり取り。\n• デバイス情報：ブラウザの種類、OS、IPアドレス、言語設定。",
+    "s2Title": "情報の使用方法",
+    "s2Body": "収集した情報は以下の目的で使用します：\n• mytripfyプラットフォームの提供と運営。\n• 旅行仲間やローカルガイドとのマッチング。\n• サービス通知、申請更新、プラットフォーム内メッセージの送信。\n• 機能とユーザー体験の改善。\n• 不正行為の検出と防止。\n• 法的義務の遵守。",
+    "s3Title": "情報の共有",
+    "s3Body": "当社はお客様の個人情報を販売しません。以下の場合に情報を共有することがあります：\n• 他のユーザーと：公開プロフィール、投稿、レビューは他の登録ユーザーに表示されます。\n• サービスプロバイダーと：Supabase、Vercelなどのインフラプロバイダー。\n• 法的理由：法律で要求される場合。\n• 事業譲渡：合併や買収の場合。",
+    "s4Title": "データの保持",
+    "s4Body": "アカウントが有効である限り、またはサービス提供に必要な限り、個人データを保持します。アカウント削除を要求された場合、30日以内に個人情報を削除します。",
+    "s5Title": "お客様の権利",
+    "s5Body": "お客様には以下の権利があります：\n• 当社が保有する個人データへのアクセス。\n• 不正確または不完全なデータの修正。\n• アカウントと個人データの削除要求。\n• オプションのデータ使用に対する同意の撤回。\n\nこれらの権利を行使するには、swbaek60@gmail.comまでご連絡ください。",
+    "s6Title": "クッキーとローカルストレージ",
+    "s6Body": "mytripfyはセッション維持、言語・通貨設定の記憶、サイトパフォーマンスの向上のためにクッキーとローカルストレージを使用します。",
+    "s7Title": "セキュリティ",
+    "s7Body": "HTTPS暗号化、アクセス制御、安全なパスワードハッシュなど、業界標準のセキュリティ対策を実施しています。",
+    "s8Title": "第三者リンク",
+    "s8Body": "本サービスには第三者ウェブサイトへのリンクが含まれる場合があります。それらのプライバシー慣行について当社は責任を負いません。",
+    "contactTitle": "お問い合わせ",
+    "contactBody": "このプライバシーポリシーやデータの取り扱いについてご質問がある場合は、お問い合わせください：",
+    "backHome": "ホームに戻る"
   }
 }

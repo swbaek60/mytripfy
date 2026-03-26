@@ -113,7 +113,8 @@
     "searchPlaceholder": "Buscar destino... (ej. France, Bangkok)",
     "searchPlaceholderPrefix": "Buscar destino...",
     "searchHintPrefix": "Ej. ",
-    "searchHint": "Prueba: Japón · Tailandia · Italia · Seúl · Londres"
+    "searchHint": "Prueba: Japón · Tailandia · Italia · Seúl · Londres",
+    "privacyPolicy": "Política de privacidad"
   },
   "Common": {
     "save": "Guardar",
@@ -162,7 +163,11 @@
     "applied": "Solicitado",
     "openStatus": "Abierto",
     "closedStatus": "Cerrado",
-    "viewPost": "Ver publicación"
+    "viewPost": "Ver publicación",
+    "filterByCountry": "País:",
+    "allCountries": "Todos los países",
+    "viewAllCountries": "Ver todos",
+    "filterByPurpose": "Propósito:"
   },
   "Dashboard": {
     "title": "Mi panel",
@@ -397,7 +402,8 @@
     "contributionSubtitle": "Por actividad de compañero, guía y reseñas",
     "contributionFormula": "Publicar 5 pts · Unirse aceptado 10 pts · Match guía 15 pts · Reseña recibida 3 pts",
     "noContributorsYet": "Nadie en la clasificación de contribución aún.",
-    "contributionCta": "Publica un viaje o únete como guía para empezar."
+    "contributionCta": "Publica un viaje o únete como guía para empezar.",
+    "myRank": "Mi rango #{rank}"
   },
   "Sponsors": {
     "title": "Patrocinadores",
@@ -644,5 +650,29 @@
   "Personality": {
     "title": "Test de personalidad viajera",
     "subtitle": "Responde 8 preguntas y descubre tu tipo de personalidad viajera"
+  },
+  "Privacy": {
+    "pageTitle": "Política de privacidad",
+    "effectiveDate": "Fecha de vigencia: 1 de marzo de 2026",
+    "intro": "mytripfy (\"nosotros\" o \"el Servicio\") se compromete a proteger tu información personal. Esta política explica qué información recopilamos y cómo la utilizamos.",
+    "s1Title": "Información que recopilamos",
+    "s1Body": "Recopilamos los siguientes tipos de información:\n• Información de cuenta: nombre, correo electrónico, foto de perfil, contraseña.\n• Información de perfil: nacionalidad, nivel de viaje, biografía.\n• Contenido de viaje: publicaciones, solicitudes de guía, reseñas, certificaciones de desafíos.\n• Datos de uso: páginas visitadas, consultas de búsqueda, interacciones.\n• Información del dispositivo: tipo de navegador, SO, dirección IP, configuración de idioma.",
+    "s2Title": "Uso de la información",
+    "s2Body": "Utilizamos la información recopilada para:\n• Proporcionar y operar la plataforma mytripfy.\n• Conectarte con compañeros de viaje y guías locales.\n• Enviar notificaciones y mensajes.\n• Mejorar funciones y experiencia de usuario.\n• Detectar y prevenir fraude.\n• Cumplir con obligaciones legales.",
+    "s3Title": "Compartir información",
+    "s3Body": "No vendemos tu información personal.\n• Con otros usuarios: tu perfil público es visible para usuarios registrados.\n• Con proveedores de servicios: Supabase, Vercel, etc.\n• Por razones legales.\n• Transferencias de negocio.",
+    "s4Title": "Retención de datos",
+    "s4Body": "Conservamos tus datos mientras tu cuenta esté activa. Si solicitas la eliminación, eliminaremos tus datos en un plazo de 30 días.",
+    "s5Title": "Tus derechos",
+    "s5Body": "Tienes derecho a:\n• Acceder a tus datos personales.\n• Corregir datos inexactos.\n• Solicitar la eliminación de tu cuenta.\n• Retirar tu consentimiento.\n\nContacta a swbaek60@gmail.com para ejercer estos derechos.",
+    "s6Title": "Cookies y almacenamiento local",
+    "s6Body": "mytripfy utiliza cookies y almacenamiento local para mantener tu sesión y mejorar el rendimiento del sitio.",
+    "s7Title": "Seguridad",
+    "s7Body": "Implementamos medidas de seguridad estándar, incluyendo cifrado HTTPS, controles de acceso y hash seguro de contraseñas.",
+    "s8Title": "Enlaces de terceros",
+    "s8Body": "Nuestro servicio puede contener enlaces a sitios de terceros. No somos responsables de sus prácticas de privacidad.",
+    "contactTitle": "Contáctanos",
+    "contactBody": "Si tienes preguntas sobre esta política de privacidad, contáctanos:",
+    "backHome": "Volver al inicio"
   }
 }

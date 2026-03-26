@@ -56,13 +56,18 @@ export default function GuideContactModal({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const msg = data?.error === 'Guide email not found'
-          ? 'Unable to send: guide email is not set.'
-          : data?.error === 'Email delivery failed'
-            ? (data?.reason ? `Email failed: ${data.reason}` : data?.code === 'SES_SANDBOX_RECIPIENT'
-              ? 'Email could not be sent right now. Please try the in-app chat above instead.'
-              : 'Email could not be sent. Please try again later.')
-            : data?.error || 'Something went wrong.'
+        let msg: string
+        if (data?.error === 'Guide email not found') {
+          msg = 'This guide has not set an email address. Please use the in-app chat instead.'
+        } else if (data?.error === 'Unauthorized') {
+          msg = 'Please log in to send a message.'
+        } else if (data?.code === 'SES_SANDBOX_RECIPIENT' || data?.code === 'SES_SEND_FAILED') {
+          msg = 'Email delivery is temporarily unavailable. Please use the in-app chat above instead.'
+        } else if (data?.code === 'AWS_CREDENTIALS_MISSING') {
+          msg = 'Email service is not configured. Please use the in-app chat above instead.'
+        } else {
+          msg = data?.error || 'Something went wrong. Please try again.'
+        }
         alert(msg)
         return
       }

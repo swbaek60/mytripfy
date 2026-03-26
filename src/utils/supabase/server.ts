@@ -141,6 +141,13 @@ export async function createClient() {
   }
 
   // auth.getUser() / auth.getSession() shimming
+  //
+  // getSession은 항상 null을 반환해야 함.
+  // session이 있으면 Supabase 클라이언트가 session.access_token을
+  // Authorization 헤더로 사용하는데, 'clerk-managed' 같은 더미 토큰을
+  // 보내면 모든 DB 쿼리가 실패한다.
+  // service_role key는 createSupabaseClient 생성 시 이미 apiKey로 설정되어
+  // session이 null이면 자동으로 apiKey(service_role)를 사용한다.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const s = supabase as any
   s.auth = {
@@ -150,17 +157,7 @@ export async function createClient() {
       error: null,
     }),
     getSession: async () => ({
-      data: {
-        session: mappedUser
-          ? {
-              user: mappedUser,
-              access_token: 'clerk-managed',
-              refresh_token: '',
-              expires_in: 3600,
-              token_type: 'bearer',
-            }
-          : null,
-      },
+      data: { session: null },
       error: null,
     }),
     signOut: async () => ({ error: null }),

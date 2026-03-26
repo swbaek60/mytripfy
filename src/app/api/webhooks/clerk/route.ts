@@ -75,23 +75,54 @@ export async function POST(req: NextRequest) {
     const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null
 
     if (type === 'user.created') {
-      // 이미 clerk_id로 프로필이 있으면 업데이트, 없으면 생성
-      const { data: existing } = await admin
+      // 1. clerk_id로 이미 있는 프로필 확인
+      const { data: existingByClerkId } = await admin
         .from('profiles')
         .select('id')
         .eq('clerk_id', data.id)
         .maybeSingle()
 
-      if (!existing) {
+      if (existingByClerkId) {
+        console.log('[clerk-webhook] Profile already exists for', data.id)
+      } else if (primaryEmail) {
+        // 2. 이메일로 기존 프로필 확인 (Clerk 도입 전 가입자 처리)
+        const { data: existingByEmail } = await admin
+          .from('profiles')
+          .select('id')
+          .eq('email', primaryEmail)
+          .maybeSingle()
+
+        if (existingByEmail) {
+          // 기존 프로필에 clerk_id 연결
+          const { error } = await admin
+            .from('profiles')
+            .update({ clerk_id: data.id, avatar_url: data.image_url ?? null, updated_at: new Date().toISOString() })
+            .eq('id', existingByEmail.id)
+          if (error) console.error('[clerk-webhook] Failed to link clerk_id to existing profile:', error)
+          else console.log('[clerk-webhook] Linked clerk_id to existing profile for', primaryEmail)
+        } else {
+          // 3. 완전 신규 프로필 생성
+          const { error } = await admin.from('profiles').insert({
+            clerk_id: data.id,
+            email: primaryEmail,
+            full_name: fullName,
+            avatar_url: data.image_url ?? null,
+            preferred_locale: 'en',
+          })
+          if (error) console.error('[clerk-webhook] Failed to create profile:', error)
+          else console.log('[clerk-webhook] Profile created for', data.id)
+        }
+      } else {
+        // 이메일 없는 신규 유저 (소셜 로그인 일부)
         const { error } = await admin.from('profiles').insert({
           clerk_id: data.id,
-          email: primaryEmail,
+          email: null,
           full_name: fullName,
           avatar_url: data.image_url ?? null,
           preferred_locale: 'en',
         })
-        if (error) console.error('[clerk-webhook] Failed to create profile:', error)
-        else console.log('[clerk-webhook] Profile created for', data.id)
+        if (error) console.error('[clerk-webhook] Failed to create profile (no email):', error)
+        else console.log('[clerk-webhook] Profile created (no email) for', data.id)
       }
     }
 

@@ -33,9 +33,16 @@ const isClerkRoute = createRouteMatcher([
   '/sso-callback(.*)',
 ])
 
+const isApiRoute = createRouteMatcher(['/api(.*)'])
+
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  // Clerk 전용 경로 (sign-in, sign-up)는 next-intl 우회
+  // Clerk 전용 경로는 next-intl 우회
   if (isClerkRoute(req)) {
+    return NextResponse.next()
+  }
+
+  // API 라우트는 next-intl 우회 (locale 리다이렉트 방지)
+  if (isApiRoute(req)) {
     return NextResponse.next()
   }
 

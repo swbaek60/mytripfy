@@ -86,22 +86,19 @@ const getCachedProfile = cache(async (clerkUserId: string): Promise<{ id: string
     if (byEmail) {
       await admin
         .from('profiles')
-        .update({
-          clerk_id: clerkUserId,
-          avatar_url: clerkUserObj.imageUrl ?? undefined,
-        })
+        .update({ clerk_id: clerkUserId, email, avatar_url: clerkUserObj.imageUrl ?? undefined })
         .eq('id', byEmail.id)
-      return { id: byEmail.id, email: byEmail.email ?? '' }
+      return { id: byEmail.id, email }
     }
   }
 
-  // 3. 없으면 새 프로필 생성
+  // 3. 없으면 새 프로필 생성 (완전 신규 Clerk 유저)
   try {
     const { data: created } = await admin
       .from('profiles')
       .insert({
         clerk_id: clerkUserId,
-        email,
+        email: email || null,
         full_name: clerkUserObj.fullName ?? null,
         avatar_url: clerkUserObj.imageUrl ?? null,
         preferred_locale: 'en',
@@ -109,7 +106,8 @@ const getCachedProfile = cache(async (clerkUserId: string): Promise<{ id: string
       .select('id, email')
       .single()
     return created ? { id: created.id, email: created.email ?? '' } : null
-  } catch {
+  } catch (err) {
+    console.error('[getCachedProfile] profile create failed:', err)
     return null
   }
 })

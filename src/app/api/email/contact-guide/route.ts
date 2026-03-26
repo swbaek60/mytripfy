@@ -95,11 +95,7 @@ export async function POST(req: NextRequest) {
       const errorCode = isSandboxRecipient ? 'SES_SANDBOX_RECIPIENT' : 'SES_SEND_FAILED'
 
       return NextResponse.json(
-        {
-          error: 'Email delivery failed',
-          code: errorCode,
-          ...(process.env.NODE_ENV === 'development' && reason && { reason }),
-        },
+        { error: 'Email delivery failed', code: errorCode, detail: reason },
         { status: 500 }
       )
     }

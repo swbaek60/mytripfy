@@ -62,7 +62,7 @@ export default function GuideContactModal({
         } else if (data?.error === 'Unauthorized') {
           msg = 'Please log in to send a message.'
         } else if (data?.code === 'SES_SANDBOX_RECIPIENT' || data?.code === 'SES_SEND_FAILED') {
-          msg = 'Email delivery is temporarily unavailable. Please use the in-app chat above instead.'
+          msg = `Email delivery failed: ${data?.detail || 'unknown error'}. Please use the in-app chat above instead.`
         } else if (data?.code === 'AWS_CREDENTIALS_MISSING') {
           msg = 'Email service is not configured. Please use the in-app chat above instead.'
         } else {

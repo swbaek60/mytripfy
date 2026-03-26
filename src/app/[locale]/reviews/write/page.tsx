@@ -42,7 +42,6 @@ export default async function WriteReviewPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold text-heading mb-6 flex items-center gap-2">
           <PenLine className="w-6 h-6 text-purple" />
           {existingReview ? 'Edit My Review' : 'Write a Review'}
@@ -53,7 +52,6 @@ export default async function WriteReviewPage({
           locale={locale}
           existingReview={existingReview ?? null}
         />
-        </div>
       </main>
     </div>
   )

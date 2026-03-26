@@ -34,7 +34,7 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
   return (
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-heading">{t('mySponsors')}</h1>
           <Link href={`/${locale}/sponsors/new`}>

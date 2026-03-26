@@ -46,7 +46,7 @@ export default async function TripsPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user || null} locale={locale} currentPath="/trips" />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
         {/* My Trips */}
         <section>

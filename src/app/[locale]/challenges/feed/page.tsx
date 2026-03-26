@@ -100,7 +100,7 @@ export default async function ChallengeFeedPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/challenges" />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">

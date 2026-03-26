@@ -70,8 +70,7 @@ export default async function GuideRequestDetailPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600 flex items-center gap-1">
             ← Back to guide requests
@@ -252,7 +251,6 @@ export default async function GuideRequestDetailPage({
             locale={locale}
           />
         )}
-        </div>
       </main>
     </div>
   )

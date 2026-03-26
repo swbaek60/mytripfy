@@ -28,7 +28,7 @@ export default async function EditSponsorPage({
   return (
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-2xl font-bold text-heading mb-6">Edit: {sponsor.name}</h1>
         <SponsorEditForm sponsor={sponsor} benefits={benefits ?? []} locale={locale} />
       </main>

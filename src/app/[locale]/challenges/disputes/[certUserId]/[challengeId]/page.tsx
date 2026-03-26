@@ -73,7 +73,7 @@ export default async function DisputePage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/challenges" />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* 뒤로가기 */}
         <Link href={`/${locale}/challenges/feed`} className="text-sm text-subtle hover:text-purple">

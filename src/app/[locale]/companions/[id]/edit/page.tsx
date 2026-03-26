@@ -26,7 +26,7 @@ export default async function EditCompanionPage({
   return (
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/companions" />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <CompanionForm userId={user.id} locale={locale} initialData={post} />
       </main>
     </div>

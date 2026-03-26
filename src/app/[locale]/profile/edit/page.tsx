@@ -62,7 +62,6 @@ export default async function ProfileEditPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-2xl mx-auto">
         <ProfileEditForm
           profile={profile}
           userId={user.id}
@@ -73,7 +72,6 @@ export default async function ProfileEditPage({
           initialPhotos={initialPhotos}
           travelPersonality={travelPersonality ? { personality_type: travelPersonality.personality_type, personality_desc: travelPersonality.personality_desc } : null}
         />
-        </div>
       </main>
     </div>
   )

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { sendEmail } from '@/utils/ses'
 import { guideRequestNotifyEmail } from '@/utils/emailTemplates'
 import { getLanguageByCode } from '@/data/languages'
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { requestId } = await req.json()
     if (!requestId) return NextResponse.json({ error: 'requestId required' }, { status: 400 })
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // 요청 정보 조회
     const { data: request } = await supabase

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { sendEmail } from '@/utils/ses'
 import { companionApplicationAcceptedEmail, companionApplicationRejectedEmail } from '@/utils/emailTemplates'
 import { getCountryByCode } from '@/data/countries'
@@ -11,37 +11,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const admin = createAdminClient()
 
-    const [{ data: post }, { data: applicant }] = await Promise.all([
-      supabase
+    const [{ data: post }, { data: applicantProfile }] = await Promise.all([
+      admin
         .from('companion_posts')
         .select('title, user_id, destination_country, start_date, end_date')
         .eq('id', postId)
         .single(),
-      supabase
+      admin
         .from('profiles')
-        .select('full_name')
+        .select('full_name, email')
         .eq('id', applicantId)
         .single(),
     ])
 
-    if (!post || !applicant) {
+    if (!post || !applicantProfile) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    const { data: hostProfile } = await supabase
+    const { data: hostProfile } = await admin
       .from('profiles')
       .select('full_name')
       .eq('id', post.user_id)
       .single()
 
-    const { data: applicantAuth } = await supabase.auth.admin.getUserById(applicantId)
-    const applicantEmail = applicantAuth?.user?.email
+    const applicantEmail = applicantProfile.email
     if (!applicantEmail) return NextResponse.json({ error: 'Email not found' }, { status: 404 })
 
     const country = getCountryByCode(post.destination_country)
-    const applicantName = (applicant.full_name as string) || 'Traveler'
+    const applicantName = applicantProfile.full_name || 'Traveler'
     const postTitle = post.title
     const locale = process.env.DEFAULT_LOCALE || 'en'
 

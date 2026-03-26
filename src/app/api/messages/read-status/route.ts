@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server'
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
+import { auth } from '@clerk/nextjs/server'
+
+async function getProfileId(clerkUserId: string) {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('clerk_id', clerkUserId)
+    .maybeSingle()
+  return data?.id ?? null
+}
 
 /**
  * GET /api/messages/read-status?chatId=xxx
- * 채팅방 참여자들의 last_read_at 목록 반환 (읽음 표시용)
  */
 export async function GET(req: Request) {
   try {
@@ -11,25 +21,25 @@ export async function GET(req: Request) {
     const chatId = searchParams.get('chatId')
     if (!chatId) return NextResponse.json({ error: 'chatId required' }, { status: 400 })
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { userId: clerkUserId } = await auth()
+    if (!clerkUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const profileId = await getProfileId(clerkUserId)
+    if (!profileId) return NextResponse.json({ error: 'Profile not found' }, { status: 401 })
 
     const admin = createAdminClient()
 
-    // 참여자인지 확인
     const { data: participant } = await admin
       .from('chat_participants')
       .select('user_id')
       .eq('chat_id', chatId)
-      .eq('user_id', user.id)
+      .eq('user_id', profileId)
       .maybeSingle()
 
     if (!participant) {
       return NextResponse.json({ error: 'Not a member of this chat' }, { status: 403 })
     }
 
-    // 모든 참여자의 last_read_at 조회
     const { data: participants, error } = await admin
       .from('chat_participants')
       .select('user_id, last_read_at')

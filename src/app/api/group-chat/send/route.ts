@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
+import { auth } from '@clerk/nextjs/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+async function getProfileId(clerkUserId: string) {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('clerk_id', clerkUserId)
+    .maybeSingle()
+  return data?.id ?? null
+}
 
 export async function POST(req: Request) {
   try {
@@ -9,30 +21,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing chatId or content' }, { status: 400 })
     }
 
-    // 현재 로그인 사용자 확인 (세션만 사용자 클라이언트로)
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { userId: clerkUserId } = await auth()
+    if (!clerkUserId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // 참여자 확인 + 메시지 삽입은 모두 admin으로 (RLS/정책 변경 영향 없이 동일 동작)
+    const profileId = await getProfileId(clerkUserId)
+    if (!profileId) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 401 })
+    }
+
     const admin = createAdminClient()
+
     const { data: participant } = await admin
       .from('chat_participants')
       .select('user_id')
       .eq('chat_id', chatId)
-      .eq('user_id', user.id)
+      .eq('user_id', profileId)
       .maybeSingle()
 
     if (!participant) {
       return NextResponse.json({ error: 'Not a member of this chat' }, { status: 403 })
     }
 
-    // 서비스 역할로 메시지 삽입 (RLS 우회)
     const { data, error } = await admin
       .from('messages')
       .insert({
         chat_id: chatId,
-        sender_id: user.id,
+        sender_id: profileId,
         content: content.trim(),
       })
       .select()

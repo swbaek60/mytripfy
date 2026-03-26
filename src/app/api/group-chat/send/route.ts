@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/server'
 import { auth } from '@clerk/nextjs/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 async function getProfileId(clerkUserId: string) {
   const admin = createAdminClient()

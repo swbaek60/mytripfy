@@ -17,15 +17,15 @@ import type { Metadata } from 'next'
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { id } = await params
   const admin = createAdminClient()
-  const { data: post } = await admin.from('companion_posts').select('title, description, country_code, start_date').eq('id', id).single()
+  const { data: post } = await admin.from('companion_posts').select('title, description, destination_country, start_date').eq('id', id).single()
   if (!post) return { title: 'Trip Not Found' }
-  const country = getCountryByCode(post.country_code)
+  const country = getCountryByCode(post.destination_country)
   return {
-    title: `${post.title} – ${country?.name || post.country_code}`,
-    description: post.description?.slice(0, 160) || `Join this trip to ${country?.name || post.country_code} on mytripfy.`,
+    title: `${post.title} – ${country?.name || post.destination_country}`,
+    description: post.description?.slice(0, 160) || `Join this trip to ${country?.name || post.destination_country} on mytripfy.`,
     openGraph: {
       title: `${post.title} | mytripfy`,
-      description: post.description?.slice(0, 160) || `Find travel companions for ${country?.name || post.country_code}.`,
+      description: post.description?.slice(0, 160) || `Find travel companions for ${country?.name || post.destination_country}.`,
     },
   }
 }

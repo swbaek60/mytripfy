@@ -39,13 +39,17 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
     e.stopPropagation()
     if (!confirm(`"${label}" 대화를 삭제하시겠습니까?\n(목록에서 제거됩니다)`)) return
     setLeavingId(chatId)
-    const res = await fetch(`/api/messages/leave?chatId=${chatId}`, { method: 'DELETE' })
-    if (res.ok) {
-      setGroups(prev => prev.filter(c => c.chatId !== chatId))
-      setDirects(prev => prev.filter(c => c.chatId !== chatId))
-      router.refresh()
-    } else {
-      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    try {
+      const res = await fetch(`/api/messages/leave?chatId=${chatId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setGroups(prev => prev.filter(c => c.chatId !== chatId))
+        setDirects(prev => prev.filter(c => c.chatId !== chatId))
+        router.refresh()
+      } else {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    } catch {
+      alert('네트워크 오류가 발생했습니다.')
     }
     setLeavingId(null)
   }
@@ -53,12 +57,16 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
   const clearAll = async () => {
     if (!confirm('모든 대화를 삭제하시겠습니까?')) return
     setClearingAll(true)
-    const allIds = [...groups.map(c => c.chatId), ...directs.map(c => c.chatId)]
-    await Promise.all(allIds.map(id => fetch(`/api/messages/leave?chatId=${id}`, { method: 'DELETE' })))
-    setGroups([])
-    setDirects([])
+    try {
+      const allIds = [...groups.map(c => c.chatId), ...directs.map(c => c.chatId)]
+      await Promise.all(allIds.map(id => fetch(`/api/messages/leave?chatId=${id}`, { method: 'DELETE' })))
+      setGroups([])
+      setDirects([])
+      router.refresh()
+    } catch {
+      alert('네트워크 오류가 발생했습니다.')
+    }
     setClearingAll(false)
-    router.refresh()
   }
 
   const hasAny = groups.length > 0 || directs.length > 0

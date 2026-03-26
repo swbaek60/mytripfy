@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import GuideRequestForm from './GuideRequestForm'
@@ -10,7 +10,8 @@ export default async function NewGuideRequestPage({
 }) {
   const { locale } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   return (

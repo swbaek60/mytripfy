@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import TripForm from '../../TripForm'
 
@@ -10,7 +10,8 @@ export default async function EditTripPage({
 }) {
   const { locale, id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   const { data: trip } = await supabase

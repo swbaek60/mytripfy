@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import { getLevelInfo, getCountryByCode } from '@/data/countries'
@@ -40,7 +40,8 @@ export default async function HallOfFamePage({
   const tab = tabParam === 'experience' ? 'experience' : tabParam === 'contribution' ? 'contribution' : 'overall'
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   const t = await getTranslations({ locale, namespace: 'HallOfFame' })
 
   // 경험 랭킹 (챌린지) — 뷰 → profiles fallback → 인증 테이블 직접 집계
@@ -208,45 +209,45 @@ export default async function HallOfFamePage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/hall-of-fame" />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="bg-gradient-to-br from-gold-light via-gold to-gold rounded-2xl p-8 text-white shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="w-10 h-10" />
             <h1 className="text-2xl sm:text-3xl font-extrabold">{t('title')}</h1>
           </div>
-          <p className="text-amber-100 text-sm sm:text-base">{t('subtitle')}</p>
+          <p className="text-white/90 text-sm sm:text-base">{t('subtitle')}</p>
 
           {/* 탭: 종합 | 경험 | 기여 */}
           <div className="mt-4 flex flex-wrap gap-2 p-1 bg-surface/15 rounded-xl w-fit">
             <Link
               href={tabOverallHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'overall' ? 'bg-surface text-amber-700' : 'text-white/90 hover:bg-surface/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'overall' ? 'bg-surface text-gold' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <LayoutList className="w-4 h-4" />
               {t('tabOverall')}
             </Link>
             <Link
               href={tabExperienceHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'experience' ? 'bg-surface text-amber-700' : 'text-white/90 hover:bg-surface/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'experience' ? 'bg-surface text-gold' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <Compass className="w-4 h-4" />
               {t('tabExperience')}
             </Link>
             <Link
               href={tabContributionHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'contribution' ? 'bg-surface text-amber-700' : 'text-white/90 hover:bg-surface/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'contribution' ? 'bg-surface text-gold' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <Users className="w-4 h-4" />
               {t('tabContribution')}
             </Link>
           </div>
 
-          <p className="text-amber-200/90 text-xs mt-2">
+          <p className="text-white/80 text-xs mt-2">
             {tab === 'experience' ? t('experienceSubtitle') : tab === 'overall' ? t('overallSubtitle') : t('contributionSubtitle')}
           </p>
           {tab === 'contribution' && (
-            <p className="text-amber-200/80 text-xs mt-0.5">{t('contributionFormula')}</p>
+            <p className="text-white/75 text-xs mt-0.5">{t('contributionFormula')}</p>
           )}
 
           {user && (currentUserRank !== null || myRankOutsideTop100 !== null || currentUserPoints > 0) && (
@@ -271,7 +272,7 @@ export default async function HallOfFamePage({
                   )
                 })()}
                 {nextTier && (
-                  <span className="text-amber-100 text-sm">
+                  <span className="text-gold-light text-sm">
                     {t('nextRank', { points: nextTier.pointsNeeded })}
                   </span>
                 )}
@@ -289,7 +290,7 @@ export default async function HallOfFamePage({
             {user && (
               <Link
                 href={`/${locale}/users/${user.id}`}
-                className="inline-flex items-center gap-1.5 bg-surface text-amber-700 hover:bg-amber-light text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+                className="inline-flex items-center gap-1.5 bg-surface text-gold hover:bg-gold-light text-sm font-semibold px-4 py-2 rounded-full transition-colors"
               >
                 {t('myProfile')}
               </Link>
@@ -297,82 +298,86 @@ export default async function HallOfFamePage({
           </div>
         </div>
 
-        {/* Leaderboard */}
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
-          <h2 className="text-lg font-bold text-heading px-6 py-4 border-b border-edge flex items-center gap-2">
-            <Medal className="w-5 h-5 text-amber" />
-            {t('leaderboard')}
-          </h2>
+        {/* 리더보드 + 등급 안내 2단 레이아웃 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          {/* Leaderboard */}
+          <div className="lg:col-span-2 bg-surface rounded-2xl shadow-sm overflow-hidden">
+            <h2 className="text-lg font-bold text-heading px-6 py-4 border-b border-edge flex items-center gap-2">
+              <Medal className="w-5 h-5 text-gold" />
+              {t('leaderboard')}
+            </h2>
 
-          {list.length === 0 ? (
-            <div className="px-6 py-12 text-center text-subtle">
-              <Award className="w-12 h-12 mx-auto mb-3 text-hint" />
-              <p className="font-medium">
-                {tab === 'experience' ? t('noLeadersYet') : tab === 'overall' ? t('noLeadersYet') : t('noContributorsYet')}
-              </p>
-              <p className="text-sm mt-1">
-                {tab === 'experience' ? t('beFirst') : tab === 'overall' ? t('beFirst') : t('contributionCta')}
-              </p>
-              {(tab === 'experience' || tab === 'overall') && (
-                <Link href={`/${locale}/challenges`} className="inline-block mt-4 text-amber font-semibold text-sm hover:underline">
-                  {t('goChallenges')} →
-                </Link>
-              )}
+            {list.length === 0 ? (
+              <div className="px-6 py-12 text-center text-subtle">
+                <Award className="w-12 h-12 mx-auto mb-3 text-hint" />
+                <p className="font-medium">
+                  {tab === 'experience' ? t('noLeadersYet') : tab === 'overall' ? t('noLeadersYet') : t('noContributorsYet')}
+                </p>
+                <p className="text-sm mt-1">
+                  {tab === 'experience' ? t('beFirst') : tab === 'overall' ? t('beFirst') : t('contributionCta')}
+                </p>
+                {(tab === 'experience' || tab === 'overall') && (
+                  <Link href={`/${locale}/challenges`} className="inline-block mt-4 text-gold font-semibold text-sm hover:underline">
+                    {t('goChallenges')} →
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <HallOfFameList
+                list={list}
+                tab={tab}
+                locale={locale}
+                currentUserId={user?.id ?? null}
+                myCertCount={myCertCount}
+                myDisputedKeys={myDisputedKeys}
+                tierLabels={{
+                  beginner: t('tier_beginner'),
+                  apprentice: t('tier_apprentice'),
+                  trainee: t('tier_trainee'),
+                  intermediate: t('tier_intermediate'),
+                  advanced: t('tier_advanced'),
+                  expert: t('tier_expert'),
+                  master: t('tier_master'),
+                  grandmaster: t('tier_grandmaster'),
+                  legend: t('tier_legend'),
+                }}
+                anonymousLabel={t('anonymous')}
+                pointsLabel={t('points')}
+              />
+            )}
+          </div>
+
+          {/* 사이드 패널: 등급 안내 */}
+          <div className="space-y-4">
+            <div className="bg-surface rounded-2xl shadow-sm p-6">
+              <h2 className="text-lg font-bold text-heading mb-1">{t('rankTiersTitle')}</h2>
+              <p className="text-sm text-subtle mb-4">{t('rankTiersIntro')}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                {tiers.map((tier) => {
+                  const label = t(`tier_${tier.key}` as any)
+                  const range =
+                    tier.maxPoints != null
+                      ? t('pointsRange', { min: tier.minPoints, max: tier.maxPoints })
+                      : `${tier.minPoints}+ pts`
+                  return (
+                    <div
+                      key={tier.key}
+                      className="flex items-center gap-2 p-2.5 rounded-xl border border-edge"
+                      style={{ borderLeftColor: tier.color, borderLeftWidth: 4 }}
+                    >
+                      <span className="text-xl">{tier.emoji}</span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-heading text-sm truncate">{label}</p>
+                        <p className="text-xs text-subtle">{range}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          ) : (
-            <HallOfFameList
-              list={list}
-              tab={tab}
-              locale={locale}
-              currentUserId={user?.id ?? null}
-              myCertCount={myCertCount}
-              myDisputedKeys={myDisputedKeys}
-              tierLabels={{
-                beginner: t('tier_beginner'),
-                apprentice: t('tier_apprentice'),
-                trainee: t('tier_trainee'),
-                intermediate: t('tier_intermediate'),
-                advanced: t('tier_advanced'),
-                expert: t('tier_expert'),
-                master: t('tier_master'),
-                grandmaster: t('tier_grandmaster'),
-                legend: t('tier_legend'),
-              }}
-              anonymousLabel={t('anonymous')}
-              pointsLabel={t('points')}
-            />
-          )}
-        </div>
-
-        {/* 등급 안내 */}
-        <div className="bg-surface rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-bold text-heading mb-1">{t('rankTiersTitle')}</h2>
-          <p className="text-sm text-subtle mb-4">{t('rankTiersIntro')}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {tiers.map((tier) => {
-              const label = t(`tier_${tier.key}` as any)
-              const range =
-                tier.maxPoints != null
-                  ? t('pointsRange', { min: tier.minPoints, max: tier.maxPoints })
-                  : `${tier.minPoints}+ pts`
-              return (
-                <div
-                  key={tier.key}
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-edge"
-                  style={{ borderLeftColor: tier.color, borderLeftWidth: 4 }}
-                >
-                  <span className="text-xl">{tier.emoji}</span>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-heading text-sm truncate">{label}</p>
-                    <p className="text-xs text-subtle">{range}</p>
-                  </div>
-                </div>
-              )
-            })}
+            <p className="text-center text-sm text-subtle px-2">{t('rankingNote')}</p>
           </div>
         </div>
-
-        <p className="text-center text-sm text-subtle">{t('rankingNote')}</p>
       </main>
     </div>
   )

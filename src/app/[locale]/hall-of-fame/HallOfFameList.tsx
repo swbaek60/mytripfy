@@ -134,7 +134,7 @@ export default function HallOfFameList({
 
           return (
             <li key={profile.id}>
-              <div className="flex items-center gap-4 px-6 py-4 hover:bg-amber-50/50 transition-colors">
+              <div className="flex items-center gap-4 px-6 py-4 hover:bg-gold-light/50 transition-colors">
                 {/* 순위 */}
                 <span
                   className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
@@ -220,7 +220,7 @@ export default function HallOfFameList({
                             key={`${profile.id}-${cert.challenge_id}`}
                             className={`group relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
                               cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
-                              cert.dispute_status === 'flagged' ? 'border-amber-200' :
+                              cert.dispute_status === 'flagged' ? 'border-gold/20' :
                               cert.dispute_status === 'invalidated' ? 'border-red-200 opacity-60' :
                               'border-transparent hover:border-purple-200'
                             }`}

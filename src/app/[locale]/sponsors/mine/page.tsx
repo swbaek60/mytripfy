@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -21,7 +21,8 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   const { data: sponsors } = await supabase

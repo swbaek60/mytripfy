@@ -85,9 +85,9 @@ export default function GuideContactModal({
       icon: <MessageCircle className="w-5 h-5" />,
       label: 'Chat on mytripfy',
       desc: 'Real-time messaging inside the app',
-      color: 'bg-blue-500',
-      lightBg: 'bg-blue-50 border-blue-100',
-      textColor: 'text-blue-700',
+      color: 'bg-brand',
+      lightBg: 'bg-brand-light border-brand-muted',
+      textColor: 'text-brand-hover',
       available: isLoggedIn,
       loginRequired: !isLoggedIn,
       href: isLoggedIn ? `/${locale}/messages/${guideId}` : `/${locale}/login`,
@@ -97,9 +97,9 @@ export default function GuideContactModal({
       icon: <Mail className="w-5 h-5" />,
       label: 'Send a Message',
       desc: 'Send an inquiry to the guide via email',
-      color: 'bg-violet-500',
-      lightBg: 'bg-violet-50 border-violet-100',
-      textColor: 'text-violet-700',
+      color: 'bg-purple',
+      lightBg: 'bg-purple-light border-purple-light',
+      textColor: 'text-purple',
       available: isLoggedIn,
       loginRequired: !isLoggedIn,
       action: () => setShowEmail(true),
@@ -157,9 +157,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">👤</span>,
       label: 'Facebook',
       desc: 'Open Facebook profile',
-      color: 'bg-blue-600',
-      lightBg: 'bg-blue-50 border-blue-100',
-      textColor: 'text-blue-700',
+      color: 'bg-brand',
+      lightBg: 'bg-brand-light border-brand-muted',
+      textColor: 'text-brand-hover',
       available: true,
       href: facebook,
       external: true,
@@ -169,9 +169,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">🐦</span>,
       label: 'X (Twitter)',
       desc: twitter.replace('https://x.com/', '@').replace('https://twitter.com/', '@'),
-      color: 'bg-gray-800',
-      lightBg: 'bg-gray-50 border-gray-200',
-      textColor: 'text-gray-800',
+      color: 'bg-footer-border',
+      lightBg: 'bg-surface-sunken border-edge',
+      textColor: 'text-heading',
       available: true,
       href: twitter,
       external: true,
@@ -186,7 +186,7 @@ export default function GuideContactModal({
       {/* 트리거 버튼 */}
       <button
         onClick={() => setOpen(true)}
-        className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white rounded-xl py-4 text-base font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+        className="w-full bg-gradient-to-r from-gold-light to-gold hover:from-gold hover:to-gold text-white rounded-xl py-4 text-base font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
       >
         <MessageCircle className="w-5 h-5" />
         Contact This Guide
@@ -241,13 +241,13 @@ export default function GuideContactModal({
                       onChange={e => setEmailMsg(e.target.value)}
                       placeholder={`Hi ${guideName}, I'm interested in hiring you as a guide for my trip to...`}
                       rows={5}
-                      className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-400"
+                      className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple"
                       autoFocus
                     />
                     <button
                       onClick={handleSendEmail}
                       disabled={sending || !emailMsg.trim()}
-                      className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                      className="w-full bg-purple hover:brightness-95 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
                     >
                       <Send className="w-4 h-4" />
                       {sending ? 'Sending...' : 'Send Message'}
@@ -270,7 +270,7 @@ export default function GuideContactModal({
                           <p className="text-xs text-hint truncate mt-0.5">{method.desc}</p>
                         )}
                         {method.loginRequired && (
-                          <p className="text-xs text-orange-500 mt-0.5">Login required</p>
+                          <p className="text-xs text-gold mt-0.5">Login required</p>
                         )}
                       </div>
                       <ExternalLink className={`w-4 h-4 ${method.textColor} opacity-40 group-hover:opacity-100 shrink-0`} />

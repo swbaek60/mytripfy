@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 
@@ -16,7 +16,8 @@ export default async function PrivacyPage({
 }) {
   const { locale } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   const t = await getTranslations({ locale, namespace: 'Privacy' })
 
   const sections = [

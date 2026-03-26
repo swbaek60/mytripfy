@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
@@ -47,7 +47,8 @@ export default async function CompanionsPage({
   const { locale } = await params
   const { country, purpose, q: searchQuery } = await searchParams
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   const t = await getTranslations({ locale, namespace: 'Companions' })
 
   const headersList = await headers()
@@ -131,7 +132,7 @@ export default async function CompanionsPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/companions" />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -188,7 +189,7 @@ export default async function CompanionsPage({
 
         {/* Posts Grid */}
         {posts && posts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {posts.map((post) => {
               const country = getCountryByCode(post.destination_country)
               const profile = post.profiles as Record<string, unknown>
@@ -199,7 +200,7 @@ export default async function CompanionsPage({
 
               return (
                 <Link key={post.id} href={`/${locale}/companions/${post.id}`}>
-                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-transparent hover:border-edge-brand h-full flex flex-col overflow-hidden">
+                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border border-edge/60 hover:border-edge-brand h-full flex flex-col overflow-hidden">
 
                     {/* Cover Image */}
                     {post.cover_image ? (
@@ -207,7 +208,7 @@ export default async function CompanionsPage({
                         <img src={post.cover_image} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                       </div>
                     ) : (
-                      <div className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center gap-2 px-4 py-4">
+                      <div className="w-full bg-gradient-to-r from-brand to-indigo flex items-center justify-center gap-2 px-4 py-4">
                         <CountryFlag code={post.destination_country} size="sm" className="drop-shadow" />
                         <span className="text-white text-base font-bold opacity-90 tracking-wide">
                           {country?.name || post.destination_country}
@@ -281,7 +282,7 @@ export default async function CompanionsPage({
                     </div>
 
                     {/* Footer: Profile + App count */}
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge">
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge/60">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-brand-muted flex items-center justify-center text-sm">
                           {(profile?.avatar_url as string) ? (

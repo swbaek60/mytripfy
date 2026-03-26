@@ -77,10 +77,10 @@ export default function ApplyAsGuideButton({
           onChange={e => setMessage(e.target.value)}
           placeholder="Introduce yourself and your guide experience..."
           rows={4}
-          className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold"
         />
         <div className="flex gap-3">
-          <Button onClick={handleApply} disabled={loading} className="flex-1 bg-amber-500 hover:bg-amber-600 rounded-xl text-white">
+          <Button onClick={handleApply} disabled={loading} className="flex-1 bg-gold hover:brightness-110 rounded-xl text-white">
             {loading ? 'Submitting...' : 'Submit Application'}
           </Button>
           <Button variant="outline" onClick={() => setShowForm(false)} className="rounded-xl">Cancel</Button>
@@ -90,7 +90,7 @@ export default function ApplyAsGuideButton({
   }
 
   return (
-    <Button onClick={() => setShowForm(true)} className="w-full bg-amber-500 hover:bg-amber-600 rounded-xl py-6 text-lg font-bold text-white">
+    <Button onClick={() => setShowForm(true)} className="w-full bg-gold hover:brightness-110 rounded-xl py-6 text-lg font-bold text-white">
       Apply as Guide
     </Button>
   )

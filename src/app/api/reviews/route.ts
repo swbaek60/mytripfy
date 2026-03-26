@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const profileId = await getProfileId(clerkUserId)
     if (!profileId) return NextResponse.json({ error: 'Profile not found' }, { status: 401 })
 
-    const { revieweeId, rating, content } = await req.json()
+    const { revieweeId, rating, content, postId, tags } = await req.json()
     if (!revieweeId || !rating) {
       return NextResponse.json({ error: 'Missing revieweeId or rating' }, { status: 400 })
     }
@@ -34,6 +34,8 @@ export async function POST(req: Request) {
       reviewee_id: revieweeId,
       rating,
       content: content?.trim() || null,
+      post_id: postId || null,
+      tags: tags && tags.length > 0 ? tags : null,
     }).select().single()
 
     if (error) {

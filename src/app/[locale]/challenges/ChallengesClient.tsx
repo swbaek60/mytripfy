@@ -86,11 +86,11 @@ export default function ChallengesClient({
     <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
       {/* Hero / Progress */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-purple to-indigo rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold mb-1">🏆 Bucket List 100</h1>
-            <p className="text-purple-200 text-sm">Complete travel challenges, earn badges & become a legend.</p>
+            <p className="text-white/80 text-sm">Complete travel challenges, earn badges & become a legend.</p>
           </div>
           <div className="text-right">
             <div className="text-4xl mb-1">{badge.emoji}</div>
@@ -161,19 +161,19 @@ export default function ChallengesClient({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="🔍  Search challenges..."
-              className="w-full rounded-xl border border-edge bg-surface px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+              className="w-full rounded-xl border border-edge bg-surface px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple shadow-sm"
             />
             <div className="flex gap-2 overflow-x-auto pb-1">
               <button onClick={() => setActiveCategory('all')}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  activeCategory === 'all' ? 'bg-purple text-white border-purple' : 'bg-surface text-body border-edge hover:border-purple-300'
+                  activeCategory === 'all' ? 'bg-purple text-white border-purple' : 'bg-surface text-body border-edge hover:border-purple-light'
                 }`}>
                 All Categories
               </button>
               {ALL_CATEGORIES.map(cat => (
                 <button key={cat} onClick={() => setActiveCategory(cat)}
                   className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    activeCategory === cat ? 'bg-purple text-white border-purple' : 'bg-surface text-body border-edge hover:border-purple-300'
+                    activeCategory === cat ? 'bg-purple text-white border-purple' : 'bg-surface text-body border-edge hover:border-purple-light'
                   }`}>
                   {CATEGORY_LABELS[cat]}
                 </button>
@@ -183,7 +183,7 @@ export default function ChallengesClient({
               {['all', 'easy', 'medium', 'hard', 'legendary'].map(d => (
                 <button key={d} onClick={() => setActiveDifficulty(d)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    activeDifficulty === d ? 'bg-gray-800 text-white border-gray-800' : 'bg-surface text-subtle border-edge hover:border-gray-400'
+                    activeDifficulty === d ? 'bg-footer-border text-white border-footer-border' : 'bg-surface text-subtle border-edge hover:border-subtle'
                   }`}>
                   {d === 'all' ? 'All Levels' : DIFFICULTY_LABELS[d as keyof typeof DIFFICULTY_LABELS].label}
                 </button>
@@ -210,7 +210,7 @@ export default function ChallengesClient({
                       ? isAuto
                         ? 'bg-brand-light border-edge-brand shadow-sm cursor-default'
                         : 'bg-success-light border-success shadow-sm'
-                      : 'bg-surface border-edge hover:border-purple-200 hover:shadow-sm'
+                      : 'bg-surface border-edge hover:border-purple-light hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -320,7 +320,7 @@ export default function ChallengesClient({
       )}
 
       {!userId && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-5 py-3 rounded-full shadow-xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-footer-bg text-white text-sm px-5 py-3 rounded-full shadow-xl">
           <Link href={`/${locale}/login`} className="font-medium hover:underline">Log in</Link> to track your challenges 🏆
         </div>
       )}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +11,8 @@ export async function POST(req: Request) {
 
     // 현재 로그인 사용자 확인
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // 호스트인지 확인

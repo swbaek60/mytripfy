@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
 
 /** 그룹 채팅 메시지 목록 (참여자만, RLS 우회로 등록자/신청자 동일 결과) */
 export async function GET(req: Request) {
@@ -9,7 +9,8 @@ export async function GET(req: Request) {
     if (!chatId) return NextResponse.json({ error: 'Missing chatId' }, { status: 400 })
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const admin = createAdminClient()

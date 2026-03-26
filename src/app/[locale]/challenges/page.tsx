@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import { getDisputeLabels } from '@/data/dispute-labels'
@@ -33,7 +33,8 @@ export default async function ChallengesPage({
   const L = getDisputeLabels(locale)
   const t = await getTranslations({ locale, namespace: 'ChallengesPage' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   // 카테고리별 내 완료 수 조회
   let certCountByCategory: Record<string, number> = {}
@@ -60,7 +61,7 @@ export default async function ChallengesPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/challenges" />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
         {/* 딴지걸기 시스템 배너 */}
         <div className="bg-amber-light border border-amber-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
@@ -88,9 +89,9 @@ export default async function ChallengesPage({
         </div>
 
         {/* 히어로 */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-8 text-white shadow-lg">
-          <h1 className="text-3xl font-extrabold mb-2">🏆 {t('world100Title')}</h1>
-          <p className="text-purple-200 mb-6">
+        <div className="bg-gradient-to-r from-brand to-indigo rounded-2xl p-8 text-white shadow-lg">
+          <h1 className="text-3xl font-extrabold mb-2">{t('world100Title')}</h1>
+          <p className="text-blue-200/90 mb-6">
             {t('subtitle')}
           </p>
 
@@ -126,7 +127,7 @@ export default async function ChallengesPage({
             </div>
           ) : (
             <Link href={`/${locale}/login`}>
-              <button className="bg-surface text-purple font-bold px-6 py-2.5 rounded-full text-sm hover:bg-purple-light transition-colors">
+              <button className="bg-white text-brand font-bold px-6 py-2.5 rounded-full text-sm hover:bg-brand-light transition-colors">
                 {t('loginToTrack')}
               </button>
             </Link>
@@ -142,7 +143,7 @@ export default async function ChallengesPage({
               const pct = Math.round((done / 100) * 100)
               return (
                 <Link key={cat.key} href={`/${locale}/challenges/${cat.key}`}>
-                  <div className="bg-surface rounded-2xl p-4 border-2 border-transparent hover:border-purple-300 hover:shadow-md transition-all cursor-pointer h-full">
+                  <div className="bg-surface rounded-2xl p-4 border border-edge/60 hover:border-brand/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                     <div className="text-3xl mb-2">{cat.emoji}</div>
                     <p className="font-bold text-heading text-sm leading-tight">{cat.title}</p>
                     <p className="text-xs text-hint mt-0.5 mb-3">{cat.desc}</p>
@@ -150,7 +151,7 @@ export default async function ChallengesPage({
                       <>
                         <div className="w-full bg-surface-sunken rounded-full h-1.5 mb-1">
                           <div
-                            className="bg-purple h-1.5 rounded-full"
+                            className="bg-brand h-1.5 rounded-full"
                             style={{ width: `${pct}%` }}
                           />
                         </div>

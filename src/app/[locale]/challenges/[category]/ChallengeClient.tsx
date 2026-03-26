@@ -238,7 +238,7 @@ export default function ChallengeClient({
           placeholder="Search..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-surface"
+          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple/50 bg-surface"
           suppressHydrationWarning
         />
         <div className="flex items-center gap-3 text-sm text-subtle shrink-0">
@@ -278,8 +278,8 @@ export default function ChallengeClient({
               key={challenge.id}
               className={`group bg-surface rounded-2xl overflow-hidden border-2 transition-all duration-200 flex flex-col
                 ${isCompleted
-                  ? 'border-purple-300 shadow-md shadow-purple-100'
-                  : 'border-edge hover:border-purple-200 hover:shadow-md'}`}
+                  ? 'border-purple/40 shadow-md shadow-purple/20'
+                  : 'border-edge hover:border-purple/30 hover:shadow-md'}`}
             >
               {/* ── Photo area ── */}
               <div className="relative">
@@ -384,7 +384,7 @@ export default function ChallengeClient({
                         if (!userId) { router.push(`/${locale}/login`); return }
                         setSelectedChallenge(challenge)
                       }}
-                      className="w-full py-2 rounded-xl border-2 border-dashed border-purple-200 text-purple text-xs font-bold hover:bg-purple-light hover:border-purple-400 transition-colors"
+                      className="w-full py-2 rounded-xl border-2 border-dashed border-purple/30 text-purple text-xs font-bold hover:bg-purple-light hover:border-purple transition-colors"
                     >
                       {t(getVerifyKey(challenge.category))}
                     </button>
@@ -412,8 +412,8 @@ export default function ChallengeClient({
                       onClick={() => toggleWish(challenge.id)}
                       className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                         wishIds.has(challenge.id)
-                          ? 'bg-amber-light text-amber-700 border border-amber-200'
-                          : 'text-hint hover:text-amber-600 hover:bg-amber-light/50 border border-transparent'
+                          ? 'bg-gold-light text-gold border border-gold/20'
+                          : 'text-hint hover:text-gold hover:bg-gold-light/50 border border-transparent'
                       }`}
                     >
                       {wishIds.has(challenge.id) ? '♥' : '♡'} {t(getWishKey(challenge.category))}
@@ -442,10 +442,10 @@ export default function ChallengeClient({
             </h2>
             <span className="text-sm text-hint font-normal">{commCerts.length}건</span>
             {!userId && (
-              <span className="text-xs text-amber-600 bg-amber-light border border-amber-200 px-2 py-1 rounded-full">로그인하면 딴지걸기 가능</span>
+              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full">로그인하면 딴지걸기 가능</span>
             )}
             {userId && myCertCount < 3 && (
-              <span className="text-xs text-amber-600 bg-amber-light border border-amber-200 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> 인증 3개 이상이면 딴지걸기 가능</span>
+              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> 인증 3개 이상이면 딴지걸기 가능</span>
             )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -458,9 +458,9 @@ export default function ChallengeClient({
                   key={`${cert.user_id}-${cert.challenge_id}`}
                   className={`group relative rounded-2xl overflow-hidden bg-surface border-2 shadow-sm hover:shadow-md transition-all ${
                     cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
-                    cert.dispute_status === 'flagged' ? 'border-amber-200' :
+                    cert.dispute_status === 'flagged' ? 'border-gold/20' :
                     cert.dispute_status === 'invalidated' ? 'border-red-200 opacity-60' :
-                    'border-edge hover:border-purple-200'
+                    'border-edge hover:border-purple/30'
                   }`}
                 >
                   {/* 사진 영역 */}
@@ -512,7 +512,7 @@ export default function ChallengeClient({
                     {cert.dispute_status !== 'clean' && (
                       <div className={`absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                         cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
-                        cert.dispute_status === 'flagged' ? 'bg-amber-400 text-white' :
+                        cert.dispute_status === 'flagged' ? 'bg-gold text-white' :
                         'bg-danger text-white'
                       }`}>
                         {cert.dispute_status === 'reviewing' ? '⚖️ 심사중' :
@@ -533,7 +533,7 @@ export default function ChallengeClient({
 
                     {/* 유저 정보 */}
                     <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-200 flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-light flex items-center justify-center">
                         {cert.avatar_url
                           ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
                           : <span className="text-[9px] font-bold text-purple">{cert.full_name[0]?.toUpperCase()}</span>
@@ -574,7 +574,7 @@ export default function ChallengeClient({
             <div className="overflow-y-auto p-6">
               {certViewLoading ? (
                 <div className="text-center py-12 text-hint">
-                  <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <div className="w-8 h-8 border-2 border-purple/60 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                   불러오는 중...
                 </div>
               ) : certViewData.length === 0 ? (
@@ -587,7 +587,7 @@ export default function ChallengeClient({
                   {certViewData.map(cert => {
                     const canFlag = cert.user_id !== userId && !cert.already_disputed && cert.dispute_status !== 'reviewing' && cert.dispute_status !== 'invalidated'
                     return (
-                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-purple-200 shadow-sm hover:shadow-md transition-all">
+                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-purple/30 shadow-sm hover:shadow-md transition-all">
                         <div className="relative h-36 cursor-zoom-in" onClick={() => setExpandedImg(cert.image_url)}>
                           <img src={cert.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -595,7 +595,7 @@ export default function ChallengeClient({
                           {cert.dispute_status !== 'clean' && (
                             <div className={`absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                               cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
-                              cert.dispute_status === 'flagged' ? 'bg-amber-400 text-white' : 'bg-danger text-white'
+                              cert.dispute_status === 'flagged' ? 'bg-gold text-white' : 'bg-danger text-white'
                             }`}>
                               {cert.dispute_status === 'reviewing' ? '⚖️ 심사중' : cert.dispute_status === 'flagged' ? '🚨 신고' : '❌ 무효'}
                             </div>
@@ -645,7 +645,7 @@ export default function ChallengeClient({
                             </Link>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-200 flex items-center justify-center">
+                            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-light flex items-center justify-center">
                               {cert.avatar_url
                                 ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
                                 : <span className="text-[9px] font-bold text-purple">{cert.full_name[0]?.toUpperCase()}</span>
@@ -747,7 +747,7 @@ export default function ChallengeClient({
                     <div className="text-danger text-sm mb-4 bg-danger-light p-3 rounded-xl">{error}</div>
                   )}
 
-                  <div className="border-2 border-dashed border-purple-200 rounded-2xl p-8 hover:bg-purple-light transition-colors relative cursor-pointer group">
+                  <div className="border-2 border-dashed border-purple/30 rounded-2xl p-8 hover:bg-purple-light transition-colors relative cursor-pointer group">
                     <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
                     <div className="text-sm font-bold text-purple">Upload your photo</div>
                     <div className="text-xs text-hint mt-1">{t(getVerifyHintKey(selectedChallenge.category))}</div>

@@ -23,7 +23,10 @@ export function createAdminClient() {
 }
 
 export function getAdminClientSafe() {
-  if (!supabaseServiceKey) return null
+  if (!supabaseServiceKey) {
+    console.error('[supabase/server] SUPABASE_SERVICE_ROLE_KEY not set — admin client unavailable')
+    return null
+  }
   return createSupabaseClient(supabaseUrl, supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
@@ -31,59 +34,127 @@ export function getAdminClientSafe() {
 
 async function resolveProfile(clerkUserId: string): Promise<{ id: string; email: string } | null> {
   const admin = getAdminClientSafe()
-  if (!admin) return null
+  if (!admin) {
+    console.error('[resolveProfile] admin client unavailable, SUPABASE_SERVICE_ROLE_KEY missing')
+    return null
+  }
 
-  const { data: existing } = await admin
+  // 1. clerk_id 로 기존 프로필 조회
+  const { data: existing, error: existingErr } = await admin
     .from('profiles')
     .select('id, email')
     .eq('clerk_id', clerkUserId)
     .maybeSingle()
 
+  if (existingErr) {
+    console.error('[resolveProfile] clerk_id lookup error:', existingErr.message)
+  }
   if (existing) return { id: existing.id, email: existing.email ?? '' }
 
+  // 2. Clerk 사용자 정보 조회 (email 기반 매핑용)
   let clerkUserObj: Awaited<ReturnType<typeof currentUser>> = null
   try {
     clerkUserObj = await currentUser()
-  } catch {
-    return null
+  } catch (e) {
+    console.error('[resolveProfile] currentUser() failed:', e)
+    // currentUser 실패해도 clerkUserId는 있으므로 이메일 없이 프로필 생성 시도
   }
-  if (!clerkUserObj) return null
 
-  const email = clerkUserObj.emailAddresses?.[0]?.emailAddress ?? ''
+  const email = clerkUserObj?.emailAddresses?.[0]?.emailAddress ?? ''
 
+  // 3. 이메일로 기존 프로필 조회
   if (email) {
-    const { data: byEmail } = await admin
+    const { data: byEmail, error: emailErr } = await admin
       .from('profiles')
       .select('id, email')
       .eq('email', email)
       .maybeSingle()
 
+    if (emailErr) {
+      console.error('[resolveProfile] email lookup error:', emailErr.message)
+    }
     if (byEmail) {
-      await admin
+      // clerk_id 연결
+      const { error: updateErr } = await admin
         .from('profiles')
-        .update({ clerk_id: clerkUserId, email, avatar_url: clerkUserObj.imageUrl ?? undefined })
+        .update({
+          clerk_id: clerkUserId,
+          ...(clerkUserObj?.imageUrl && { avatar_url: clerkUserObj.imageUrl }),
+        })
         .eq('id', byEmail.id)
+      if (updateErr) {
+        console.error('[resolveProfile] clerk_id link error:', updateErr.message)
+      }
       return { id: byEmail.id, email }
     }
   }
 
+  // 4. 신규 프로필 생성
   try {
-    const { data: created } = await admin
+    const { data: created, error: insertErr } = await admin
       .from('profiles')
       .insert({
         clerk_id: clerkUserId,
         email: email || null,
-        full_name: clerkUserObj.fullName ?? null,
-        avatar_url: clerkUserObj.imageUrl ?? null,
+        full_name: clerkUserObj?.fullName ?? null,
+        avatar_url: clerkUserObj?.imageUrl ?? null,
         preferred_locale: 'en',
       })
       .select('id, email')
       .single()
+
+    if (insertErr) {
+      // 이메일 중복으로 INSERT 실패 시 upsert 재시도
+      if (insertErr.code === '23505' && email) {
+        const { data: retried } = await admin
+          .from('profiles')
+          .select('id, email')
+          .eq('email', email)
+          .maybeSingle()
+        if (retried) {
+          await admin.from('profiles').update({ clerk_id: clerkUserId }).eq('id', retried.id)
+          return { id: retried.id, email }
+        }
+      }
+      console.error('[resolveProfile] profile insert failed:', insertErr.message, 'code:', insertErr.code)
+      return null
+    }
+
     return created ? { id: created.id, email: created.email ?? '' } : null
   } catch (err) {
-    console.error('[resolveProfile] profile create failed:', err)
+    console.error('[resolveProfile] unexpected error:', err)
     return null
   }
+}
+
+/**
+ * Clerk auth()를 직접 사용하여 현재 로그인한 사용자의 Supabase 프로필을 반환.
+ * shim에 의존하지 않으므로 가장 신뢰할 수 있는 방식.
+ * 비로그인 시 null 반환.
+ */
+export async function getAuthUser(): Promise<{
+  clerkUserId: string
+  profileId: string
+  email: string
+} | null> {
+  let clerkUserId: string | null = null
+  try {
+    const result = await auth()
+    clerkUserId = result.userId ?? null
+  } catch (e) {
+    console.error('[getAuthUser] auth() failed:', e)
+    return null
+  }
+
+  if (!clerkUserId) return null
+
+  const profile = await resolveProfile(clerkUserId)
+  if (!profile) {
+    console.warn('[getAuthUser] resolveProfile returned null for clerkUserId:', clerkUserId)
+    return null
+  }
+
+  return { clerkUserId, profileId: profile.id, email: profile.email }
 }
 
 /**

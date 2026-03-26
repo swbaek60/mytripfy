@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -21,7 +21,8 @@ export default async function ProfilePage({
   const supabase = await createClient()
 
   // 로그인 확인
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   // 프로필 조회
@@ -145,7 +146,7 @@ export default async function ProfilePage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ── 빠른 편집 배너 (최상단) ── */}
         <Link href={`/${locale}/profile/edit`}>
@@ -171,11 +172,7 @@ export default async function ProfilePage({
         <div className="mb-6">
           <ProfileCompleteness
             locale={locale}
-            emailVerified={
-              !!user.email_confirmed_at ||
-              (['google', 'apple', 'facebook'].includes((user.app_metadata?.provider as string) ?? '') ||
-                ['google', 'apple', 'facebook'].includes(user.identities?.[0]?.provider ?? ''))
-            }
+            emailVerified={!!(profile?.email_verified)}
             profile={{
               full_name: profile?.full_name,
               bio: profile?.bio,

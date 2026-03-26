@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 // DELETE /api/notifications?id=xxx        → 개별 삭제
@@ -7,7 +7,8 @@ import { revalidatePath } from 'next/cache'
 export async function DELETE(req: Request) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(req.url)

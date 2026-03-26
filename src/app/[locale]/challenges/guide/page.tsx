@@ -1,6 +1,6 @@
 import Header from '@/components/Header'
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { getDisputeLabels } from '@/data/dispute-labels'
 import { getTranslations } from 'next-intl/server'
 
@@ -13,7 +13,8 @@ export default async function ChallengeGuidePage({
   const L = getDisputeLabels(locale)
   const t = await getTranslations({ locale, namespace: 'ChallengeGuide' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   return (
     <div className="min-h-screen bg-surface-sunken">
@@ -36,7 +37,7 @@ export default async function ChallengeGuidePage({
           </p>
           <div className="mt-6 flex justify-center gap-3 flex-wrap">
             <Link href={`/${locale}/challenges/feed`}>
-              <button className="bg-purple text-white font-bold px-6 py-2.5 rounded-full text-sm hover:bg-purple-700 transition-colors">
+              <button className="bg-purple text-white font-bold px-6 py-2.5 rounded-full text-sm hover:brightness-95 transition-colors">
                 {t('communityFeedCta')}
               </button>
             </Link>
@@ -53,11 +54,11 @@ export default async function ChallengeGuidePage({
           <h2 className="text-xl font-bold text-heading mb-6 text-center">{L.guide.howItWorksTitle}</h2>
           <div className="relative">
             {/* 연결선 */}
-            <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-purple-200 to-red-200 hidden sm:block" />
+            <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-purple-light to-red-200 hidden sm:block" />
             <div className="space-y-4">
               {[
-                { step: '01', icon: '🔍', color: 'bg-purple-light border-purple-200', badge: 'text-purple bg-purple-light', titleKey: 'step1Title' as const, descKey: 'step1Desc' as const },
-                { step: '02', icon: '🚩', color: 'bg-amber-light border-amber-200', badge: 'text-amber-600 bg-amber-light', titleKey: 'step2Title' as const, descKey: 'step2Desc' as const },
+                { step: '01', icon: '🔍', color: 'bg-purple-light border-purple-light', badge: 'text-purple bg-purple-light', titleKey: 'step1Title' as const, descKey: 'step1Desc' as const },
+                { step: '02', icon: '🚩', color: 'bg-gold-light border-gold/30', badge: 'text-gold bg-gold-light', titleKey: 'step2Title' as const, descKey: 'step2Desc' as const },
                 { step: '03', icon: '⚖️', color: 'bg-brand-light border-edge-brand', badge: 'text-brand bg-brand-muted', titleKey: 'step3Title' as const, descKey: 'step3Desc' as const },
                 { step: '04', icon: '🏛️', color: 'bg-success-light border-green-200', badge: 'text-success bg-success-light', titleKey: 'step4Title' as const, descKey: 'step4Desc' as const },
               ].map((item, i) => (
@@ -138,8 +139,8 @@ export default async function ChallengeGuidePage({
               </thead>
               <tbody className="divide-y divide-edge">
                 {[
-                  { countKey: 'penalty1Count' as const, penaltyKey: 'penalty1Text' as const, severity: 'text-amber-600' },
-                  { countKey: 'penalty2Count' as const, penaltyKey: 'penalty2Text' as const, severity: 'text-orange-600' },
+                  { countKey: 'penalty1Count' as const, penaltyKey: 'penalty1Text' as const, severity: 'text-gold' },
+                  { countKey: 'penalty2Count' as const, penaltyKey: 'penalty2Text' as const, severity: 'text-gold font-semibold' },
                   { countKey: 'penalty3Count' as const, penaltyKey: 'penalty3Text' as const, severity: 'text-danger' },
                   { countKey: 'penalty4Count' as const, penaltyKey: 'penalty4Text' as const, severity: 'text-danger font-bold' },
                 ].map((row, i) => (
@@ -196,10 +197,10 @@ export default async function ChallengeGuidePage({
         </section>
 
         {/* ── CTA ──────────────────────────────────────── */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-8 text-white text-center">
+        <div className="bg-gradient-to-r from-purple to-indigo rounded-2xl p-8 text-white text-center">
           <div className="text-4xl mb-3">🛡️</div>
           <h2 className="text-2xl font-extrabold mb-2">{L.guide.ctaTitle}</h2>
-          <p className="text-purple-200 mb-6 text-sm leading-relaxed">
+          <p className="text-white/80 mb-6 text-sm leading-relaxed">
             {L.guide.ctaSub}
           </p>
           <Link href={`/${locale}/challenges/feed`}>

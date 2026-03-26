@@ -30,7 +30,7 @@ export default function SocialLoginButtons({ locale }: { locale: string }) {
       </form>
 
       <form onSubmit={(e) => handleSubmit(e, 'apple')} className="block">
-        <button type="submit" className={`${btnBase} border-gray-900 bg-gray-900 hover:bg-black text-white`}>
+        <button type="submit" className={`${btnBase} border-heading bg-heading hover:brightness-90 text-white`}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="white" className="shrink-0">
             <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.4c1.32.07 2.23.7 3 .75 1.14-.23 2.24-.89 3.46-.84 1.46.07 2.56.63 3.27 1.66-3.02 1.78-2.3 5.73.57 6.84-.55 1.5-1.27 3-2.3 4.47zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
           </svg>

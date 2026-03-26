@@ -74,7 +74,7 @@ export default function SponsorsFilterBar({
         onKeyDown={e => e.key === 'Enter' && submitSearch()}
         className="text-sm border border-edge rounded-xl px-3 py-2 w-44"
       />
-      <button type="button" onClick={submitSearch} className="text-sm px-3 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200">
+      <button type="button" onClick={submitSearch} className="text-sm px-3 py-2 rounded-xl bg-surface-sunken hover:bg-surface-hover">
         {t('searchBtn')}
       </button>
       <div ref={countryRef} className="relative">
@@ -104,10 +104,10 @@ export default function SponsorsFilterBar({
                   value={countryQuery}
                   onChange={e => setCountryQuery(e.target.value)}
                   placeholder="Type to search (e.g. k, Korea)..."
-                  className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-edge focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-edge focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 {countryQuery && (
-                  <button type="button" onClick={() => setCountryQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-gray-600">
+                  <button type="button" onClick={() => setCountryQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-body">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -117,7 +117,7 @@ export default function SponsorsFilterBar({
               <button
                 type="button"
                 onClick={() => { setFilter('country', null); setCountryOpen(false); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${!currentCountry ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-body'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${!currentCountry ? 'bg-teal-light text-teal font-medium' : 'text-body'}`}
               >
                 <span className="w-5 h-[15px] flex items-center justify-center text-xs text-hint">—</span>
                 {t('filterCountry')} · {t('allTypes')}
@@ -128,7 +128,7 @@ export default function SponsorsFilterBar({
                     key={c.code}
                     type="button"
                     onClick={() => { setFilter('country', c.code); setCountryOpen(false); }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${currentCountry === c.code ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-body'}`}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${currentCountry === c.code ? 'bg-teal-light text-teal font-medium' : 'text-body'}`}
                   >
                     <CountryFlag code={c.code} size="sm" />
                     <span className="truncate">{c.name}</span>
@@ -145,7 +145,7 @@ export default function SponsorsFilterBar({
         <button
           type="button"
           onClick={() => setFilter('type', '')}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium ${!currentType ? 'bg-emerald-600 text-white' : 'bg-surface-sunken text-body hover:bg-gray-200'}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium ${!currentType ? 'bg-teal text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'}`}
         >
           {t('allTypes')}
         </button>
@@ -154,7 +154,7 @@ export default function SponsorsFilterBar({
             key={tp}
             type="button"
             onClick={() => setFilter('type', currentType === tp ? '' : tp)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium ${currentType === tp ? 'bg-emerald-600 text-white' : 'bg-surface-sunken text-body hover:bg-gray-200'}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium ${currentType === tp ? 'bg-teal text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'}`}
           >
             {t(tp)}
           </button>

@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,8 @@ export default async function TripsPage({
 }) {
   const { locale } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const [myTripsRes, publicTripsRes] = await Promise.all([
     user

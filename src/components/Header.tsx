@@ -5,8 +5,6 @@ import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/utils/supabase/server'
 import HeaderNav from '@/components/HeaderNav'
 import { currentUser } from '@clerk/nextjs/server'
-import type { User } from '@supabase/supabase-js'
-
 export default async function Header({
   locale,
   currentPath = '',
@@ -14,7 +12,8 @@ export default async function Header({
 }: {
   locale: string
   currentPath?: string
-  user?: User | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user?: { id?: string; email?: string } | null | any
 }) {
   const t = await getTranslations({ locale, namespace: 'Nav' })
 
@@ -69,8 +68,8 @@ export default async function Header({
   )
 
   return (
-    <header className="w-full bg-surface border-b border-edge sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <header className="w-full bg-white/80 backdrop-blur-lg border-b border-edge/60 sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <HeaderNav
           logoSlot={logoSlot}
           locale={locale}

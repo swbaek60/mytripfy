@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2, X, Check } from 'lucide-react'
 
@@ -24,16 +23,21 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
   const handleSave = async () => {
     if (rating === 0) return
     setSaving(true)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('reviews')
-      .update({ rating, content: content.trim() || null })
-      .eq('id', reviewId)
-    setSaving(false)
-    if (!error) {
-      setEditing(false)
-      router.refresh()
-    } else {
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId, rating, content: content.trim() || null }),
+      })
+      setSaving(false)
+      if (res.ok) {
+        setEditing(false)
+        router.refresh()
+      } else {
+        alert('수정에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+      }
+    } catch {
+      setSaving(false)
       alert('수정에 실패했습니다. 잠시 후 다시 시도해 주세요.')
     }
   }
@@ -41,15 +45,16 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
   const handleDelete = async () => {
     if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) return
     setDeleting(true)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', reviewId)
-    setDeleting(false)
-    if (!error) {
-      router.refresh()
-    } else {
+    try {
+      const res = await fetch(`/api/reviews?reviewId=${reviewId}`, { method: 'DELETE' })
+      setDeleting(false)
+      if (res.ok) {
+        router.refresh()
+      } else {
+        alert('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+      }
+    } catch {
+      setDeleting(false)
       alert('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.')
     }
   }

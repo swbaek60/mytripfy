@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import ChallengeClient from './ChallengeClient'
@@ -42,7 +42,8 @@ export default async function CategoryChallengePage({
 }) {
   const { locale, category } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const catInfo = CATEGORY_MAP[category]
   if (!catInfo) notFound()
@@ -117,7 +118,7 @@ export default async function CategoryChallengePage({
 
       {/* Header Banner */}
       <section className="bg-surface border-b border-edge">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <Link href={`/${locale}/challenges`} className="text-sm text-subtle hover:text-purple mb-4 inline-block">
             ← Back to Challenges
           </Link>
@@ -147,7 +148,7 @@ export default async function CategoryChallengePage({
         </div>
       </section>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <ChallengeClient
           userId={user?.id}
           locale={locale}

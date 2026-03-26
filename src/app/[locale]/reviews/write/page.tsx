@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import ReviewForm from './ReviewForm'
@@ -17,7 +17,8 @@ export default async function WriteReviewPage({
   if (!userId) notFound()
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
   if (user.id === userId) redirect(`/${locale}/profile`)
 
@@ -40,7 +41,8 @@ export default async function WriteReviewPage({
   return (
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold text-heading mb-6 flex items-center gap-2">
           <PenLine className="w-6 h-6 text-purple" />
           {existingReview ? 'Edit My Review' : 'Write a Review'}
@@ -51,6 +53,7 @@ export default async function WriteReviewPage({
           locale={locale}
           existingReview={existingReview ?? null}
         />
+        </div>
       </main>
     </div>
   )

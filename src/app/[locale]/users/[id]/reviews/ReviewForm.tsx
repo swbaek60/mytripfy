@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
@@ -49,30 +48,35 @@ export default function ReviewForm({
     }
     setLoading(true)
     setError('')
-    const supabase = createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Please log in again.'); setLoading(false); return }
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          revieweeId,
+          postId: postId || null,
+          rating,
+          content: content.trim() || null,
+          tags: selectedTags.length > 0 ? selectedTags : null,
+        }),
+      })
+      const data = await res.json()
 
-    const { error: dbError } = await supabase.from('reviews').insert({
-      reviewer_id: user.id,
-      reviewee_id: revieweeId,
-      post_id: postId || null,
-      rating,
-      content: content.trim() || null,
-      tags: selectedTags.length > 0 ? selectedTags : null,
-    })
-
-    setLoading(false)
-    if (dbError) {
-      if (dbError.code === '23505') {
-        setError('You have already reviewed this person for this trip.')
+      setLoading(false)
+      if (!res.ok) {
+        if (res.status === 409 || data?.error?.includes('already')) {
+          setError('You have already reviewed this person for this trip.')
+        } else {
+          setError(data?.error || 'Failed to submit review. Please try again.')
+        }
       } else {
-        setError('Failed to submit review. Please try again.')
+        setSuccess(true)
+        router.refresh()
       }
-    } else {
-      setSuccess(true)
-      router.refresh()
+    } catch {
+      setLoading(false)
+      setError('Failed to submit review. Please try again.')
     }
   }
 

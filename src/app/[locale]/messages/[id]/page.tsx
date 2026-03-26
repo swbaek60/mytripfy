@@ -1,4 +1,4 @@
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import ChatRoom from './ChatRoom'
@@ -13,7 +13,8 @@ export default async function MessagePage({
   const { locale, id: otherUserId } = await params
   const { postId } = await searchParams
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
   if (user.id === otherUserId) redirect(`/${locale}/profile`)
 

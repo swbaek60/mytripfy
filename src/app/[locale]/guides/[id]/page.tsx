@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import Link from 'next/link'
@@ -35,7 +35,8 @@ export default async function GuideDetailPage({
 }) {
   const { locale, id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const { data: guide } = await supabase
     .from('profiles')
@@ -149,7 +150,8 @@ export default async function GuideDetailPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-3xl mx-auto space-y-6">
         <Link href={`/${locale}/guides`} className="text-sm text-subtle hover:text-brand flex items-center gap-1">
           ← Back to guides
         </Link>
@@ -157,7 +159,7 @@ export default async function GuideDetailPage({
         {/* Guide Profile Card */}
         <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {/* Cover */}
-          <div className="h-28 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 relative">
+          <div className="h-28 bg-gradient-to-r from-[#D4A853] via-[#E8B960] to-[#F5C563] relative">
             {/* 레벨 배지 (커버 우상단) */}
             <div
               className="absolute top-3 right-3 px-3 py-1 rounded-full text-white text-xs font-bold shadow-md"
@@ -206,7 +208,7 @@ export default async function GuideDetailPage({
               <div className="flex gap-2 flex-wrap mb-3">
                 {guide.email_verified && <span className="px-2 py-0.5 bg-success-light text-success text-xs rounded-full border border-green-200">✅ Email Verified</span>}
                 {guide.phone_verified && <span className="px-2 py-0.5 bg-brand-light text-brand-hover text-xs rounded-full border border-edge-brand">📱 Phone Verified</span>}
-                {guide.sns_verified && <span className="px-2 py-0.5 bg-purple-light text-purple text-xs rounded-full border border-purple-200">🔗 SNS Verified</span>}
+                {guide.sns_verified && <span className="px-2 py-0.5 bg-purple-light text-purple text-xs rounded-full border border-purple/20">🔗 SNS Verified</span>}
               </div>
             )}
 
@@ -264,7 +266,7 @@ export default async function GuideDetailPage({
           visitedCountries={visitedCountries}
           reviews={reviews}
         />
-
+        </div>
       </main>
     </div>
   )

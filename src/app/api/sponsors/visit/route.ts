@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 const VISIT_POINTS = 10
@@ -6,7 +6,8 @@ const VISIT_POINTS = 10
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const formData = await req.formData()

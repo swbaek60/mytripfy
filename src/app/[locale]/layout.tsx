@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "@/globals.css";
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
@@ -8,14 +8,17 @@ import {routing} from '@/i18n/routing';
 import {getFallbackMessages} from '@/i18n/request';
 import { CurrencyProvider } from '@/context/CurrencyContext';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const headingFont = Plus_Jakarta_Sans({
+  variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const bodyFont = Inter({
+  variable: "--font-body",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -103,7 +106,7 @@ export default async function LocaleLayout({
 
   return (
     <div
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
       data-locale={locale}
     >
       <NextIntlClientProvider locale={locale} messages={messages}>

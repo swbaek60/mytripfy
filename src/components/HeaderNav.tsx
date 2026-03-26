@@ -142,18 +142,21 @@ export default function HeaderNav({
       {/* ── 데스크탑 레이아웃: flex-1 으로 가운데 + 오른쪽 정렬 ── */}
       <div className="hidden md:flex flex-1 items-center justify-between">
         {/* 가운데 네비게이션 */}
-        <nav className="flex items-center gap-0.5 mx-auto">
+        <nav className="flex items-center gap-1 mx-auto">
           {navLinks.map(link => (
             <Link
               key={link.href}
               href={`/${locale}${link.href}`}
-              className={`px-4 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-colors ${
+              className={`relative px-4 py-2 text-sm font-medium transition-colors ${
                 isActive(link.href)
-                  ? 'bg-brand text-white'
-                  : 'text-body hover:bg-surface-hover hover:text-heading'
+                  ? 'text-brand font-semibold'
+                  : 'text-body hover:text-heading'
               }`}
             >
               {link.label}
+              {isActive(link.href) && (
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-brand rounded-full" />
+              )}
             </Link>
           ))}
         </nav>
@@ -202,26 +205,26 @@ export default function HeaderNav({
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-48 bg-surface rounded-2xl shadow-xl border border-edge py-1.5 z-50 overflow-hidden">
-                  {/* 사용자 정보 */}
-                  <div className="px-4 py-2.5 border-b border-edge">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-edge/60 py-2 z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-edge/60">
                     <p className="font-semibold text-heading text-sm truncate">{fullName || userEmail}</p>
-                    {fullName && <p className="text-xs text-hint truncate">{userEmail}</p>}
+                    {fullName && <p className="text-xs text-hint truncate mt-0.5">{userEmail}</p>}
                   </div>
-                  <div className="py-1">
+                  <div className="py-1.5">
                     <DropLink href={`/${locale}/profile`} icon={<User className="w-4 h-4" />} label={tProfile} onClick={() => setProfileOpen(false)} />
                     <DropLink href={`/${locale}/dashboard`} icon={<LayoutDashboard className="w-4 h-4" />} label={tDashboard} onClick={() => setProfileOpen(false)} />
                     <DropLink href={`/${locale}/bookmarks`} icon={<Bookmark className="w-4 h-4" />} label={tBookmarks} onClick={() => setProfileOpen(false)} />
                   </div>
-                  <div className="border-t border-edge py-1">
-                    <div className="flex items-center justify-between px-4 py-2 hover:bg-surface-hover transition-colors">
+                  <div className="mx-4 my-1 h-px bg-gold/20" />
+                  <div className="py-1">
+                    <div className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover transition-colors rounded-lg mx-1">
                       <span className="flex items-center gap-3 text-sm text-body">
                         <span className="text-hint">🌐</span>
                         Language
                       </span>
                       <LanguageSelector currentLocale={locale} compact userId={userId} />
                     </div>
-                    <div className="flex items-center justify-between px-4 py-2 hover:bg-surface-hover transition-colors">
+                    <div className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover transition-colors rounded-lg mx-1">
                       <span className="flex items-center gap-3 text-sm text-body">
                         <span className="text-hint">💱</span>
                         Currency
@@ -229,11 +232,12 @@ export default function HeaderNav({
                       <CurrencySelector compact />
                     </div>
                   </div>
-                  <div className="border-t border-edge py-1">
+                  <div className="mx-4 my-1 h-px bg-edge/60" />
+                  <div className="py-1">
                     <button
                       suppressHydrationWarning
                       onClick={() => signOut({ redirectUrl: `/${locale}` })}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-danger hover:bg-danger-light transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger-light transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       {tLogout}
@@ -261,22 +265,25 @@ export default function HeaderNav({
       </div>{/* end 데스크탑 flex-1 wrapper */}
 
       {/* ── 모바일 2열: 메인 메뉴 5개만, 가로 100%, 가운데 정렬 ── */}
-      <nav className="md:hidden flex w-full items-center justify-center gap-1 sm:gap-2 min-h-12 py-1 px-0">
+      <nav className="md:hidden flex w-full items-center justify-center gap-0.5 sm:gap-1 min-h-11 py-1 px-1">
         {navLinks.map(link => (
           <Link
             key={link.href}
             href={`/${locale}${link.href}`}
             title={link.label}
-            className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-0 flex-1 max-w-[4.5rem] rounded-lg transition-colors ${
+            className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-0 flex-1 max-w-[4.5rem] rounded-lg transition-colors ${
               isActive(link.href)
-                ? 'bg-brand text-white'
-                : 'text-subtle hover:bg-surface-hover hover:text-body'
+                ? 'text-brand'
+                : 'text-subtle hover:text-body'
             }`}
           >
             <span className="shrink-0">{navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}</span>
             <span className="text-[10px] sm:text-[11px] font-medium leading-tight truncate w-full text-center">
               {link.label}
             </span>
+            {isActive(link.href) && (
+              <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-brand rounded-full" />
+            )}
           </Link>
         ))}
       </nav>
@@ -293,30 +300,29 @@ export default function HeaderNav({
           />
 
           {/* 메뉴 패널 (오른쪽에서 슬라이드, 모바일 전체 높이·태블릿 적정 너비) */}
-          <div className="absolute right-0 top-0 bottom-0 w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-surface shadow-2xl flex flex-col overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-            {/* 메뉴 헤더 */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-edge">
+          <div className="absolute right-0 top-0 bottom-0 w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+            <div className="flex items-center justify-between px-5 py-5 border-b border-edge/60">
               {userId ? (
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-brand/20">
                     {avatarUrl
                       ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                       : initials}
                   </div>
                   <div>
                     <p className="font-semibold text-heading text-sm">{fullName || userEmail}</p>
-                    {fullName && <p className="text-xs text-hint">{userEmail}</p>}
+                    {fullName && <p className="text-xs text-hint mt-0.5">{userEmail}</p>}
                   </div>
                 </div>
               ) : (
-                <span className="font-bold text-heading">{tMenu}</span>
+                <span className="font-bold text-heading text-lg">{tMenu}</span>
               )}
               <button
                 suppressHydrationWarning
                 onClick={() => setMobileOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle"
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4.5 h-4.5" />
               </button>
             </div>
 

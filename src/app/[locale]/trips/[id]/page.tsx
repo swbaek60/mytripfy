@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import { getCountryByCode } from '@/data/countries'
 import ItineraryEditor from '@/components/ItineraryEditor'
@@ -14,7 +14,8 @@ export default async function TripDetailPage({
 }) {
   const { locale, id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const { data: trip } = await supabase
     .from('trips')

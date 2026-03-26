@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import Link from 'next/link'
@@ -14,7 +14,8 @@ export default async function BookmarksPage({
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Bookmarks' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   // 동행 북마크
@@ -58,7 +59,7 @@ export default async function BookmarksPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-8">
           <div>

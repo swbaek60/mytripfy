@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 const BENEFIT_TYPES = ['discount_percent', 'discount_fixed', 'free_item', 'free_drink', 'free_entry', 'bogo', 'other']
@@ -10,7 +10,8 @@ export async function PATCH(
   try {
     const { id } = await params
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: existing } = await supabase

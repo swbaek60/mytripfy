@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import { getCountryByCode } from '@/data/countries'
@@ -33,7 +33,8 @@ export default async function GuideRequestDetailPage({
 }) {
   const { locale, id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const { data: request } = await supabase
     .from('guide_requests')
@@ -69,7 +70,8 @@ export default async function GuideRequestDetailPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/guides" />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600 flex items-center gap-1">
             ← Back to guide requests
@@ -250,6 +252,7 @@ export default async function GuideRequestDetailPage({
             locale={locale}
           />
         )}
+        </div>
       </main>
     </div>
   )

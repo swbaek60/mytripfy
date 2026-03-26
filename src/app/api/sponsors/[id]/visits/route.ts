@@ -1,4 +1,4 @@
-import { createClient, getAdminClientSafe } from '@/utils/supabase/server'
+import { createClient, getAdminClientSafe, getAuthUser } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 /** 스폰서별 승인된 방문 인증 목록 (방문 인증 목록 섹션용) */
@@ -11,7 +11,8 @@ export async function GET(
     if (!sponsorId) return NextResponse.json({ error: 'Sponsor id required' }, { status: 400 })
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
     const selectCols = 'id, user_id, photo_url, created_at, points_granted'
     let list: { id: string; user_id: string; photo_url: string; created_at: string; points_granted: number }[] = []

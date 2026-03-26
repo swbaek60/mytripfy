@@ -92,7 +92,7 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
                 <img src={target.image_url} alt="" className="w-full h-full object-cover" />
               </div>
 
-              <div className="bg-amber-light border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
+              <div className="bg-gold-light border border-gold/20 rounded-xl p-3 mb-4 text-sm text-gold">
                 ⚠️ 딴지를 걸면 <strong>5포인트</strong>가 예치됩니다. 딴지가 기각되면 예치금이 사라집니다.
               </div>
 

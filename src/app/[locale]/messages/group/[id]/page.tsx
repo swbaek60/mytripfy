@@ -1,4 +1,4 @@
-import { createClient, createAdminClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import GroupChatRoom from './GroupChatRoom'
@@ -10,7 +10,8 @@ export default async function GroupChatPage({
 }) {
   const { locale, id: chatId } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   const admin = createAdminClient()

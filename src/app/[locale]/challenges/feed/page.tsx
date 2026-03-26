@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import CertFeedClient from './CertFeedClient'
@@ -15,7 +15,8 @@ export default async function ChallengeFeedPage({
   const L = getDisputeLabels(locale)
   const t = await getTranslations({ locale, namespace: 'ChallengeFeed' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   // 최근 인증 목록 (invalidated 제외)
   const { data: certs } = await supabase

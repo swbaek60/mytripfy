@@ -136,44 +136,39 @@ export default async function Home({
     <div className="flex min-h-screen flex-col bg-surface">
       <Header locale={locale} currentPath="/" />
 
-      {/* ─── HERO (모바일·태블릿·데스크탑) ─── */}
-      <section className="relative overflow-hidden min-h-0 sm:min-h-[400px] flex items-center">
-        {/* 메인 배경 이미지: 다양한 인종의 남녀가 함께 여행을 떠나는 밝은 이미지 */}
+      {/* ─── HERO ─── */}
+      <section className="relative overflow-hidden min-h-0 sm:min-h-[440px] flex items-center">
         <div className="absolute inset-0">
           <img
             src="/hero-travel-together.jpg"
             alt="Travel together - diverse friends smiling"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/75 via-slate-900/50 to-indigo-950/80 pointer-events-none" aria-hidden />
-        </div>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-64 h-64 sm:w-96 sm:h-96 bg-brand-light0/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/70 via-[#0F172A]/40 to-[#1E40AF]/60 pointer-events-none" aria-hidden />
         </div>
 
-        <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 text-center">
-          <h1 className="text-3xl min-[480px]:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-5 leading-tight tracking-tight px-0 sm:px-2">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 md:py-20 text-center">
+          <h1 className="text-3xl min-[480px]:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 leading-tight tracking-tight">
             {h('title1')}<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4A853] to-[#F5C563]">
               {h('title2')}
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base md:text-lg text-blue-200 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-1">
+          <p className="text-sm sm:text-base md:text-lg text-blue-100/90 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
             {h('subtitle')}<br className="hidden sm:block" />
             {h('features')}
           </p>
 
-          <div className="w-full px-0 sm:px-4">
+          <div className="w-full max-w-2xl mx-auto">
             <HomeSearch locale={locale} />
           </div>
         </div>
       </section>
 
       {/* ─── Latest Trips ─── */}
-      <section className="py-10 sm:py-14 md:py-16 bg-surface-sunken">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 sm:py-16 md:py-20 bg-surface-sunken">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-heading">{s('latestTitle')}</h2>
@@ -196,7 +191,7 @@ export default async function Home({
                 const nights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
                 return (
                   <Link key={post.id} href={`/companions/${post.id}`}>
-                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md border border-transparent hover:border-edge-brand transition-all p-5 h-full flex flex-col cursor-pointer">
+                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-lg border border-edge/60 hover:border-edge-brand hover:-translate-y-0.5 transition-all duration-200 p-5 h-full flex flex-col cursor-pointer">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <CountryFlag code={post.destination_country} size="sm" />
@@ -214,7 +209,7 @@ export default async function Home({
                         </span>
                       </div>
                       <p className="text-sm font-semibold text-heading line-clamp-2 flex-1 mb-3">{post.title}</p>
-                      <div className="flex items-center justify-between text-xs text-hint border-t border-gray-50 pt-3">
+                        <div className="flex items-center justify-between text-xs text-hint border-t border-edge/40 pt-3">
                         <div className="flex items-center gap-1.5">
                           <div className="w-6 h-6 rounded-full bg-brand-muted flex items-center justify-center overflow-hidden">
                             {(poster?.avatar_url as string) ? (
@@ -242,9 +237,9 @@ export default async function Home({
         </div>
       </section>
 
-      {/* ─── Popular Destinations (below Latest Trips) ─── */}
-      <section className="py-10 sm:py-14 bg-surface border-b border-edge">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ─── Popular Destinations ─── */}
+      <section className="py-12 sm:py-16 bg-surface border-b border-edge/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-lg sm:text-xl font-bold text-heading">{s('popularTitle')}</h2>
             <Link href="/companions" className="text-xs sm:text-sm text-brand hover:underline font-medium touch-manipulation">
@@ -268,15 +263,15 @@ export default async function Home({
 
       {/* ─── Latest Guide Requests ─── */}
       {recentGuideRequests && recentGuideRequests.length > 0 && (
-        <section className="py-10 sm:py-14 md:py-16 bg-surface-sunken">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-16 md:py-20 bg-surface-sunken">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
               <div>
-                <h2 className="text-2xl font-extrabold text-heading">🧭 {s('guideRequestsTitle')}</h2>
+                <h2 className="text-2xl font-extrabold text-heading">{s('guideRequestsTitle')}</h2>
                 <p className="text-sm text-subtle mt-1">{s('guideRequestsSubtitle')}</p>
               </div>
               <Link href="/guides/requests">
-                <Button variant="outline" size="sm" className="rounded-full border-amber-300 text-amber hover:bg-amber-light">
+                <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
                   {s('allRequests')} →
                 </Button>
               </Link>
@@ -291,21 +286,21 @@ export default async function Home({
                 const nights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
                 return (
                   <Link key={req.id} href={`/guides/requests/${req.id}`}>
-                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md border border-transparent hover:border-amber-200 transition-all p-5 cursor-pointer h-full flex flex-col">
+                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md border border-edge/60 hover:border-gold/30 transition-all p-5 cursor-pointer h-full flex flex-col">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-2xl">{dest?.emoji || '🌍'}</span>
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-heading text-sm truncate">{dest?.name || req.destination_country}</div>
                           <div className="text-xs text-amber font-semibold">{nights}N {nights + 1}D</div>
                         </div>
-                        <span className="shrink-0 text-xs bg-amber-light text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">{s('openStatus')}</span>
+                        <span className="shrink-0 text-xs bg-gold-light text-gold border border-gold/20 px-2 py-0.5 rounded-full font-medium">{s('openStatus')}</span>
                       </div>
                       <p className="text-sm font-semibold text-heading line-clamp-2 flex-1 mb-3">{req.title}</p>
-                      <div className="flex items-center gap-2 text-xs text-hint border-t border-gray-50 pt-3">
-                        <div className="w-5 h-5 rounded-full bg-amber-light flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="flex items-center gap-2 text-xs text-hint border-t border-edge/40 pt-3">
+                        <div className="w-5 h-5 rounded-full bg-gold-light flex items-center justify-center overflow-hidden shrink-0">
                           {(poster?.avatar_url as string) ? (
                             <img src={poster.avatar_url as string} alt="" className="w-full h-full object-cover" />
-                          ) : <span className="text-[10px] text-amber-400">?</span>}
+                          ) : <span className="text-[10px] text-gold">?</span>}
                         </div>
                         <span className="truncate">{(poster?.full_name as string) || s('traveler')}</span>
                         {natCountry && <span className="ml-auto shrink-0">{natCountry.emoji}</span>}
@@ -317,7 +312,7 @@ export default async function Home({
             </div>
             <div className="mt-6 text-center">
               <Link href="/guides/requests/new">
-                <Button className="bg-amber-light0 hover:bg-amber text-white rounded-full px-8">
+                <Button className="bg-gold hover:brightness-110 text-white rounded-full px-8">
                   ✍️ {s('postGuideRequestBtn')}
                 </Button>
               </Link>
@@ -328,15 +323,15 @@ export default async function Home({
 
       {/* ─── Top Guides (below Guide Requests) ─── */}
       {topGuides && topGuides.length > 0 && (
-        <section className="py-10 sm:py-14 md:py-16 bg-surface">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-16 md:py-20 bg-surface">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
               <div>
                 <h2 className="text-2xl font-extrabold text-heading">{s('guidesTitle')}</h2>
                 <p className="text-sm text-subtle mt-1">{s('guidesSubtitle')}</p>
               </div>
               <Link href="/guides">
-                <Button variant="outline" size="sm" className="rounded-full border-yellow-300 text-warning hover:bg-warning-light">
+                <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
                   {s('allGuides')} →
                 </Button>
               </Link>
@@ -348,7 +343,7 @@ export default async function Home({
                 const isFree = !guide.guide_hourly_rate || guide.guide_hourly_rate === 0
                 return (
                   <Link key={guide.id} href={`/guides/${guide.id}`}>
-                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md border border-transparent hover:border-yellow-200 transition-all p-5 cursor-pointer text-center">
+                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md border border-edge/60 hover:border-gold/30 transition-all p-5 cursor-pointer text-center">
                       <div className="relative inline-block mb-3">
                         <div className="w-16 h-16 rounded-full bg-surface-sunken flex items-center justify-center overflow-hidden mx-auto">
                           {guide.avatar_url ? (
@@ -369,7 +364,7 @@ export default async function Home({
                         </span>
                       </div>
                       {(guide.trust_score ?? 0) > 0 && (
-                        <div className="text-xs text-yellow-500 mt-1.5 font-semibold">
+                        <div className="text-xs text-gold mt-1.5 font-semibold">
                           {'★'.repeat(Math.round(guide.trust_score ?? 0))} {Number(guide.trust_score ?? 0).toFixed(1)}
                         </div>
                       )}
@@ -384,12 +379,12 @@ export default async function Home({
 
       {/* ─── Hall of Fame Top 5 ─── */}
       {hallOfFameTop5 && hallOfFameTop5.length > 0 && (
-        <section className="py-10 sm:py-14 md:py-16 bg-surface-sunken">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-16 md:py-20 bg-surface-sunken">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-              <h2 className="text-2xl font-extrabold text-heading">🏆 {s('hallOfFameTitle')}</h2>
+              <h2 className="text-2xl font-extrabold text-heading">{s('hallOfFameTitle')}</h2>
               <Link href="/hall-of-fame">
-                <Button variant="outline" size="sm" className="rounded-full border-amber-300 text-amber hover:bg-amber-light">
+                <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
                   {s('viewFullRanking')} →
                 </Button>
               </Link>
@@ -397,8 +392,8 @@ export default async function Home({
             <div className="flex flex-col gap-3">
               {hallOfFameTop5.map((row: { id: string; full_name: string | null; avatar_url: string | null; total_points?: number }, idx: number) => (
                 <Link key={row.id} href={`/users/${row.id}`}>
-                  <div className="flex items-center gap-4 bg-surface rounded-xl p-4 shadow-sm hover:shadow-md border border-transparent hover:border-amber-100 transition-all">
-                    <span className="w-8 h-8 rounded-full bg-amber-light text-amber-700 font-bold flex items-center justify-center text-sm shrink-0">
+                  <div className="flex items-center gap-4 bg-surface rounded-xl p-4 shadow-sm hover:shadow-md border border-edge/60 hover:border-gold/30 transition-all">
+                    <span className="w-8 h-8 rounded-full bg-gold-light text-gold font-bold flex items-center justify-center text-sm shrink-0">
                       {idx + 1}
                     </span>
                     <div className="w-10 h-10 rounded-full bg-surface-sunken overflow-hidden shrink-0">
@@ -419,8 +414,8 @@ export default async function Home({
       )}
 
       {/* ─── Features ─── */}
-      <section className="py-10 sm:py-14 md:py-16 bg-surface-sunken">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 sm:py-16 md:py-20 bg-surface-sunken">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-heading mb-2 sm:mb-3">{s('featuresTitle')}</h2>
             <p className="text-subtle max-w-xl mx-auto text-xs sm:text-sm px-2">{s('featuresSubtitle')}</p>
@@ -428,7 +423,7 @@ export default async function Home({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {[
               { icon: Users, titleKey: 'featureFindCompanions', descKey: 'featureFindCompanionsDesc', color: 'bg-brand', href: '/companions' },
-              { icon: Compass, titleKey: 'featureFindGuides', descKey: 'featureFindGuidesDesc', color: 'bg-amber-light0', href: '/guides' },
+              { icon: Compass, titleKey: 'featureFindGuides', descKey: 'featureFindGuidesDesc', color: 'bg-gold', href: '/guides' },
               { icon: ClipboardList, titleKey: 'featureGuideRequests', descKey: 'featureGuideRequestsDesc', color: 'bg-warning', href: '/guides/requests' },
               { icon: Store, titleKey: 'featureSponsors', descKey: 'featureSponsorsDesc', color: 'bg-emerald-600', href: '/sponsors' },
               { icon: Trophy, titleKey: 'featureChallenges', descKey: 'featureChallengesDesc', color: 'bg-purple', href: '/challenges' },
@@ -461,13 +456,13 @@ export default async function Home({
       </section>
 
       {/* ─── How it works ─── */}
-      <section className="py-10 sm:py-14 md:py-16 bg-surface">
+      <section className="py-12 sm:py-16 md:py-20 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-heading mb-3">{s('howTitle')}</h2>
           </div>
           <div className="relative">
-            <div className="hidden sm:block absolute top-7 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px bg-gray-200" />
+            <div className="hidden sm:block absolute top-7 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px bg-edge" />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 relative">
               {[
                 { step: '01', icon: UserCheck, titleKey: 'howStep1Title', descKey: 'howStep1Desc' },
@@ -490,26 +485,26 @@ export default async function Home({
 
       {/* ─── CTA ─── */}
       {!isLoggedIn && (
-        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden">
+        <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-[#1D4ED8] via-[#1E40AF] to-[#0F172A] relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-20 -right-20 w-72 h-72 bg-surface/5 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl" />
+            <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#D4A853]/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl" />
           </div>
           <div className="relative max-w-2xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3 sm:mb-4">
               {s('ctaTitle')}
             </h2>
-            <p className="text-blue-200 text-base sm:text-lg mb-6 sm:mb-8 leading-relaxed">
+            <p className="text-blue-200/90 text-base sm:text-lg mb-8 sm:mb-10 leading-relaxed">
               {s('ctaSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/sign-in" className="w-full sm:w-auto">
-                <Button size="lg" className="bg-surface text-blue-700 hover:bg-brand-light rounded-full px-10 py-5 sm:py-6 text-base sm:text-lg font-bold shadow-xl w-full sm:w-auto min-h-[48px]">
+                <Button size="lg" className="bg-white text-[#1D4ED8] hover:bg-blue-50 rounded-full px-10 py-5 sm:py-6 text-base sm:text-lg font-bold shadow-xl w-full sm:w-auto min-h-[48px]">
                   {s('joinFree')}
                 </Button>
               </Link>
               <Link href="/companions" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="bg-transparent border-2 border-white text-white hover:bg-surface/20 rounded-full px-10 py-5 sm:py-6 text-base sm:text-lg font-medium w-full sm:w-auto min-h-[48px]">
+                <Button size="lg" variant="outline" className="bg-transparent border-2 border-white/30 text-white hover:bg-white/10 rounded-full px-10 py-5 sm:py-6 text-base sm:text-lg font-medium w-full sm:w-auto min-h-[48px]">
                   {s('browseTrips')}
                 </Button>
               </Link>
@@ -519,46 +514,46 @@ export default async function Home({
       )}
 
       {/* ─── Footer ─── */}
-      <footer className="bg-gray-900 text-hint py-10 sm:py-12">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 sm:gap-8 mb-6 sm:mb-8">
+      <footer className="bg-footer-bg text-footer-text py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-8 sm:gap-12 mb-8 sm:mb-10">
             <div>
               <Logo className="h-10 brightness-0 invert" />
-              <p className="text-sm text-subtle mt-3 max-w-xs leading-relaxed">
+              <p className="text-sm text-footer-text mt-4 max-w-xs leading-relaxed">
                 {s('footerTagline')}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-6 sm:gap-8 text-sm w-full sm:w-auto">
+            <div className="grid grid-cols-2 gap-8 sm:gap-12 text-sm w-full sm:w-auto">
               <div>
-                <div className="text-white font-semibold mb-3">{s('footerExplore')}</div>
-                <div className="space-y-2">
-                  <div><Link href="/companions" className="hover:text-white transition-colors">{s('viewAll')}</Link></div>
-                  <div><Link href="/guides" className="hover:text-white transition-colors">{s('allGuides')}</Link></div>
-                  <div><Link href="/challenges" className="hover:text-white transition-colors">{s('footerChallenges')}</Link></div>
-                  <div><Link href="/personality" className="hover:text-white transition-colors">{s('personalityTest')}</Link></div>
+                <div className="text-footer-heading font-semibold mb-3">{s('footerExplore')}</div>
+                <div className="space-y-2.5">
+                  <div><Link href="/companions" className="hover:text-footer-heading transition-colors">{s('viewAll')}</Link></div>
+                  <div><Link href="/guides" className="hover:text-footer-heading transition-colors">{s('allGuides')}</Link></div>
+                  <div><Link href="/challenges" className="hover:text-footer-heading transition-colors">{s('footerChallenges')}</Link></div>
+                  <div><Link href="/personality" className="hover:text-footer-heading transition-colors">{s('personalityTest')}</Link></div>
                 </div>
               </div>
               <div>
-                <div className="text-white font-semibold mb-3">{s('footerAccount')}</div>
-                <div className="space-y-2">
+                <div className="text-footer-heading font-semibold mb-3">{s('footerAccount')}</div>
+                <div className="space-y-2.5">
                   {isLoggedIn ? (
                     <>
-                      <div><Link href="/dashboard" className="hover:text-white transition-colors">{s('footerDashboard')}</Link></div>
-                      <div><Link href="/profile" className="hover:text-white transition-colors">{s('myProfile')}</Link></div>
-                      <div><Link href="/bookmarks" className="hover:text-white transition-colors">{s('footerBookmarks')}</Link></div>
+                      <div><Link href="/dashboard" className="hover:text-footer-heading transition-colors">{s('footerDashboard')}</Link></div>
+                      <div><Link href="/profile" className="hover:text-footer-heading transition-colors">{s('myProfile')}</Link></div>
+                      <div><Link href="/bookmarks" className="hover:text-footer-heading transition-colors">{s('footerBookmarks')}</Link></div>
                     </>
                   ) : (
-                    <div><Link href="/sign-in" className="hover:text-white transition-colors">{s('footerLoginSignUp')}</Link></div>
+                    <div><Link href="/sign-in" className="hover:text-footer-heading transition-colors">{s('footerLoginSignUp')}</Link></div>
                   )}
                 </div>
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-2 text-xs text-body">
+          <div className="border-t border-footer-border pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-2 text-xs text-footer-text">
             <div className="flex flex-col gap-0.5">
               <span>© 2026 mytripfy.com · {s('allRightsReserved')}</span>
               <span>{s('footerRightsContact')}</span>
-              <Link href="/privacy" className="hover:text-white transition-colors mt-0.5 underline underline-offset-2">
+              <Link href="/privacy" className="hover:text-footer-heading transition-colors mt-0.5 underline underline-offset-2">
                 {s('privacyPolicy')}
               </Link>
             </div>

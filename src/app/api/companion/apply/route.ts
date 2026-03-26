@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 
 /** 동행 신청 (성별 조건 검사 후 저장) */
 export async function POST(req: Request) {
@@ -8,7 +8,8 @@ export async function POST(req: Request) {
     if (!postId) return NextResponse.json({ error: 'Missing postId' }, { status: 400 })
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const authUser = await getAuthUser()
+    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: post } = await supabase

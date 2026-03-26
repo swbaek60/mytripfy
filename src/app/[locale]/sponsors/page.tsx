@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,8 @@ export default async function SponsorsPage({
   const { country, type, q } = await searchParams
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   let query = supabase
     .from('sponsors')
@@ -70,23 +71,23 @@ export default async function SponsorsPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-heading">🏪 {t('title')}</h1>
+            <h1 className="text-3xl font-extrabold text-heading">{t('title')}</h1>
             <p className="text-subtle mt-1 text-sm">{t('subtitle')}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {user && (
               <Link href={`/${locale}/sponsors/new`}>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-sm">
+                <Button className="bg-teal hover:brightness-110 text-white rounded-full text-sm">
                   + {t('addSponsor')}
                 </Button>
               </Link>
             )}
             {user && (
               <Link href={`/${locale}/sponsors/mine`}>
-                <Button variant="outline" className="border-emerald-400 text-emerald-600 hover:bg-emerald-50 rounded-full text-sm">
+                <Button variant="outline" className="border-teal/40 text-teal hover:bg-teal-light rounded-full text-sm">
                   {t('mySponsors')}
                 </Button>
               </Link>
@@ -107,9 +108,9 @@ export default async function SponsorsPage({
                 <Link
                   key={sponsor.id}
                   href={`/${locale}/sponsors/${sponsor.id}`}
-                  className="group block bg-surface rounded-2xl shadow-sm hover:shadow-lg transition-all border border-transparent hover:border-emerald-200 overflow-hidden"
+                  className="group block bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-edge/60 hover:border-teal/30 overflow-hidden"
                 >
-                  <div className="h-28 bg-gradient-to-r from-emerald-400 to-teal-500 relative shrink-0">
+                  <div className="h-28 bg-gradient-to-r from-teal to-[#0D9488] relative shrink-0">
                     {sponsor.cover_image_url ? (
                       <img src={sponsor.cover_image_url} alt="" className="w-full h-full object-cover" />
                     ) : null}
@@ -129,14 +130,14 @@ export default async function SponsorsPage({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="font-bold text-heading truncate group-hover:text-emerald-600 transition-colors">
+                      <h2 className="font-bold text-heading truncate group-hover:text-teal transition-colors">
                         {displayName}
                       </h2>
                       {sponsor.city && (
                         <p className="text-xs text-subtle mt-0.5">{sponsor.city}</p>
                       )}
                       {benefitsCount > 0 && (
-                        <p className="text-xs text-emerald-600 font-medium mt-1">{benefitsCount} {t('benefits')}</p>
+                        <p className="text-xs text-teal font-medium mt-1">{benefitsCount} {t('benefits')}</p>
                       )}
                     </div>
                   </div>
@@ -149,7 +150,7 @@ export default async function SponsorsPage({
             <p className="text-subtle">{t('noSponsors')}</p>
             {user && (
               <Link href={`/${locale}/sponsors/new`} className="inline-block mt-3">
-                <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-full">+ {t('addSponsor')}</Button>
+                <Button className="bg-teal hover:brightness-110 rounded-full text-white">+ {t('addSponsor')}</Button>
               </Link>
             )}
           </div>

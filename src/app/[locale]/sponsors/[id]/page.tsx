@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -47,7 +47,8 @@ export default async function SponsorDetailPage({
   const { locale, id } = await params
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const { data: sponsor } = await supabase
     .from('sponsors')
@@ -91,7 +92,7 @@ export default async function SponsorDetailPage({
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} currentPath="/sponsors" />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Cover + logo + name */}
         <div className="rounded-2xl overflow-hidden bg-surface shadow-sm border border-edge mb-6">
           <div className="h-40 bg-gradient-to-r from-emerald-400 to-teal-500 relative">

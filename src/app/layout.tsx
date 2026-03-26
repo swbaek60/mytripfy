@@ -7,7 +7,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#1e40af',
+  themeColor: '#1D4ED8',
   viewportFit: 'cover',
 }
 
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body suppressHydrationWarning className="min-h-screen antialiased">
         <ClerkProvider
           appearance={{
-            variables: { colorPrimary: '#2563eb' },
+            variables: { colorPrimary: '#1D4ED8' },
           }}
         >
           {children}

@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import NotificationsList from './NotificationsList'
@@ -10,7 +10,8 @@ export default async function NotificationsPage({
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Notifications' })
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   if (!user) redirect(`/sign-in`)
 
   // 메시지 타입 제외 (메시지는 💬 버튼에서 따로 관리)
@@ -33,7 +34,7 @@ export default async function NotificationsPage({
   return (
     <div className="min-h-screen bg-surface-sunken">
       <Header user={user} locale={locale} />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-2xl font-bold text-heading mb-6">{t('title')}</h1>
         <NotificationsList notifications={notifications ?? []} locale={locale} />
       </main>

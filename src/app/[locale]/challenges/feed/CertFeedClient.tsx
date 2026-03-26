@@ -47,7 +47,7 @@ export default function CertFeedClient({
 }) {
   const STATUS_UI = {
     clean:       { label: L.status.clean,       color: 'text-success', bg: 'bg-success-light' },
-    flagged:     { label: L.status.flagged,     color: 'text-amber', bg: 'bg-amber-light' },
+    flagged:     { label: L.status.flagged,     color: 'text-gold', bg: 'bg-gold-light' },
     reviewing:   { label: L.status.reviewing,   color: 'text-brand-hover',  bg: 'bg-brand-light' },
     invalidated: { label: L.status.invalidated, color: 'text-danger',   bg: 'bg-danger-light' },
   } as Record<string, { label: string; color: string; bg: string }>
@@ -114,7 +114,7 @@ export default function CertFeedClient({
           placeholder="챌린지명 또는 사용자 검색..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 min-w-[160px] border border-edge rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-surface"
+          className="flex-1 min-w-[160px] border border-edge rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple/40 bg-surface"
         />
         {[
           { key: 'all',       label: 'All' },
@@ -128,7 +128,7 @@ export default function CertFeedClient({
             className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${
               filterStatus === f.key
                 ? 'bg-purple text-white border-purple'
-                : 'bg-surface text-body border-edge hover:border-purple-300'
+                : 'bg-surface text-body border-edge hover:border-purple/40'
             }`}
           >
             {f.label}
@@ -169,8 +169,8 @@ export default function CertFeedClient({
                 key={`${cert.user_id}-${cert.challenge_id}`}
                 className={`bg-surface rounded-2xl overflow-hidden border-2 transition-all ${
                   cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
-                  cert.dispute_status === 'flagged'   ? 'border-amber-200' :
-                  'border-edge hover:border-purple-200'
+                  cert.dispute_status === 'flagged'   ? 'border-gold/20' :
+                  'border-edge hover:border-purple/30'
                 }`}
               >
                 {/* 인증 사진 */}
@@ -223,7 +223,7 @@ export default function CertFeedClient({
                     {cert.avatar_url ? (
                       <img src={cert.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 flex items-center justify-center text-white text-xs font-bold">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple to-indigo flex items-center justify-center text-white text-xs font-bold">
                         {cert.full_name[0]?.toUpperCase() ?? '?'}
                       </div>
                     )}
@@ -329,7 +329,7 @@ export default function CertFeedClient({
                   </div>
 
                   {/* 안내 */}
-                  <div className="bg-amber-light border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
+                  <div className="bg-gold-light border border-gold/20 rounded-xl p-3 mb-4 text-sm text-gold">
                     {L.stakeWarning}
                   </div>
 

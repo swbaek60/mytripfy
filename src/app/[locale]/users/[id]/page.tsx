@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import Link from 'next/link'
@@ -21,7 +21,8 @@ export default async function UserProfilePage({
 }) {
   const { locale, id } = await params
   const supabase = await createClient()
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  const authUser = await getAuthUser()
+  const currentUser = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -166,20 +167,20 @@ export default async function UserProfilePage({
   const badges = [
     { key: 'email_verified', label: 'Email Verified', icon: '📧', color: 'bg-success-light text-success' },
     { key: 'phone_verified', label: 'Phone Verified', icon: '📱', color: 'bg-brand-muted text-brand-hover' },
-    { key: 'sns_verified', label: 'SNS Verified', icon: '✅', color: 'bg-purple-light text-purple-700' },
+    { key: 'sns_verified', label: 'SNS Verified', icon: '✅', color: 'bg-purple-light text-purple' },
   ]
 
   return (
     <div className="min-h-screen bg-surface-sunken">
       <Header user={currentUser} locale={locale} />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
         {/* Profile Card */}
         <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl shrink-0">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-muted flex items-center justify-center text-4xl shrink-0">
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt={profile.full_name || ''} className="w-full h-full object-cover" />
               ) : '👤'}
@@ -198,7 +199,7 @@ export default async function UserProfilePage({
                   {levelInfo.badge} Lv.{levelInfo.level} {levelInfo.title}
                 </span>
                 {profile.is_guide && (
-                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-warning-light text-yellow-700">
+                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-gold-light text-gold">
                     🧭 Local Guide
                   </span>
                 )}
@@ -339,7 +340,7 @@ export default async function UserProfilePage({
 
           {/* Guide Info (전체 너비) */}
           {profile.is_guide && (
-            <div className="md:col-span-2 bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-100 rounded-2xl shadow-sm p-6">
+            <div className="md:col-span-2 bg-gradient-to-br from-gold-light to-gold-light border border-gold/20 rounded-2xl shadow-sm p-6">
               <h2 className="font-bold text-heading text-lg mb-4">🧭 Guide Info</h2>
               <div className="space-y-3">
                 {profile.guide_hourly_rate !== null && (
@@ -369,7 +370,7 @@ export default async function UserProfilePage({
                       {(profile.guide_regions as string[]).map((r: string) => {
                         const country = getCountryByCode(r)
                         return (
-                          <span key={r} className="text-xs bg-surface border border-yellow-200 rounded-full px-2.5 py-1">
+                          <span key={r} className="text-xs bg-surface border border-gold/30 rounded-full px-2.5 py-1">
                             {country ? `${country.emoji} ${country.name}` : r}
                           </span>
                         )
@@ -385,9 +386,9 @@ export default async function UserProfilePage({
                         const lang = getLanguageByCode(sl.lang)
                         const lvl = getLangLevel(sl.level)
                         return (
-                          <span key={sl.lang} className="flex items-center gap-1 text-xs bg-surface border border-yellow-200 rounded-full px-2.5 py-1">
+                          <span key={sl.lang} className="flex items-center gap-1 text-xs bg-surface border border-gold/30 rounded-full px-2.5 py-1">
                             {lang?.emoji || '🗣️'} {lang?.name || sl.lang}
-                            <span className="text-yellow-500 ml-0.5">{lvl?.stars || ''}</span>
+                            <span className="text-gold ml-0.5">{lvl?.stars || ''}</span>
                           </span>
                         )
                       })}
@@ -402,7 +403,7 @@ export default async function UserProfilePage({
                       {(profile.guide_city_regions as GuideRegion[]).map(region => {
                         const country = getCountryByCode(region.country)
                         return (
-                          <div key={region.country} className="bg-surface rounded-xl border border-yellow-100 p-3">
+                          <div key={region.country} className="bg-surface rounded-xl border border-gold/20 p-3">
                             <div className="flex items-center gap-1.5 mb-1.5">
                               <span>{country?.emoji}</span>
                               <span className="font-semibold text-sm text-heading">{country?.name || region.country}</span>
@@ -410,7 +411,7 @@ export default async function UserProfilePage({
                             {region.cities.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {region.cities.map(city => (
-                                  <span key={city} className="text-xs bg-amber-light border border-amber-200 text-amber-700 px-2 py-0.5 rounded-full">
+                                  <span key={city} className="text-xs bg-gold-light border border-gold/30 text-gold px-2 py-0.5 rounded-full">
                                     📍 {city}
                                   </span>
                                 ))}
@@ -442,7 +443,7 @@ export default async function UserProfilePage({
                       <div>
                         <div className="font-semibold text-sm text-heading">{lang?.name || sl.lang}</div>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-xs text-yellow-500">{lvl?.stars || '★'}</span>
+                          <span className="text-xs text-gold">{lvl?.stars || '★'}</span>
                           <span className="text-xs text-subtle">{lvl?.label || sl.level}</span>
                         </div>
                       </div>
@@ -581,7 +582,7 @@ export default async function UserProfilePage({
                       <span className="text-xs text-subtle w-8">{star} ★</span>
                       <div className="flex-1 h-2 bg-surface-sunken rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-yellow-400 rounded-full transition-all"
+                          className="h-full bg-gold rounded-full transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -638,7 +639,7 @@ export default async function UserProfilePage({
                           >
                             {levelInfo.badge} Lv.{levelInfo.level}
                           </span>
-                          <span className="text-yellow-400 text-sm">
+                          <span className="text-gold text-sm">
                             {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                           </span>
                           <span suppressHydrationWarning className="text-xs text-hint ml-auto">
@@ -678,7 +679,7 @@ export default async function UserProfilePage({
             </div>
           ) : (
             <div className="bg-surface rounded-2xl shadow-sm p-8 text-center">
-              <MessageSquare className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <MessageSquare className="w-10 h-10 text-edge mx-auto mb-3" />
               <p className="text-subtle">No reviews yet.</p>
             </div>
           )}

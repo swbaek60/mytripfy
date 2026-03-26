@@ -2,14 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   /* ── shadcn 기본 토큰 ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,34 +48,31 @@
 
   /* ── 시맨틱 디자인 토큰 ── */
 
-  /* 브랜드 컬러 (blue 계열) */
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-light: var(--brand-light);
   --color-brand-muted: var(--brand-muted);
   --color-brand-foreground: var(--brand-foreground);
 
-  /* 텍스트 */
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+
   --color-heading: var(--heading);
   --color-body: var(--body);
   --color-subtle: var(--subtle);
   --color-hint: var(--hint);
 
-  /* 표면/배경 */
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-surface-hover: var(--surface-hover);
 
-  /* 보더 */
   --color-edge: var(--edge);
   --color-edge-strong: var(--edge-strong);
   --color-edge-brand: var(--edge-brand);
 
-  /* 오버레이 */
   --color-overlay: var(--overlay-color);
 
-  /* 상태 */
   --color-success: var(--success);
   --color-success-light: var(--success-light);
   --color-warning: var(--warning);
@@ -86,7 +82,6 @@
   --color-info: var(--info);
   --color-info-light: var(--info-light);
 
-  /* 역할색 (가이드/여행/챌린지 등) */
   --color-amber: var(--amber);
   --color-amber-light: var(--amber-light);
   --color-purple: var(--purple-accent);
@@ -95,283 +90,233 @@
   --color-teal-light: var(--teal-accent-light);
   --color-indigo: var(--indigo-accent);
   --color-indigo-light: var(--indigo-accent-light);
+
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-text: var(--footer-text);
+  --color-footer-heading: var(--footer-heading);
+  --color-footer-border: var(--footer-border);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
 
-  /* ── 시맨틱 디자인 토큰 값 ── */
+  /* ── shadcn primitives ── */
+  --background: #FAFAF9;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #1D4ED8;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #1E293B;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #F8FAFC;
+  --accent-foreground: #1E293B;
+  --destructive: #DC2626;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #1D4ED8;
+  --chart-1: #1D4ED8;
+  --chart-2: #0D9488;
+  --chart-3: #D4A853;
+  --chart-4: #7C3AED;
+  --chart-5: #F97316;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0F172A;
+  --sidebar-primary: #1D4ED8;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F1F5F9;
+  --sidebar-accent-foreground: #1E293B;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #1D4ED8;
 
-  /* 브랜드 (blue-600 → blue-50) */
-  --brand: oklch(0.546 0.245 262.881);
-  --brand-hover: oklch(0.488 0.243 264.376);
-  --brand-light: oklch(0.97 0.014 254.604);
-  --brand-muted: oklch(0.932 0.032 255.585);
-  --brand-foreground: oklch(0.985 0 0);
+  /* ── 브랜드: Royal Blue ── */
+  --brand: #1D4ED8;
+  --brand-hover: #1E40AF;
+  --brand-light: #EFF6FF;
+  --brand-muted: #DBEAFE;
+  --brand-foreground: #FFFFFF;
 
-  /* 텍스트 */
-  --heading: oklch(0.145 0.004 285.823);
-  --body: oklch(0.373 0.011 285.833);
-  --subtle: oklch(0.442 0.006 285.883);
-  --hint: oklch(0.556 0.006 286.286);
+  /* ── 프리미엄 골드 악센트 ── */
+  --gold: #D4A853;
+  --gold-light: #FEF9EF;
 
-  /* 표면 */
-  --surface: oklch(1 0 0);
-  --surface-raised: oklch(1 0 0);
-  --surface-sunken: oklch(0.968 0.001 286.375);
-  --surface-hover: oklch(0.968 0.001 286.375);
+  /* ── 텍스트 계층 ── */
+  --heading: #0F172A;
+  --body: #334155;
+  --subtle: #475569;
+  --hint: #94A3B8;
 
-  /* 보더 */
-  --edge: oklch(0.929 0.004 286.32);
-  --edge-strong: oklch(0.869 0.005 286.286);
-  --edge-brand: oklch(0.882 0.059 254.128);
+  /* ── 표면 / 배경 ── */
+  --surface: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: #F8FAFC;
+  --surface-hover: #F1F5F9;
 
-  /* 오버레이 */
-  --overlay-color: oklch(0 0 0 / 50%);
+  /* ── 보더 ── */
+  --edge: #E2E8F0;
+  --edge-strong: #CBD5E1;
+  --edge-brand: #BFDBFE;
 
-  /* 상태 */
-  --success: oklch(0.527 0.154 150.069);
-  --success-light: oklch(0.962 0.044 156.743);
-  --warning: oklch(0.769 0.188 70.08);
-  --warning-light: oklch(0.962 0.059 95.277);
-  --danger: oklch(0.577 0.245 27.325);
-  --danger-light: oklch(0.971 0.013 17.38);
-  --info: oklch(0.546 0.245 262.881);
-  --info-light: oklch(0.97 0.014 254.604);
+  /* ── 오버레이 ── */
+  --overlay-color: rgba(15, 23, 42, 0.5);
 
-  /* 역할색 */
-  --amber: oklch(0.769 0.188 70.08);
-  --amber-light: oklch(0.962 0.059 95.277);
-  --purple-accent: oklch(0.553 0.235 303.327);
-  --purple-accent-light: oklch(0.946 0.033 307.174);
-  --teal-accent: oklch(0.6 0.118 184.704);
-  --teal-accent-light: oklch(0.953 0.051 180.801);
-  --indigo-accent: oklch(0.511 0.262 276.966);
-  --indigo-accent-light: oklch(0.962 0.018 272.314);
+  /* ── 상태 ── */
+  --success: #059669;
+  --success-light: #ECFDF5;
+  --warning: #D97706;
+  --warning-light: #FFFBEB;
+  --danger: #DC2626;
+  --danger-light: #FEF2F2;
+  --info: #1D4ED8;
+  --info-light: #EFF6FF;
+
+  /* ── 역할색 ── */
+  --amber: #D97706;
+  --amber-light: #FFFBEB;
+  --purple-accent: #7C3AED;
+  --purple-accent-light: #F5F3FF;
+  --teal-accent: #0D9488;
+  --teal-accent-light: #F0FDFA;
+  --indigo-accent: #4F46E5;
+  --indigo-accent-light: #EEF2FF;
+
+  /* ── 푸터 ── */
+  --footer-bg: #0F172A;
+  --footer-text: #94A3B8;
+  --footer-heading: #F8FAFC;
+  --footer-border: #1E293B;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-
-  /* ── 시맨틱 디자인 토큰 다크 ── */
-  --brand: oklch(0.623 0.214 259.815);
-  --brand-hover: oklch(0.696 0.196 261.127);
-  --brand-light: oklch(0.269 0.04 260);
-  --brand-muted: oklch(0.269 0.055 260);
-  --brand-foreground: oklch(0.985 0 0);
-
-  --heading: oklch(0.985 0 0);
-  --body: oklch(0.869 0.005 286.286);
-  --subtle: oklch(0.708 0 0);
-  --hint: oklch(0.556 0 0);
-
-  --surface: oklch(0.205 0 0);
-  --surface-raised: oklch(0.269 0 0);
-  --surface-sunken: oklch(0.145 0 0);
-  --surface-hover: oklch(0.269 0 0);
-
-  --edge: oklch(1 0 0 / 10%);
-  --edge-strong: oklch(1 0 0 / 20%);
-  --edge-brand: oklch(0.488 0.15 260 / 40%);
-
-  --overlay-color: oklch(0 0 0 / 70%);
-
-  --success: oklch(0.627 0.154 150.069);
-  --success-light: oklch(0.269 0.06 150);
-  --warning: oklch(0.828 0.189 84.429);
-  --warning-light: oklch(0.269 0.06 85);
-  --danger: oklch(0.704 0.191 22.216);
-  --danger-light: oklch(0.269 0.06 22);
-  --info: oklch(0.623 0.214 259.815);
-  --info-light: oklch(0.269 0.04 260);
-
-  --amber: oklch(0.828 0.189 84.429);
-  --amber-light: oklch(0.269 0.06 85);
-  --purple-accent: oklch(0.627 0.265 303.9);
-  --purple-accent-light: oklch(0.269 0.06 304);
-  --teal-accent: oklch(0.696 0.17 162.48);
-  --teal-accent-light: oklch(0.269 0.06 163);
-  --indigo-accent: oklch(0.585 0.233 277.117);
-  --indigo-accent-light: oklch(0.269 0.06 277);
-}
-
-/* 반응형: 모바일·태블릿·데스크탑 공통 */
+/* 반응형 브레이크포인트 */
 @custom-media --sm (width >= 640px);
 @custom-media --md (width >= 768px);
 @custom-media --lg (width >= 1024px);
 @custom-media --xl (width >= 1280px);
 
 @layer components {
-  /* ── 카드 ── */
   .ds-card {
     @apply bg-surface rounded-2xl shadow-sm border border-edge;
   }
   .ds-card-interactive {
-    @apply bg-surface rounded-2xl shadow-sm border border-transparent
-      hover:shadow-md hover:border-edge-brand transition-all cursor-pointer;
+    @apply bg-surface rounded-2xl shadow-sm border border-edge/60
+      hover:shadow-lg hover:border-edge-brand hover:-translate-y-0.5
+      transition-all duration-200 cursor-pointer;
   }
 
-  /* ── 칩 / 필터 태그 ── */
   .ds-chip {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-      text-xs font-medium border border-edge bg-surface-sunken
-      text-body transition-colors;
+    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full
+      text-xs font-medium border border-edge bg-surface
+      text-body hover:bg-surface-hover transition-colors;
   }
   .ds-chip-active {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-      text-xs font-medium border-transparent bg-brand text-brand-foreground
-      transition-colors;
+    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full
+      text-xs font-semibold border-transparent bg-brand text-brand-foreground
+      shadow-sm transition-colors;
   }
 
-  /* ── 오버레이 / 모달 백드롭 ── */
   .ds-overlay {
     @apply fixed inset-0 z-50 bg-overlay backdrop-blur-sm
       flex items-center justify-center p-4;
   }
 
-  /* ── 페이지 컨테이너 ── */
   .ds-container {
     @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   .ds-container-wide {
-    @apply max-w-7xl mx-auto px-3 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* ── 섹션 래퍼 ── */
   .ds-section {
-    @apply py-10 sm:py-14 md:py-16;
+    @apply py-12 sm:py-16 md:py-20;
   }
 
-  /* ── 이미지 그라데이션 오버레이 ── */
   .ds-gradient-overlay {
     @apply absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none;
   }
 
-  /* ── 입력 필드 기본 스타일 ── */
   .ds-input {
     @apply w-full rounded-xl border border-edge bg-surface px-4 py-3
       text-sm text-heading placeholder:text-hint
-      focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand
-      transition-colors;
+      focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
+      transition-all duration-200;
   }
   .ds-textarea {
     @apply w-full rounded-xl border border-edge bg-surface px-4 py-3
       text-sm text-heading placeholder:text-hint
-      focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand
-      transition-colors resize-none;
+      focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
+      transition-all duration-200 resize-none;
   }
 
-  /* ── 버튼 프리셋 ── */
   .ds-btn-brand {
     @apply inline-flex items-center justify-center gap-2 rounded-xl
       bg-brand text-brand-foreground font-semibold text-sm
-      px-5 py-2.5 hover:bg-brand-hover transition-colors
+      px-6 py-2.5 hover:bg-brand-hover
+      shadow-sm hover:shadow-md
+      transition-all duration-200
       disabled:opacity-50 disabled:pointer-events-none;
   }
   .ds-btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-xl
       border border-edge bg-surface text-body font-medium text-sm
-      px-5 py-2.5 hover:bg-surface-hover transition-colors
+      px-6 py-2.5 hover:bg-surface-hover hover:border-edge-strong
+      transition-all duration-200
+      disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .ds-btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl
+      bg-gold text-white font-semibold text-sm
+      px-6 py-2.5 hover:brightness-110
+      shadow-sm hover:shadow-md
+      transition-all duration-200
       disabled:opacity-50 disabled:pointer-events-none;
   }
 
-  /* ── 뱃지 ── */
   .ds-badge {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
       text-xs font-medium bg-surface-sunken text-subtle;
   }
   .ds-badge-brand {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
       text-xs font-medium bg-brand-light text-brand;
   }
   .ds-badge-success {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
       text-xs font-medium bg-success-light text-success;
   }
   .ds-badge-warning {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
       text-xs font-medium bg-warning-light text-warning;
   }
   .ds-badge-danger {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
       text-xs font-medium bg-danger-light text-danger;
   }
+  .ds-badge-gold {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full
+      text-xs font-medium bg-gold-light text-gold;
+  }
 
-  /* ── 스켈레톤 로딩 ── */
   .ds-skeleton {
-    @apply animate-pulse rounded-lg bg-surface-sunken;
+    @apply animate-pulse rounded-xl bg-surface-sunken;
   }
 
-  /* ── 드롭다운 패널 ── */
   .ds-dropdown {
-    @apply bg-surface rounded-xl shadow-lg border border-edge;
+    @apply bg-surface rounded-xl shadow-xl border border-edge;
   }
 
-  /* ── 리스트 행 ── */
   .ds-list-row {
     @apply flex items-center gap-3 p-3 rounded-xl hover:bg-surface-hover
       transition-colors;
+  }
+
+  /* ── 페이지 공통 컨테이너 ── */
+  /* 헤더(max-w-7xl)와 동일 너비로 전 페이지 통일 */
+  .ds-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
   }
 }
 
@@ -385,15 +330,17 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* 모바일 세이프에리어(노치·홈 인디케이터) */
     padding-left: env(safe-area-inset-left, 0);
     padding-right: env(safe-area-inset-right, 0);
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
-  /* 스크롤 시 모바일 주소창 등 대응 */
   @media (max-width: 768px) {
     .min-h-screen {
       min-height: 100dvh;
     }
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), var(--font-body), sans-serif;
+    letter-spacing: -0.025em;
   }
 }

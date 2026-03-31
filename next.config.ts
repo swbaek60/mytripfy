@@ -4,6 +4,15 @@ import type { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
+  async rewrites() {
+    return [
+      {
+        source: '/.well-known/assetlinks.json',
+        destination: '/api/assetlinks',
+      },
+    ];
+  },
   images: {
     localPatterns: [
       { pathname: '/logo.png' },

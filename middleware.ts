@@ -15,8 +15,15 @@ const ASSET_LINKS = [
 ]
 
 export default clerkMiddleware(async (_auth, request) => {
-  if (request.nextUrl.pathname === '/.well-known/assetlinks.json') {
+  const pathname = request.nextUrl.pathname
+
+  if (pathname.startsWith('/.well-known/') || pathname === '/well-known/assetlinks.json') {
     return NextResponse.json(ASSET_LINKS)
+  }
+
+  // 미들웨어 동작 확인용 디버그 엔드포인트
+  if (pathname === '/debug-middleware') {
+    return NextResponse.json({ ok: true, time: Date.now() })
   }
 })
 

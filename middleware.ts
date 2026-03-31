@@ -11,7 +11,7 @@ export default clerkMiddleware()
 export const config = {
   matcher: [
     // Next.js 내부 파일, 정적 파일, .well-known 경로 제외
-    '/((?!_next|\.well-known|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/((?!_next|\.well-known|well-known|[^?]*\\.(?:html?|css|js(?!on)|json|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     // API 라우트는 항상 실행
     '/(api|trpc)(.*)',
   ],

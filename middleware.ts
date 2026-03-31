@@ -1,5 +1,5 @@
 import { clerkMiddleware } from '@clerk/nextjs/server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const ASSET_LINKS = [
   {
@@ -14,16 +14,11 @@ const ASSET_LINKS = [
   },
 ]
 
-const clerk = clerkMiddleware()
-
-export default async function middleware(request: NextRequest) {
+export default clerkMiddleware(async (_auth, request) => {
   if (request.nextUrl.pathname === '/.well-known/assetlinks.json') {
-    return NextResponse.json(ASSET_LINKS, {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return NextResponse.json(ASSET_LINKS)
   }
-  return clerk(request as any, {} as any)
-}
+})
 
 export const config = {
   matcher: [

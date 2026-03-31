@@ -2,6 +2,19 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* WebView 앱 가로 스크롤 방지 */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 @theme inline {
   /* ── shadcn 기본 토큰 ── */
   --color-background: var(--background);
@@ -343,4 +356,9 @@
     font-family: var(--font-heading), var(--font-body), sans-serif;
     letter-spacing: -0.025em;
   }
+}
+
+/* Hide Next.js dev error overlay button in development */
+nextjs-portal {
+  display: none !important;
 }

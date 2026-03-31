@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Store, Trophy, Award } from 'lucide-react'
+import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Store, Trophy, Award } from 'lucide-react'
 import { useClerk } from '@clerk/nextjs'
 import LanguageSelector from '@/components/LanguageSelector'
 import CurrencySelector from '@/components/CurrencySelector'
+import NotificationsPanel from '@/components/NotificationsPanel'
+import MessagesPanel from '@/components/MessagesPanel'
 
 interface NavLink {
   href: string
@@ -87,24 +90,8 @@ export default function HeaderNav({
     <div className="flex items-center gap-0.5 shrink-0">
       {userId ? (
         <>
-          <Link href={`/${locale}/messages`} title={tMessages}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
-            <MessageSquare style={{ width: 18, height: 18 }} />
-            {unreadMessageCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-brand text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-              </span>
-            )}
-          </Link>
-          <Link href={`/${locale}/notifications`} title={tNotifications}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
-            <Bell style={{ width: 18, height: 18 }} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-danger text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </Link>
+          <MessagesPanel locale={locale} unreadCount={unreadMessageCount} />
+          <NotificationsPanel locale={locale} unreadCount={unreadCount} />
           <button
             suppressHydrationWarning
             onClick={() => setMobileOpen(true)}
@@ -166,27 +153,11 @@ export default function HeaderNav({
 
         {userId ? (
           <>
-            {/* 메시지 */}
-            <Link href={`/${locale}/messages`} title={tMessages}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
-              <MessageSquare className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
-              {unreadMessageCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-brand text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                  {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                </span>
-              )}
-            </Link>
+            {/* 메시지 패널 */}
+            <MessagesPanel locale={locale} unreadCount={unreadMessageCount} />
 
-            {/* 알림 */}
-            <Link href={`/${locale}/notifications`} title={tNotifications}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-subtle hover:bg-surface-hover hover:text-brand transition-colors">
-              <Bell style={{ width: 18, height: 18 }} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[14px] h-[14px] bg-danger text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </Link>
+            {/* 알림 패널 */}
+            <NotificationsPanel locale={locale} unreadCount={unreadCount} />
 
             {/* 프로필 드롭다운 */}
             <div ref={profileRef} className="relative ml-1">
@@ -290,17 +261,17 @@ export default function HeaderNav({
         </div>{/* end flex md:flex-1 wrapper */}
       </div>{/* end outer flex flex-col */}
 
-      {/* ── 모바일 메뉴 오버레이 ── */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-[100] md:hidden">
+      {/* ── 모바일 메뉴 오버레이 (Portal로 body에 직접 마운트 → 부모 stacking context 영향 없음) ── */}
+      {mobileOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] md:hidden">
           {/* 배경 딤처리 */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
 
-          {/* 메뉴 패널 (오른쪽에서 슬라이드, 모바일 전체 높이·태블릿 적정 너비) */}
-          <div className="absolute right-0 top-0 bottom-0 w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+          {/* 메뉴 패널 */}
+          <div className="absolute right-0 top-0 h-dvh w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto">
             <div className="flex items-center justify-between px-5 py-5 border-b border-edge/60">
               {userId ? (
                 <div className="flex items-center gap-3">
@@ -378,7 +349,8 @@ export default function HeaderNav({
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

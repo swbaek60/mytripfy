@@ -2,10 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* WebView 앱 가로 스크롤 방지 */
-html,
+/* WebView 앱 가로 스크롤 방지
+   html에는 overflow-x: hidden 적용 금지 → position: fixed 요소가 클리핑됨 */
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100%;
 }
 

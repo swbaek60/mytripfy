@@ -12,12 +12,13 @@ export const viewport: Viewport = {
 }
 
 // 가로 스크롤 방지 (WebView 앱 환경 대응)
+// html에 overflow-x: hidden 적용 시 position: fixed 요소 클리핑 발생 → body에만 적용
 const noHorizontalScrollStyle = `
-  html, body {
-    overflow-x: hidden;
-    max-width: 100vw;
+  body {
+    overflow-x: clip;
+    max-width: 100%;
   }
-  * {
+  *, *::before, *::after {
     box-sizing: border-box;
   }
 `

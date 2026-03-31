@@ -1,10 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import createIntlMiddleware from 'next-intl/middleware'
-import { routing } from './src/i18n/routing'
-import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-
-const intlMiddleware = createIntlMiddleware(routing)
 
 const isProtectedRoute = createRouteMatcher([
   '/:locale/dashboard(.*)',
@@ -26,20 +21,9 @@ const isProtectedRoute = createRouteMatcher([
   '/:locale/personality(.*)',
 ])
 
-const isClerkRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/sso-callback(.*)',
-  '/auth(.*)',
-])
-
-const isApiRoute = createRouteMatcher(['/api(.*)'])
-
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const { pathname } = req.nextUrl
-
-  // Android App Links 검증 파일 - 미들웨어에서 직접 반환
-  if (pathname === '/.well-known/assetlinks.json') {
+export default clerkMiddleware(async (auth, request) => {
+  // Android App Links 검증 파일
+  if (request.nextUrl.pathname === '/.well-known/assetlinks.json') {
     return new NextResponse(
       JSON.stringify([
         {
@@ -57,26 +41,14 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     )
   }
 
-  if (isClerkRoute(req)) return NextResponse.next()
-  if (isApiRoute(req)) return NextResponse.next()
-
-  if (
-    pathname.startsWith('/_next/') ||
-    /\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|map)$/.test(pathname)
-  ) {
-    return NextResponse.next()
-  }
-
-  if (isProtectedRoute(req)) {
+  if (isProtectedRoute(request)) {
     await auth.protect()
   }
-
-  return intlMiddleware(req)
 })
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2)).*)',
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     '/(api|trpc)(.*)',
   ],
 }

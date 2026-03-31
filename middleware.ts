@@ -1,18 +1,33 @@
 import { clerkMiddleware } from '@clerk/nextjs/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-/**
- * Clerk 인증 미들웨어.
- * - 모든 요청에 Clerk 세션 컨텍스트를 주입하여 서버 컴포넌트에서 auth()가 정상 동작하도록 함
- * - next-intl 라우팅은 createNextIntlPlugin(next.config.ts)과 [locale] URL 세그먼트로 처리되므로
- *   별도의 intlMiddleware 불필요
- */
-export default clerkMiddleware()
+const ASSET_LINKS = [
+  {
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: {
+      namespace: 'android_app',
+      package_name: 'com.mytripfy.app',
+      sha256_cert_fingerprints: [
+        'A0:5F:3A:B1:52:56:C8:45:80:A0:02:BE:78:30:0B:AC:14:18:84:7C:E6:8E:0A:C7:92:B5:FE:1B:1C:E2:83:81',
+      ],
+    },
+  },
+]
+
+const clerk = clerkMiddleware()
+
+export default async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === '/.well-known/assetlinks.json') {
+    return NextResponse.json(ASSET_LINKS, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+  return clerk(request as any, {} as any)
+}
 
 export const config = {
   matcher: [
-    // Next.js 내부 파일, 정적 파일, .well-known 경로 제외
-    '/((?!_next|\.well-known|well-known|[^?]*\\.(?:html?|css|js(?!on)|json|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // API 라우트는 항상 실행
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     '/(api|trpc)(.*)',
   ],
 }

@@ -1,6 +1,6 @@
 /**
  * public/mytripfy-logo.png(또는 logo-transparent.png) 기준으로
- * 웹 파비콘·PWA·OG 이미지 + Android mipmap 런처 아이콘 생성
+ * 웹 파비콘·PWA·OG 이미지·logo-transparent.png + Android mipmap 런처 아이콘 생성
  */
 import sharp from 'sharp'
 import pngToIco from 'png-to-ico'
@@ -22,14 +22,40 @@ if (!existsSync(src)) {
   process.exit(1)
 }
 
+/** 흰·거의 흰 배경을 알파로 (헤더 로고 등) */
+async function writeLogoTransparent(srcPath, destPath) {
+  const { data, info } = await sharp(srcPath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  const { width, height } = info
+  const channels = 4
+  const whiteThreshold = 245
+  for (let i = 0; i < data.length; i += channels) {
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+    if (r >= whiteThreshold && g >= whiteThreshold && b >= whiteThreshold) {
+      data[i + 3] = 0
+    }
+  }
+  await sharp(Buffer.from(data), {
+    raw: { width, height, channels },
+  })
+    .png()
+    .toFile(destPath)
+}
+
+await writeLogoTransparent(src, join(publicDir, 'logo-transparent.png'))
+
 const white = { r: 255, g: 255, b: 255, alpha: 1 }
 const themeBlue = { r: 29, g: 78, b: 216, alpha: 1 }
 
 const meta = await sharp(src).metadata()
 const W = meta.width ?? 512
 const H = meta.height ?? 512
-/** 상단 그래픽 마크만 (파비콘·앱 아이콘 심볼용) — 글자 제외 */
-const markTopRatio = 0.5
+/** 가로형 로고(하단 텍스트)는 상단만, 정사각형에 가까운 심볼만 있으면 전체 사용 */
+const markTopRatio = H / W >= 0.85 ? 1 : 0.5
 const markHeight = Math.max(1, Math.round(H * markTopRatio))
 
 function markPipeline() {

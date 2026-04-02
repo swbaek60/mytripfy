@@ -15,6 +15,7 @@ const STATIC_PATHS = [
   '/hall-of-fame',
   '/trips',
   '/privacy',
+  '/account-data-deletion',
 ] as const
 
 function entryForPath(

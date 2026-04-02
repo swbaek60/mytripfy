@@ -745,6 +745,23 @@
     "s8Body": "Our Service may contain links to third-party websites (e.g., social media profiles, external guides). We are not responsible for the privacy practices of those sites. We encourage you to review their privacy policies before sharing any information.",
     "contactTitle": "Contact Us",
     "contactBody": "If you have any questions about this Privacy Policy or how we handle your data, please contact us:",
+    "backHome": "Back to Home",
+    "deletionCta": "Request account or data deletion",
+    "deletionCtaDesc": "For Google Play and your privacy rights — no login required:"
+  },
+  "AccountDeletion": {
+    "pageTitle": "Account & data deletion",
+    "lead": "You can request deletion of your mytripfy account and the personal data associated with it. You do not need to be logged in to use this process.",
+    "step1Title": "1. Email your request",
+    "step1Body": "Send an email from the address registered on your mytripfy account (if you still have access to it). If you no longer have access, send from any email and include as much detail as possible so we can verify your identity (e.g. full name, approximate signup date, profile URL or username).",
+    "step2Title": "2. What to include",
+    "step2Body": "• Subject line: \"Account deletion request\" or \"Data deletion request\"\n• State clearly that you want your account and personal data deleted\n• Include your registered email address if different from the sending address",
+    "step3Title": "3. What we delete",
+    "step3Body": "After we verify your request, we will delete your account and associated personal data within approximately 30 days, except where the law requires us to retain certain records (e.g. tax or fraud prevention). Some anonymized or aggregated data that cannot identify you may be retained.",
+    "step4Title": "4. Third-party sign-in (Google, Apple, Facebook)",
+    "step4Body": "We use Clerk for authentication. After we delete your data in mytripfy, you may also remove mytripfy from the list of connected apps in your Google / Apple / Facebook account settings if you wish.",
+    "emailButton": "Email deletion request",
+    "privacyLink": "Privacy Policy",
     "backHome": "Back to Home"
   },
   "LanguagePicker": {
@@ -1008,6 +1025,8 @@
     "tripsDesc": "Plan day-by-day travel itineraries and browse public trips shared by the mytripfy community.",
     "privacyTitle": "Privacy Policy",
     "privacyDesc": "How mytripfy collects, uses and protects your personal data.",
+    "accountDataDeletionTitle": "Account & data deletion",
+    "accountDataDeletionDesc": "Request deletion of your mytripfy account and associated personal data.",
     "guideRequestsTitle": "Guide Requests",
     "guideRequestsDesc": "Travelers looking for local guides. Browse open requests and apply to host visitors in your city.",
     "challengesTitle": "Travel Challenges",

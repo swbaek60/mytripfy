@@ -98,8 +98,20 @@ export default async function PrivacyPage({
           ))}
         </div>
 
+        {/* Account deletion (Play Console / GDPR) */}
+        <div className="mt-10 bg-surface rounded-2xl shadow-sm border border-edge p-5 sm:p-6 text-sm text-body leading-relaxed">
+          <p className="font-semibold text-heading mb-1">{t('deletionCta')}</p>
+          <p className="text-subtle mb-3">{t('deletionCtaDesc')}</p>
+          <Link
+            href={`/${locale}/account-data-deletion`}
+            className="inline-flex text-brand hover:underline font-medium"
+          >
+            {t('deletionCta')} →
+          </Link>
+        </div>
+
         {/* Contact */}
-        <div className="mt-10 bg-surface-sunken rounded-2xl p-5 sm:p-6 text-sm text-body leading-relaxed">
+        <div className="mt-6 bg-surface-sunken rounded-2xl p-5 sm:p-6 text-sm text-body leading-relaxed">
           <p className="font-semibold text-heading mb-1">{t('contactTitle')}</p>
           <p>{t('contactBody')}</p>
           <a href="mailto:swbaek60@gmail.com" className="inline-block mt-2 text-brand hover:underline font-medium">

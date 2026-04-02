@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
+import { SITE_URL } from '@/lib/seo/site'
 
 /** 파비콘은 src/app/favicon.ico·icon.png·apple-icon.png (npm run icons 로 생성) */
 export const metadata: Metadata = {
@@ -40,6 +41,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           appearance={{
             variables: { colorPrimary: '#1D4ED8' },
           }}
+          signInFallbackRedirectUrl={SITE_URL}
+          signUpFallbackRedirectUrl={SITE_URL}
         >
           {children}
         </ClerkProvider>

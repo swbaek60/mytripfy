@@ -23,7 +23,8 @@
     "delete-user": "node --env-file=.env.local scripts/delete-user-by-email.mjs",
     "icons": "node scripts/generate-favicon.mjs",
     "cap:prep": "node scripts/ensure-capacitor-web-dir.mjs && npx cap sync android",
-    "android:bundle": "node scripts/run-android-bundle.mjs"
+    "android:bundle": "node scripts/run-android-bundle.mjs",
+    "android:setup-keystore": "node scripts/setup-play-upload-keystore.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1000.0",

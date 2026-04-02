@@ -10,17 +10,28 @@
 
 ## 2. 업로드용 서명 키 생성 (로컬, Git에 넣지 않음)
 
-PowerShell 또는 터미널에서 (비밀번호·별칭은 본인이 기억할 값):
+### 방법 A — 자동 (비대화형)
+
+프로젝트 루트에서:
+
+```bash
+npm run android:setup-keystore
+```
+
+`android/mytripfy-upload.jks` 와 `android/keystore.properties` 가 생성됩니다. 터미널에 출력된 **비밀번호를 반드시 비밀번호 관리자에 저장**하세요. 분실 시 복구할 수 없습니다.  
+직접 정한 비밀번호를 쓰려면: `MYTRIPFY_KEYSTORE_PASSWORD=원하는값 npm run android:setup-keystore`
+
+### 방법 B — 수동 (`keytool`)
+
+PowerShell에서 `android` 폴더로 이동 후:
 
 ```bash
 keytool -genkeypair -v -storetype PKCS12 -keystore mytripfy-upload.jks -alias mytripfy -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-생성한 `mytripfy-upload.jks` 를 **`android/` 폴더**에 두거나, 원하는 경로에 두고 `storeFile` 경로만 맞춥니다.
+이후 `android/keystore.properties.example` 을 복사해 `keystore.properties` 로 저장하고 비밀번호·경로를 채웁니다.
 
-## 3. `keystore.properties` 설정
-
-`android/keystore.properties.example` 을 복사해 `android/keystore.properties` 로 저장:
+## 3. `keystore.properties` (방법 A면 자동 생성됨)
 
 ```properties
 storePassword=(키스토어 비밀번호)

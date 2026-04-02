@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { LANGUAGES, LANGUAGE_LEVELS, getLanguageByCode, getLevelInfo, type LanguageSkill } from '@/data/languages'
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: Props) {
+  const t = useTranslations('LanguagePicker')
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -78,9 +80,9 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
                           ? `${lvl.color} text-white`
                           : 'bg-surface-sunken text-subtle hover:bg-gray-200'
                       }`}
-                      title={lvl.label}
+                      title={t(`level_${lvl.code}` as Parameters<typeof t>[0])}
                     >
-                      {lvl.labelKo}
+                      {t(`level_${lvl.code}` as Parameters<typeof t>[0])}
                     </button>
                   ))}
                 </div>
@@ -108,7 +110,7 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
             onChange={e => setSearch(e.target.value)}
             onFocus={() => setOpen(true)}
             onBlur={handleBlur}
-            placeholder="🔍 언어 검색 (예: Korean, English, 한국어...)"
+            placeholder={t('search_placeholder')}
             className="w-full h-10 rounded-xl border border-edge px-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
           />
 
@@ -139,7 +141,7 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
               className="absolute z-20 top-12 left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg"
               onMouseDown={handleDropdownMouseDown}
             >
-              <div className="px-4 py-3 text-sm text-hint text-center">검색 결과 없음</div>
+              <div className="px-4 py-3 text-sm text-hint text-center">{t('no_results')}</div>
             </div>
           )}
         </div>
@@ -149,7 +151,7 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
       <div className="flex flex-wrap gap-2 pt-1">
         {LANGUAGE_LEVELS.map(lvl => (
           <span key={lvl.code} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${lvl.bgColor} ${lvl.textColor}`}>
-            {'★'.repeat(lvl.stars)} {lvl.label} ({lvl.labelKo})
+            {'★'.repeat(lvl.stars)} {t(`level_${lvl.code}` as Parameters<typeof t>[0])}
           </span>
         ))}
       </div>

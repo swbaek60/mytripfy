@@ -8,14 +8,23 @@ import { getLanguageByCode } from '@/data/languages'
 import { MapPin, Calendar, Users, Plus, ChevronRight } from 'lucide-react'
 import CountrySearchSelect from './CountrySearchSelect'
 import CountryFlag from '@/components/CountryFlag'
+import { getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
-export const metadata: Metadata = {
-  title: 'Guide Requests – Find a Local Guide',
-  description: 'Browse guide requests by travelers. Apply as a guide or post your own request to find a local guide for your trip.',
-  openGraph: {
-    title: 'Guide Requests | mytripfy',
-    description: 'Find or offer guide services for trips worldwide.',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/guides/requests',
+    title: t('guideRequestsTitle'),
+    description: t('guideRequestsDesc'),
+    keywords: ['local guide', 'guide request', 'private tour', 'mytripfy'],
+  })
 }
 
 const POPULAR_COUNTRIES = ['JP', 'KR', 'TH', 'VN', 'ID', 'FR', 'IT', 'ES', 'US', 'AU', 'CN', 'TW', 'PH', 'SG', 'MY', 'GB', 'DE', 'CA', 'MX', 'BR']
@@ -77,7 +86,7 @@ export default async function GuideRequestsPage({
               {totalCount > 0 && <span className="ml-1 text-gold font-semibold">· {totalCount} open requests</span>}
             </p>
           </div>
-          <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login`}>
+          <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests`)}`}>
             <Button className="bg-gold hover:brightness-95 rounded-full px-5 shrink-0 text-white flex items-center gap-1.5">
               <Plus className="w-4 h-4" /> Post a Request
             </Button>
@@ -272,7 +281,7 @@ export default async function GuideRequestsPage({
               {my === 'posted' ? "You haven't posted any guide requests." : my === 'applied' ? "You haven't applied to any requests." : 'Be the first to post a guide request!'}
             </p>
             {!my && (
-              <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login`}>
+              <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests`)}`}>
                 <Button className="bg-gold hover:brightness-95 text-white rounded-full px-8">
                   Post a Guide Request
                 </Button>

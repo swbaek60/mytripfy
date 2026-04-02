@@ -4,6 +4,24 @@ import Link from 'next/link'
 import { getDisputeLabels } from '@/data/dispute-labels'
 import { getTranslations } from 'next-intl/server'
 import { Siren } from 'lucide-react'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/challenges',
+    title: t('challengesTitle'),
+    description: t('challengesDesc'),
+    keywords: ['travel challenges', 'bucket list travel', 'mytripfy'],
+  })
+}
 
 const CATEGORIES = [
   { key: 'countries',     title: '100 Countries',      emoji: '🌍', desc: 'Nations to explore' },
@@ -126,7 +144,7 @@ export default async function ChallengesPage({
               </div>
             </div>
           ) : (
-            <Link href={`/${locale}/login`}>
+            <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/challenges`)}`}>
               <button className="bg-white text-brand font-bold px-6 py-2.5 rounded-full text-sm hover:bg-brand-light transition-colors">
                 {t('loginToTrack')}
               </button>

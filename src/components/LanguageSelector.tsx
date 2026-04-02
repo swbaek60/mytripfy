@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { createPortal } from 'react-dom'
+import { usePathname } from 'next/navigation'
 import CountryFlag from '@/components/CountryFlag'
 import { routing } from '@/i18n/routing'
 import { updatePreferredLocale } from '@/app/[locale]/actions'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
+import ModalPortalShell from '@/components/ui/ModalPortalShell'
 
 // locale → country code (국기 표시용)
 const LOCALE_TO_COUNTRY: Record<string, string> = {
@@ -96,20 +99,23 @@ interface Props {
   iconOnly?: boolean
   /** 로그인한 사용자 ID. 있으면 언어 선택 시 프로필에 저장해 두었다가 다음 로그인 시 해당 언어로 표시 */
   userId?: string
+  /** 모달이 열릴 때 (햄버거·프로필 드롭다운 등 다른 오버레이 닫기) */
+  onOverlayOpen?: () => void
 }
 
-export default function LanguageSelector({ currentLocale, compact, iconOnly, userId }: Props) {
+export default function LanguageSelector({ currentLocale, compact, iconOnly, userId, onOverlayOpen }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
-  const modalRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
 
-  // 현재 언어 정보 찾기
+  useEffect(() => { setMounted(true) }, [])
+  useBodyScrollLock(open && mounted)
+
   const allLangs = LANGUAGE_GROUPS.flatMap(g => g.langs)
   const currentLang = allLangs.find(l => l.locale === currentLocale) || allLangs[0]
 
-  // 검색 필터
   const filtered = search.trim()
     ? LANGUAGE_GROUPS.map(group => ({
         ...group,
@@ -121,18 +127,6 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
       })).filter(g => g.langs.length > 0)
     : LANGUAGE_GROUPS
 
-  // 바깥 클릭시 닫기
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    if (open) document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  // ESC 닫기
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -141,19 +135,132 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
+  useEffect(() => {
+    if (!open) return
+    const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+    if (!isMobile) {
+      const t = window.setTimeout(() => searchRef.current?.focus(), 50)
+      return () => window.clearTimeout(t)
+    }
+  }, [open])
+
   const handleSelect = (locale: string) => {
     setOpen(false)
     setSearch('')
-    if (userId) updatePreferredLocale(locale).catch(() => {})
     const newPath = switchLocaleInPath(pathname, locale)
-    router.push(newPath)
+    // locale 변경은 전체 페이지 리로드가 필요 (서버 컴포넌트 re-render)
+    if (userId) {
+      updatePreferredLocale(locale)
+        .catch(() => {})
+        .finally(() => { window.location.href = newPath })
+    } else {
+      window.location.href = newPath
+    }
   }
 
+  const modal = open && mounted ? createPortal(
+    <ModalPortalShell onBackdropPointerDown={() => setOpen(false)}>
+      <div className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[min(88dvh,calc(100dvh-1.5rem))] sm:h-auto sm:max-h-[min(85vh,92dvh)]">
+        <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-heading">Select Language</h2>
+              <p className="text-xs text-hint mt-0.5">25 languages available</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-hint hover:text-body"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-hint text-sm">🔍</span>
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search language..."
+              className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-y-contain px-6 py-4 touch-pan-y">
+          {filtered.map(group => (
+            <div key={group.region}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`h-1 w-5 rounded-full bg-gradient-to-r ${group.color}`} />
+                <span className="text-xs font-semibold text-hint uppercase tracking-wide">
+                  {group.region}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {group.langs.map(lang => {
+                  const isActive = lang.locale === currentLocale
+                  return (
+                    <button
+                      type="button"
+                      key={lang.locale}
+                      onClick={() => handleSelect(lang.locale)}
+                      style={{ touchAction: 'manipulation' }}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
+                        isActive
+                          ? 'bg-brand text-white shadow-md shadow-blue-200'
+                          : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
+                      }`}
+                    >
+                      {LOCALE_TO_COUNTRY[lang.locale] ? (
+                        <CountryFlag code={LOCALE_TO_COUNTRY[lang.locale]} size="md" className={isActive ? 'ring-1 ring-white/50' : ''} />
+                      ) : (
+                        <span className="text-xl leading-none shrink-0">🌐</span>
+                      )}
+                      <div className="min-w-0">
+                        <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
+                          {lang.native}
+                        </div>
+                        <div className={`text-xs truncate ${isActive ? 'text-blue-200' : 'text-hint'}`}>
+                          {lang.english}
+                        </div>
+                      </div>
+                      {isActive && (
+                        <span className="ml-auto text-white text-sm shrink-0">✓</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+          {filtered.length === 0 && (
+            <div className="text-center py-10 text-hint">
+              <div className="text-3xl mb-2">🔍</div>
+              <p className="text-sm">No language found for &quot;{search}&quot;</p>
+            </div>
+          )}
+        </div>
+        <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50 shrink-0">
+          <p className="text-xs text-hint text-center">
+            More languages coming soon · <span className="text-brand">Suggest a language</span>
+          </p>
+        </div>
+      </div>
+    </ModalPortalShell>,
+    document.body
+  ) : null
+
   return (
-    <div className="relative" ref={modalRef}>
-      {/* 트리거 버튼 */}
+    <div className="relative">
       <button
-        onClick={() => setOpen(!open)}
+        type="button"
+        onClick={() => {
+          setOpen((v) => {
+            const next = !v
+            if (next) onOverlayOpen?.()
+            return next
+          })
+        }}
         className={iconOnly
           ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0"
           : compact
@@ -178,114 +285,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
             </svg>
         }
       </button>
-
-      {/* 모달 패널 */}
-      {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          {/* 배경 오버레이 */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
-          />
-
-          {/* 패널 */}
-          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-
-            {/* 헤더 */}
-            <div className="px-6 pt-6 pb-4 border-b border-edge">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-heading">Select Language</h2>
-                  <p className="text-xs text-hint mt-0.5">25 languages available</p>
-                </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-hint hover:text-body"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* 검색창 */}
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-hint text-sm">🔍</span>
-                <input
-                  type="text"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search language..."
-                  className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
-                  autoFocus
-                />
-              </div>
-            </div>
-
-            {/* 언어 목록 */}
-            <div className="overflow-y-auto flex-1 px-6 py-4 space-y-5">
-              {filtered.map(group => (
-                <div key={group.region}>
-                  {/* 지역 헤더 */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`h-1 w-5 rounded-full bg-gradient-to-r ${group.color}`} />
-                    <span className="text-xs font-semibold text-hint uppercase tracking-wide">
-                      {group.region}
-                    </span>
-                  </div>
-
-                  {/* 언어 그리드 */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {group.langs.map(lang => {
-                      const isActive = lang.locale === currentLocale
-                      return (
-                        <button
-                          key={lang.locale}
-                          onClick={() => handleSelect(lang.locale)}
-                          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
-                            isActive
-                              ? 'bg-brand text-white shadow-md shadow-blue-200'
-                              : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
-                          }`}
-                        >
-                          {LOCALE_TO_COUNTRY[lang.locale] ? (
-                            <CountryFlag code={LOCALE_TO_COUNTRY[lang.locale]} size="md" className={isActive ? 'ring-1 ring-white/50' : ''} />
-                          ) : (
-                            <span className="text-xl leading-none shrink-0">🌐</span>
-                          )}
-                          <div className="min-w-0">
-                            <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
-                              {lang.native}
-                            </div>
-                            <div className={`text-xs truncate ${isActive ? 'text-blue-200' : 'text-hint'}`}>
-                              {lang.english}
-                            </div>
-                          </div>
-                          {isActive && (
-                            <span className="ml-auto text-white text-sm shrink-0">✓</span>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-
-              {filtered.length === 0 && (
-                <div className="text-center py-10 text-hint">
-                  <div className="text-3xl mb-2">🔍</div>
-                  <p className="text-sm">No language found for &quot;{search}&quot;</p>
-                </div>
-              )}
-            </div>
-
-            {/* 푸터 */}
-            <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50">
-              <p className="text-xs text-hint text-center">
-                More languages coming soon · <span className="text-brand">Suggest a language</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {modal}
     </div>
   )
 }

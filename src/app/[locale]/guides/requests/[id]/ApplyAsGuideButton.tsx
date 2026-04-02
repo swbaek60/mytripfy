@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export default function ApplyAsGuideButton({
   requestId,
@@ -17,6 +18,9 @@ export default function ApplyAsGuideButton({
   alreadyApplied: boolean
 }) {
   const router = useRouter()
+  const t = useTranslations('CompanionDetail')
+  const tr = useTranslations('GuideRequests')
+  const tc = useTranslations('Common')
   const [applied, setApplied] = useState(alreadyApplied)
   const [showForm, setShowForm] = useState(false)
   const [message, setMessage] = useState('')
@@ -58,11 +62,11 @@ export default function ApplyAsGuideButton({
     return (
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="flex-1 bg-success-light border border-green-200 rounded-xl p-4 text-center">
-          <p className="text-success font-medium">You have applied as guide for this request.</p>
-          <p className="text-success text-sm mt-1">Waiting for the traveler to respond.</p>
+          <p className="text-success font-medium">{t('appliedGuide')}</p>
+          <p className="text-success text-sm mt-1">{t('waitingTraveler')}</p>
         </div>
         <Button variant="outline" onClick={handleCancel} disabled={loading} className="border-red-200 text-danger hover:bg-danger-light shrink-0">
-          Cancel Application
+          {t('cancelApp')}
         </Button>
       </div>
     )
@@ -71,7 +75,7 @@ export default function ApplyAsGuideButton({
   if (showForm) {
     return (
       <div className="space-y-3">
-        <label className="text-sm font-medium text-body">Message to traveler (optional)</label>
+        <label className="text-sm font-medium text-body">{tr('messageToTraveler')}</label>
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
@@ -81,9 +85,9 @@ export default function ApplyAsGuideButton({
         />
         <div className="flex gap-3">
           <Button onClick={handleApply} disabled={loading} className="flex-1 bg-gold hover:brightness-110 rounded-xl text-white">
-            {loading ? 'Submitting...' : 'Submit Application'}
+            {loading ? t('submitting') : t('submitApp')}
           </Button>
-          <Button variant="outline" onClick={() => setShowForm(false)} className="rounded-xl">Cancel</Button>
+          <Button variant="outline" onClick={() => setShowForm(false)} className="rounded-xl">{tc('cancel')}</Button>
         </div>
       </div>
     )
@@ -91,7 +95,7 @@ export default function ApplyAsGuideButton({
 
   return (
     <Button onClick={() => setShowForm(true)} className="w-full bg-gold hover:brightness-110 rounded-xl py-6 text-lg font-bold text-white">
-      Apply as Guide
+      {t('applyAsGuide')}
     </Button>
   )
 }

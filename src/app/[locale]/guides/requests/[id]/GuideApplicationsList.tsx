@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { getLevelInfo } from '@/data/countries'
 import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface GuideApplication {
   id: string
@@ -29,6 +30,7 @@ export default function GuideApplicationsList({
   locale: string
 }) {
   const router = useRouter()
+  const t = useTranslations('GuideRequests')
   const [loading, setLoading] = useState<string | null>(null)
 
   const updateStatus = async (appId: string, status: 'accepted' | 'rejected', guideId: string) => {
@@ -65,12 +67,12 @@ export default function GuideApplicationsList({
       </div>
 
       {applications.length === 0 ? (
-        <p className="text-center text-hint py-6">No applications yet.</p>
+        <p className="text-center text-hint py-6">{t('noApplications')}</p>
       ) : (
         <div className="space-y-3">
           {accepted.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-success uppercase tracking-wider mb-2">Accepted</p>
+              <p className="text-xs font-semibold text-success uppercase tracking-wider mb-2">{t('accepted')}</p>
               {accepted.map(app => (
                 <GuideAppCard
                   key={app.id}
@@ -85,7 +87,7 @@ export default function GuideApplicationsList({
           )}
           {pending.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wider mb-2 mt-4">Pending</p>
+              <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wider mb-2 mt-4">{t('pending')}</p>
               {pending.map(app => (
                 <GuideAppCard
                   key={app.id}
@@ -101,7 +103,7 @@ export default function GuideApplicationsList({
           )}
           {rejected.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-hint uppercase tracking-wider mb-2 mt-4">Rejected</p>
+              <p className="text-xs font-semibold text-hint uppercase tracking-wider mb-2 mt-4">{t('rejected')}</p>
               {rejected.map(app => (
                 <GuideAppCard key={app.id} app={app} locale={locale} status="rejected" loading={loading} />
               ))}

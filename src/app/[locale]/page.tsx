@@ -9,6 +9,28 @@ import HomeSearch from '@/components/HomeSearch'
 import CountryFlag from '@/components/CountryFlag'
 import { Users, Plane, Compass, Globe, MessageSquare, ShieldCheck, Search, Star, UserCheck, Store, Trophy, Award, ClipboardList } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'Seo' })
+  const keywords = t('keywords')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean)
+  return buildPageMetadata({
+    locale,
+    path: '',
+    title: t('defaultTitle'),
+    description: t('defaultDescription'),
+    keywords,
+  })
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -218,7 +240,7 @@ export default async function Home({
                           </div>
                           <span className="truncate max-w-[80px]">{(poster?.full_name as string) || s('anonymous')}</span>
                         </div>
-                        <span suppressHydrationWarning>{start.toLocaleDateString(locale === 'ko' ? 'ko-KR' : locale === 'ja' ? 'ja-JP' : locale.startsWith('zh') ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
+                        <span suppressHydrationWarning>{start.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}</span>
                       </div>
                     </div>
                   </Link>

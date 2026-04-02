@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { X, MessageCircle, Mail, Send, ExternalLink } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type ContactMethod = {
   id: string
@@ -39,6 +40,8 @@ export default function GuideContactModal({
   instagram, facebook, twitter,
   isLoggedIn,
 }: Props) {
+  const tg = useTranslations('GuideDetail')
+  const tc = useTranslations('Common')
   const [open, setOpen] = useState(false)
   const [showEmail, setShowEmail] = useState(false)
   const [emailMsg, setEmailMsg] = useState('')
@@ -189,7 +192,7 @@ export default function GuideContactModal({
         className="w-full bg-gradient-to-r from-gold-light to-gold hover:from-gold hover:to-gold text-white rounded-xl py-4 text-base font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
       >
         <MessageCircle className="w-5 h-5" />
-        Contact This Guide
+        {tg('contactGuide')}
         <span className="text-xs font-normal bg-white/20 px-2 py-0.5 rounded-full">
           {availableCount} ways
         </span>
@@ -197,7 +200,7 @@ export default function GuideContactModal({
 
       {/* 모달 */}
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
           {/* 배경 */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -205,12 +208,12 @@ export default function GuideContactModal({
           />
 
           {/* 패널 */}
-          <div className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+          <div className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[min(90vh,calc(100dvh-2rem))] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
 
             {/* 헤더 */}
             <div className="px-6 py-5 border-b border-edge flex items-center justify-between shrink-0">
               <div>
-                <h2 className="font-bold text-heading text-lg">Contact Guide</h2>
+                <h2 className="font-bold text-heading text-lg">{tg('contactGuide')}</h2>
                 <p className="text-sm text-hint mt-0.5">{guideName}</p>
               </div>
               <button
@@ -231,8 +234,8 @@ export default function GuideContactModal({
                 {sent ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">✅</div>
-                    <p className="font-bold text-success">Message sent!</p>
-                    <p className="text-sm text-hint mt-1">The guide will reply soon.</p>
+                    <p className="font-bold text-success">{tg('messageSent')}</p>
+                    <p className="text-sm text-hint mt-1">{tg('guideWillReply')}</p>
                   </div>
                 ) : (
                   <>
@@ -270,7 +273,7 @@ export default function GuideContactModal({
                           <p className="text-xs text-hint truncate mt-0.5">{method.desc}</p>
                         )}
                         {method.loginRequired && (
-                          <p className="text-xs text-gold mt-0.5">Login required</p>
+                          <p className="text-xs text-gold mt-0.5">{tc('loginRequired')}</p>
                         )}
                       </div>
                       <ExternalLink className={`w-4 h-4 ${method.textColor} opacity-40 group-hover:opacity-100 shrink-0`} />

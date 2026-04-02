@@ -12,6 +12,7 @@ import Link from 'next/link'
 import PostCoverUpload from '@/components/PostCoverUpload'
 import LanguageMultiSelect from '@/components/LanguageMultiSelect'
 import { getLanguageByCode } from '@/data/languages'
+import { useTranslations } from 'next-intl'
 
 export default function GuideRequestForm({
   userId,
@@ -21,6 +22,8 @@ export default function GuideRequestForm({
   locale: string
 }) {
   const router = useRouter()
+  const t = useTranslations('GuideRequests')
+  const tc = useTranslations('Common')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -58,7 +61,7 @@ export default function GuideRequestForm({
 
   const handleSubmit = async () => {
     if (!title || !country || !startDate || !endDate) {
-      setError('Please fill in all required fields.')
+      setError(t('requiredFields'))
       return
     }
     if (endDate < startDate) {
@@ -107,7 +110,7 @@ export default function GuideRequestForm({
       }
 
       if (dbError) {
-        setError(`등록 실패: ${dbError.message}`)
+        setError(`${tc('errorSubmit')} ${dbError.message}`)
         return
       }
 
@@ -120,7 +123,7 @@ export default function GuideRequestForm({
 
       router.push(`/${locale}/guides/requests`)
     } catch (err) {
-      setError('예상치 못한 오류가 발생했습니다. 다시 시도해주세요.')
+      setError(tc('errorUnexpected'))
       console.error(err)
     } finally {
       setSaving(false)
@@ -130,9 +133,9 @@ export default function GuideRequestForm({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-heading">Post a Guide Request</h2>
+        <h2 className="text-xl font-bold text-heading">{t('postRequest')}</h2>
         <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600">
-          ← Back to list
+          {tc('back')}
         </Link>
       </div>
 
@@ -143,7 +146,7 @@ export default function GuideRequestForm({
       )}
 
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-heading border-b border-edge pb-3">Trip Details</h3>
+        <h3 className="font-bold text-heading border-b border-edge pb-3">{t('tripDetails')}</h3>
         <div className="space-y-1.5">
           <Label>Title <span className="text-danger">*</span></Label>
           <Input
@@ -165,7 +168,7 @@ export default function GuideRequestForm({
 
         {country && (
           <div className="space-y-2">
-            <Label>Cities (optional)</Label>
+            <Label>{t('citiesOptional')}</Label>
             {selectedCities.length > 0 && (
               <div className="flex flex-wrap gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
                 {selectedCities.map(city => (
@@ -223,9 +226,9 @@ export default function GuideRequestForm({
       </div>
 
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-heading border-b border-edge pb-3">Description</h3>
+        <h3 className="font-bold text-heading border-b border-edge pb-3">{t('description')}</h3>
         <div className="space-y-1.5">
-          <Label>What do you need from a guide? (optional)</Label>
+          <Label>{t('descHint')}</Label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
@@ -239,29 +242,28 @@ export default function GuideRequestForm({
       {/* 선호 언어 */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
         <div className="border-b border-edge pb-3">
-          <h3 className="font-bold text-heading">🗣️ Preferred Guide Languages (optional)</h3>
+          <h3 className="font-bold text-heading">🗣️ {t('preferredLangsTitle')}</h3>
           <p className="text-xs text-subtle mt-1">
-            가이드가 사용할 수 있으면 좋을 언어를 선택하세요.
-            해당 언어를 할 수 있는 가이드에게 우선적으로 알림이 발송됩니다.
+            {t('preferredLangsDesc')}
           </p>
         </div>
         <LanguageMultiSelect
           value={preferredLanguages}
           onChange={setPreferredLanguages}
-          placeholder="🔍 언어 검색 (예: English, Korean...)"
+          placeholder={tc('searchLanguage')}
         />
         {preferredLanguages.length > 0 && (
           <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-800">
             <span className="text-sm">💡</span>
             <span>
-              <strong>{preferredLanguages.map(c => getLanguageByCode(c)?.name).join(', ')}</strong> 가능한 가이드에게 알림이 발송됩니다.
+              {t('langNotificationHint')}
             </span>
           </div>
         )}
       </div>
 
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-heading border-b border-edge pb-3">Cover Image (optional)</h3>
+        <h3 className="font-bold text-heading border-b border-edge pb-3">{t('coverImage')}</h3>
         <PostCoverUpload userId={userId} currentUrl={coverImage} onUpload={setCoverImage} />
       </div>
 
@@ -270,7 +272,7 @@ export default function GuideRequestForm({
         disabled={saving}
         className="w-full bg-amber-500 hover:bg-amber-600 py-6 text-lg rounded-xl text-white"
       >
-        {saving ? 'Posting...' : '🧭 Post Guide Request'}
+        {saving ? tc('saving') : `🧭 ${t('postRequest')}`}
       </Button>
     </div>
   )

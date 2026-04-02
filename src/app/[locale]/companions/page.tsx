@@ -9,14 +9,28 @@ import CountryFlag from '@/components/CountryFlag'
 import CompanionsCountryFilter from '@/app/[locale]/companions/CompanionsCountryFilter'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
-export const metadata: Metadata = {
-  title: 'Find Travel Companions',
-  description: 'Browse and join travel companion posts. Find the perfect travel partner for your next adventure in any country around the world.',
-  openGraph: {
-    title: 'Find Travel Companions | mytripfy',
-    description: 'Browse and join travel companion posts worldwide.',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/companions',
+    title: t('companionsTitle'),
+    description: t('companionsDesc'),
+    keywords: [
+      'travel companion',
+      'trip buddy',
+      'travel partner',
+      'group travel',
+      'mytripfy',
+    ],
+  })
 }
 
 const PURPOSE_LABELS: Record<string, string> = {
@@ -50,6 +64,7 @@ export default async function CompanionsPage({
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
   const t = await getTranslations({ locale, namespace: 'Companions' })
+  const td = await getTranslations({ locale, namespace: 'CompanionDetail' })
 
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || ''
@@ -137,8 +152,8 @@ export default async function CompanionsPage({
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-heading">{t('title')}</h1>
-            <p className="text-subtle mt-1">{t('subtitle')}</p>
+            <h1 className="text-3xl font-extrabold text-heading">{t('title')}</h1>
+            <p className="text-subtle mt-1 text-sm">{t('subtitle')}</p>
           </div>
           {user ? (
             <Link href={`/${locale}/companions/new`}>
@@ -147,7 +162,7 @@ export default async function CompanionsPage({
               </Button>
             </Link>
           ) : (
-            <Link href={`/${locale}/login`}>
+            <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/companions`)}`}>
               <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0">
                 + {t('post')}
               </Button>
@@ -306,8 +321,8 @@ export default async function CompanionsPage({
         ) : (
           <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
             <div className="text-5xl mb-4">🌍</div>
-            <h3 className="text-xl font-bold text-body mb-2">No trips posted yet</h3>
-            <p className="text-subtle mb-6">Be the first to post your trip and find a companion!</p>
+            <h3 className="text-xl font-bold text-body mb-2">{td('noTripsYet')}</h3>
+            <p className="text-subtle mb-6">{td('noTripsHint')}</p>
             <Link href={`/${locale}/companions/new`}>
               <Button className="bg-brand hover:bg-brand-hover rounded-full px-8">
                 Post My Trip

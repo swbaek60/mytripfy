@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { getCountryByCode } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import SponsorsFilterBar from './SponsorsFilterBar'
 import CountryFlag from '@/components/CountryFlag'
 
@@ -13,10 +14,13 @@ export async function generateMetadata({
 }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
-  return {
+  return buildPageMetadata({
+    locale,
+    path: '/sponsors',
     title: t('metaTitle'),
     description: t('metaDescription'),
-  }
+    keywords: ['travel deals', 'local sponsor', 'restaurant discount', 'mytripfy'],
+  })
 }
 
 const BUSINESS_TYPE_KEYS: Record<string, string> = {

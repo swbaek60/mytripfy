@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { useTranslations } from 'next-intl'
 
 interface QuestionItem {
   id: string
@@ -39,16 +40,17 @@ export default function QuestionsSection({
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const t = useTranslations('CompanionDetail')
 
   const supabase = createClient()
 
   const handleSubmit = async () => {
     if (!currentUserId) {
-      setError('로그인 후 질문을 남길 수 있습니다.')
+      setError(t('qaLoginError'))
       return
     }
     if (!content.trim()) {
-      setError('질문 내용을 입력해주세요.')
+      setError(t('qaEmptyError'))
       return
     }
     setSubmitting(true)
@@ -68,7 +70,7 @@ export default function QuestionsSection({
 
     setSubmitting(false)
     if (dbError || !data) {
-      setError('질문 등록에 실패했습니다. 다시 시도해주세요.')
+      setError(t('qaSubmitFail'))
       return
     }
 
@@ -113,7 +115,7 @@ export default function QuestionsSection({
 
     setSubmitting(false)
     if (dbError || !data) {
-      setError('답변 등록에 실패했습니다. 다시 시도해주세요.')
+      setError(t('qaAnswerFail'))
       return
     }
 
@@ -140,16 +142,16 @@ export default function QuestionsSection({
   return (
     <section className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-heading">💬 Trip Q&amp;A</h3>
+        <h3 className="font-bold text-heading">{t('tripQA')}</h3>
         <p className="text-xs text-hint">
-          일정·예산·준비물 등 다른 신청자에게도 도움이 되는 질문을 남겨주세요.
+          {t('qaGuide')}
         </p>
       </div>
 
       {currentUserId ? (
         currentUserId === hostId ? (
           <p className="text-sm text-subtle">
-            이 섹션은 여행자(신청자)가 남긴 질문을 모아두는 공간입니다. 호스트는 아래 질문에 답변만 남길 수 있습니다.
+            {t('qaHostOnly')}
           </p>
         ) : (
           <div className="space-y-2">
@@ -157,7 +159,7 @@ export default function QuestionsSection({
               value={content}
               onChange={e => setContent(e.target.value)}
               rows={3}
-              placeholder="이 여행에 대해 궁금한 점을 남겨주세요. (예: 예산 범위, 숙소 타입, 이동수단 등)"
+              placeholder={t('qaPlaceholder')}
               className="text-sm"
             />
             {error && (
@@ -170,21 +172,21 @@ export default function QuestionsSection({
                 disabled={submitting}
                 className="rounded-full px-4"
               >
-                {submitting ? '등록 중...' : '질문 등록'}
+                {submitting ? t('qaSubmitting') : t('qaSubmitBtn')}
               </Button>
             </div>
           </div>
         )
       ) : (
         <p className="text-sm text-subtle">
-          질문을 남기려면 먼저 로그인해주세요.
+          {t('qaLoginRequired')}
         </p>
       )}
 
       <div className="border-t border-edge pt-4">
         {questions.length === 0 ? (
           <p className="text-sm text-hint">
-            아직 등록된 Q&amp;A가 없습니다. 첫 번째 질문을 남겨보세요.
+            {t('qaEmpty')}
           </p>
         ) : (
           <div className="space-y-3">
@@ -234,13 +236,13 @@ export default function QuestionsSection({
                 ) : currentUserId === hostId ? (
                   <div className="mt-1 pl-3 border-l-2 border-dashed border-edge-brand space-y-2">
                     <p className="text-xs text-hint">
-                      호스트 답변을 남겨주세요.
+                      {t('qaHostAnswerHint')}
                     </p>
                     <Textarea
                       rows={2}
                       value={answerDrafts[q.id] || ''}
                       onChange={e => handleAnswerChange(q.id, e.target.value)}
-                      placeholder="여행 조건, 예산, 일정 등에 대해 자세히 답변해주세요."
+                      placeholder={t('qaAnswerPlaceholder')}
                       className="text-sm"
                     />
                     <div className="flex justify-end">
@@ -250,13 +252,13 @@ export default function QuestionsSection({
                         disabled={submitting || !(answerDrafts[q.id] || '').trim()}
                         className="rounded-full px-3 py-1 text-xs"
                       >
-                        답변 등록
+                        {t('qaAnswerSubmit')}
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <p className="text-xs text-hint mt-1">
-                    호스트 답변 대기 중입니다.
+                    {t('qaWaitingAnswer')}
                   </p>
                 )}
               </div>

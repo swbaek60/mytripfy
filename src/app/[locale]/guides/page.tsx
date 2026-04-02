@@ -7,6 +7,7 @@ import { getLevelInfo, getCountryByCode } from '@/data/countries'
 import BookmarkButton from '@/components/BookmarkButton'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import { getLanguageByCode, getLevelInfo as getLangLevel, type LanguageSkill } from '@/data/languages'
 import type { GuideRegion } from '@/data/cities'
 import GuidesFilterBar from './GuidesFilterBar'
@@ -19,14 +20,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Guides' })
-  return {
+  return buildPageMetadata({
+    locale,
+    path: '/guides',
     title: t('metaTitle'),
     description: t('metaDescription'),
-    openGraph: {
-      title: t('metaOgTitle'),
-      description: t('metaOgDescription'),
-    },
-  }
+    keywords: ['local guide', 'private guide', 'tour guide', 'mytripfy'],
+  })
 }
 
 export default async function GuidesPage({
@@ -148,7 +148,7 @@ export default async function GuidesPage({
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login`}>
+            <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
               <Button className="bg-gold hover:brightness-110 text-white rounded-full text-sm">
                 {t('guideRequestsBtn')}
               </Button>
@@ -331,7 +331,7 @@ export default async function GuidesPage({
             <div className="text-5xl mb-4">🧭</div>
             <h3 className="text-xl font-bold text-body mb-2">{t('noGuidesFound')}</h3>
             <p className="text-subtle mb-6">{t('adjustFiltersOrRegister')}</p>
-            <Link href={user ? `/${locale}/profile/edit` : `/${locale}/login`}>
+            <Link href={user ? `/${locale}/profile/edit` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
               <Button className="bg-gold hover:brightness-110 text-white rounded-full px-8">
                 {t('registerAsGuideBtn')}
               </Button>
@@ -381,7 +381,7 @@ export default async function GuidesPage({
           ) : (
             <div className="bg-surface rounded-2xl shadow-sm py-8 px-4 text-center">
               <p className="text-subtle text-sm mb-3">{t('noOpenGuideRequests')}</p>
-              <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login`}>
+              <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
                 <Button size="sm" variant="outline" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
                   {t('postRequest')}
                 </Button>

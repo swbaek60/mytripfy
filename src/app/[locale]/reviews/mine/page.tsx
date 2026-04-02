@@ -4,6 +4,7 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 import { MessageSquare, Star, ChevronRight } from 'lucide-react'
 import { getLevelInfo } from '@/data/countries'
+import { getTranslations } from 'next-intl/server'
 
 export default async function MyReviewsPage({
   params,
@@ -32,10 +33,7 @@ export default async function MyReviewsPage({
     : { data: [] }
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]))
 
-  const isKo = locale.startsWith('ko')
-  const title = isKo ? '내가 리뷰한 사람들' : 'People I Reviewed'
-  const emptyMsg = isKo ? '아직 리뷰를 쓴 사람이 없습니다.' : "You haven't reviewed anyone yet."
-  const viewProfile = isKo ? '프로필 보기' : 'View profile'
+  const t = await getTranslations({ locale, namespace: 'Reviews' })
 
   return (
     <div className="min-h-screen bg-surface-sunken">
@@ -43,21 +41,21 @@ export default async function MyReviewsPage({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-2xl font-bold text-heading mb-2 flex items-center gap-2">
           <MessageSquare className="w-6 h-6 text-purple" />
-          {title}
+          {t('peopleReviewed')}
         </h1>
         <p className="text-sm text-subtle mb-6">
-          {list.length} {isKo ? '명' : 'people'}
+          {list.length} {t('people')}
         </p>
 
         {list.length === 0 ? (
           <div className="bg-surface rounded-2xl shadow-sm p-8 text-center text-subtle">
             <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="font-medium">{emptyMsg}</p>
+            <p className="font-medium">{t('noReviewsYet')}</p>
             <Link
               href={`/${locale}/companions`}
               className="inline-block mt-4 text-sm font-semibold text-purple hover:text-purple"
             >
-              {isKo ? '동행 찾기 →' : 'Find companions →'}
+              {t('findCompanionsLink')}
             </Link>
           </div>
         ) : (
@@ -82,7 +80,7 @@ export default async function MyReviewsPage({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-heading">
-                          {reviewee?.full_name || (isKo ? '알 수 없음' : 'Unknown')}
+                          {reviewee?.full_name || t('unknown')}
                         </span>
                         <span
                           className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
@@ -99,7 +97,7 @@ export default async function MyReviewsPage({
                         <p className="text-sm text-body mt-2 line-clamp-2">{review.content}</p>
                       )}
                       <p className="text-xs text-hint mt-2">
-                        {new Date(review.created_at).toLocaleDateString(isKo ? 'ko-KR' : 'en-US', {
+                        {new Date(review.created_at).toLocaleDateString(locale, {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
@@ -119,7 +117,7 @@ export default async function MyReviewsPage({
             href={`/${locale}/profile`}
             className="text-sm font-semibold text-purple hover:text-purple"
           >
-            ← {isKo ? '내 프로필' : 'My profile'}
+            ← {t('myProfile')}
           </Link>
         </div>
       </main>

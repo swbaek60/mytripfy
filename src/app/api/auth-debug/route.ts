@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server'
  * 로그인 상태 및 프로필 매핑 진단용 엔드포인트 (민감 정보 미포함)
  */
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not available' }, { status: 404 })
+  }
   try {
     // 1. Clerk auth() 호출
     const { userId: clerkUserId } = await auth()

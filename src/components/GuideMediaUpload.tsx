@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { optimizeImage } from '@/utils/imageOptimizer'
 
@@ -16,6 +17,7 @@ interface Props {
 export default function GuideMediaUpload({
   userId, bucket, folder, initialPhotos, label, onUpdate, maxPhotos = 4
 }: Props) {
+  const tc = useTranslations('Common')
   const [photos, setPhotos] = useState<string[]>(initialPhotos)
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -68,7 +70,7 @@ export default function GuideMediaUpload({
 
   return (
     <div>
-      <p className="text-xs text-subtle mb-2 font-medium">{label} (최대 {maxPhotos}장)</p>
+      <p className="text-xs text-subtle mb-2 font-medium">{label} {tc('photosMax', { count: maxPhotos })}</p>
       <div className="flex flex-wrap gap-2">
         {photos.map((url, i) => (
           <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden bg-surface-sunken group shrink-0">
@@ -92,7 +94,7 @@ export default function GuideMediaUpload({
             ) : (
               <>
                 <span className="text-xl leading-none">+</span>
-                <span className="text-xs mt-0.5">사진</span>
+                <span className="text-xs mt-0.5">{tc('photo')}</span>
               </>
             )}
           </button>

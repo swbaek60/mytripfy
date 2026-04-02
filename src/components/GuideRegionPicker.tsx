@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { SORTED_COUNTRIES, getCountryByCode } from '@/data/countries'
 import { getCitiesForCountry, type GuideRegion } from '@/data/cities'
 import CountryFlag from '@/components/CountryFlag'
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function GuideRegionPicker({ value, onChange }: Props) {
+  const t = useTranslations('GuideRegion')
   const [countrySearch, setCountrySearch] = useState('')
   const [countryOpen, setCountryOpen] = useState(false)
   const [cityInputs, setCityInputs] = useState<Record<string, string>>({})
@@ -103,7 +105,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
               ))
             ) : (
               <div className="px-4 py-3 text-sm text-hint text-center">
-                {countrySearch.trim() ? 'No results' : 'Type to search country'}
+                {countrySearch.trim() ? t('noResults') : t('typeToSearch')}
               </div>
             )}
           </div>
@@ -113,7 +115,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
       {/* 선택된 국가 + 도시 목록 */}
       {value.length === 0 && (
         <p className="text-sm text-hint text-center py-2">
-          가이드 가능한 국가를 추가하고, 세부 지역/도시를 입력하세요
+          {t('addCountryHint')}
         </p>
       )}
 
@@ -131,14 +133,14 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{country?.emoji}</span>
                   <span className="font-bold text-heading">{country?.name || region.country}</span>
-                  <span className="text-xs text-hint">({region.cities.length}개 지역)</span>
+                  <span className="text-xs text-hint">({t('citiesCount', { count: region.cities.length })})</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeCountry(region.country)}
                   className="text-danger hover:text-danger text-sm px-2 py-0.5 rounded hover:bg-danger-light"
                 >
-                  ✕ 삭제
+                  ✕ {t('remove')}
                 </button>
               </div>
 
@@ -183,7 +185,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                         addCity(region.country, cityInput)
                       }
                     }}
-                    placeholder={`도시/지역 입력 (예: Tokyo, Osaka)...`}
+                    placeholder={t('cityPlaceholder')}
                     className="flex-1 rounded-xl border border-edge bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
                   />
                   <button
@@ -191,7 +193,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                     onClick={() => addCity(region.country, cityInput)}
                     className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm rounded-xl font-medium shrink-0"
                   >
-                    추가
+                    {t('add')}
                   </button>
                 </div>
 
@@ -217,7 +219,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                         onClick={() => addCity(region.country, cityInput)}
                         className="w-full text-left px-4 py-2 hover:bg-amber-50 text-sm text-amber-700 border-t border-edge flex items-center gap-2"
                       >
-                        <span>➕</span> &ldquo;{cityInput}&rdquo; 직접 추가
+                        <span>➕</span> &ldquo;{cityInput}&rdquo; {t('addCustom')}
                       </button>
                     )}
                   </div>
@@ -226,7 +228,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
 
               {region.cities.length === 0 && (
                 <p className="text-xs text-amber-600 mt-2">
-                  ⚠️ 최소 1개 이상의 도시/지역을 추가하면 더 정확한 매칭이 됩니다
+                  ⚠️ {t('addCityHint')}
                 </p>
               )}
             </div>

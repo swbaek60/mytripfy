@@ -5,10 +5,23 @@ import { Button } from '@/components/ui/button'
 import { getCountryByCode } from '@/data/countries'
 import { CalendarDays, Globe, Lock, Plus, MapPin } from 'lucide-react'
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
-export const metadata: Metadata = {
-  title: 'Trip Plans | mytripfy',
-  description: 'Plan your day-by-day travel itinerary and share it with the community.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/trips',
+    title: t('tripsTitle'),
+    description: t('tripsDesc'),
+    keywords: ['travel itinerary', 'trip plan', 'shared trips', 'mytripfy'],
+  })
 }
 
 export default async function TripsPage({
@@ -67,7 +80,7 @@ export default async function TripsPage({
           {!user ? (
             <div className="bg-surface rounded-2xl shadow-sm p-8 text-center">
               <p className="text-subtle mb-4">Log in to create and manage your own trip itineraries.</p>
-              <Link href={`/${locale}/login`}>
+              <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/trips`)}`}>
                 <Button className="rounded-full px-8">Login to Start Planning</Button>
               </Link>
             </div>

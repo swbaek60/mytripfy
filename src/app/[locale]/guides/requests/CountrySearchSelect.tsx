@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { SORTED_COUNTRIES } from '@/data/countries'
 import CountryFlag from '@/components/CountryFlag'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   locale: string
@@ -14,6 +15,7 @@ interface Props {
 
 export default function CountrySearchSelect({ locale, currentCountry, currentMy }: Props) {
   const router = useRouter()
+  const tc = useTranslations('Common')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const ref = useRef<HTMLDivElement>(null)
@@ -93,7 +95,7 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
                 {currentCountry === c.code && <span className="text-amber-500 text-xs">✓</span>}
               </button>
             )) : (
-              <div className="px-4 py-3 text-sm text-hint text-center">No results</div>
+              <div className="px-4 py-3 text-sm text-hint text-center">{tc('noResults')}</div>
             )}
           </div>
 

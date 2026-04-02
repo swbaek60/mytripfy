@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Trash2, X } from 'lucide-react'
 
 interface Notification {
@@ -83,6 +84,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
   const [clearing, setClearing] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const router = useRouter()
+  const tc = useTranslations('Common')
 
   const deleteOne = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -95,7 +97,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
   }
 
   const clearAll = async () => {
-    if (!confirm('모든 알림을 삭제하시겠습니까?')) return
+    if (!confirm(tc('deleteConfirm'))) return
     setClearing(true)
     await fetch('/api/notifications?all=true', { method: 'DELETE' })
     setItems([])
@@ -121,7 +123,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
           className="flex items-center gap-1.5 text-xs text-danger hover:text-red-700 bg-danger-light hover:bg-danger-light px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          {clearing ? '삭제 중...' : 'Clear All'}
+          {clearing ? tc('deleting') : tc('delete')}
         </button>
       </div>
 
@@ -138,7 +140,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
                     <p className={`font-semibold text-sm ${n.is_read ? 'text-subtle' : 'text-heading'}`}>{n.title}</p>
                     {n.message && <p className="text-sm text-body mt-0.5">{n.message}</p>}
                     <p suppressHydrationWarning className="text-xs text-hint mt-1">
-                      {new Date(n.created_at).toLocaleDateString('en-US')}{' '}
+                      {new Date(n.created_at).toLocaleDateString(locale)}{' '}
                       {new Date(n.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>

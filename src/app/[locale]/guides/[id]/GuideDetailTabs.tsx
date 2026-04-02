@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Star, Globe, Trophy } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
 import UserChallengeAchievements from '@/components/UserChallengeAchievements'
 import SponsorVisitList from '@/components/SponsorVisitList'
@@ -79,22 +80,24 @@ export default function GuideDetailTabs({
   hasAccommodation, accommodationInfo, accommodationPhotos,
   guideRegions, guideRegionsLegacy, spokenLanguages, visitedCountries, reviews,
 }: Props) {
+  const t = useTranslations('Guides')
+  const tg = useTranslations('GuideDetail')
+  const tc = useTranslations('Common')
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [photoIndex, setPhotoIndex] = useState<number | null>(null)
-  const isKo = locale.startsWith('ko')
 
   const certTitle = (c: CertificationItem) =>
-    isKo && c.challenges?.title_ko ? c.challenges.title_ko : (c.challenges?.title_en ?? '')
+    locale.startsWith('ko') && c.challenges?.title_ko ? c.challenges.title_ko : (c.challenges?.title_en ?? '')
 
   const hasHof = challengesCompleted > 0 || experiencePoints > 0 || contributionPoints > 0 || sponsorVisitList.length > 0
   const hofSub = hasHof
-    ? (isKo ? `경험 ${experiencePoints} · 기여 ${contributionPoints}` : `Exp ${experiencePoints} · Contrib ${contributionPoints}`)
+    ? `${t('expPoints')} ${experiencePoints} · ${t('contribPoints')} ${contributionPoints}`
     : undefined
 
   const tabs: { id: Tab; icon: React.ReactNode; label: string; sub?: string }[] = [
-    { id: 'overview',      icon: <Globe className="w-4 h-4" />,   label: 'Overview' },
-    { id: 'achievements',  icon: <Trophy className="w-4 h-4" />,  label: 'Hall of Fame', sub: hofSub },
-    { id: 'reviews',       icon: <Star className="w-4 h-4" />,    label: 'Reviews',
+    { id: 'overview',      icon: <Globe className="w-4 h-4" />,   label: t('tabOverview') },
+    { id: 'achievements',  icon: <Trophy className="w-4 h-4" />,  label: t('tabAchievements'), sub: hofSub },
+    { id: 'reviews',       icon: <Star className="w-4 h-4" />,    label: t('tabReviews'),
       sub: reviews.length > 0 ? `${trustScore ? Number(trustScore).toFixed(1) : '—'} (${reviews.length})` : reviews.length > 0 ? `${reviews.length}` : undefined },
   ]
 
@@ -135,34 +138,34 @@ export default function GuideDetailTabs({
               {/* About */}
               {bio && (
                 <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-2">About</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-2">{tg('about')}</h3>
                   <p className="text-body leading-relaxed">{bio}</p>
                 </div>
               )}
 
               {/* Quick Stats */}
               <div>
-                <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Quick Stats</h3>
+                <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('quickStats')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">🏆</span>
                     <div>
                       <div className="font-bold text-amber-700 text-lg">{challengePoints}</div>
-                      <div className="text-xs text-amber-600">Challenge points</div>
+                      <div className="text-xs text-amber-600">{tg('challengePoints')}</div>
                     </div>
                   </div>
                   <div className="bg-purple-light rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">✅</span>
                     <div>
                       <div className="font-bold text-purple text-lg">{challengesCompleted}</div>
-                      <div className="text-xs text-purple">Challenges done</div>
+                      <div className="text-xs text-purple">{tg('challengesDone')}</div>
                     </div>
                   </div>
                   <div className="bg-brand-light rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">🌍</span>
                     <div>
                       <div className="font-bold text-brand-hover text-lg">{visitedCountries.length}</div>
-                      <div className="text-xs text-brand">Countries visited</div>
+                      <div className="text-xs text-brand">{tg('countriesVisited')}</div>
                     </div>
                   </div>
                   {trustScore && trustScore > 0 ? (
@@ -170,7 +173,7 @@ export default function GuideDetailTabs({
                       <span className="text-2xl">⭐</span>
                       <div>
                         <div className="font-bold text-yellow-700 text-lg">{Number(trustScore).toFixed(1)}</div>
-                        <div className="text-xs text-yellow-600">Average rating</div>
+                        <div className="text-xs text-yellow-600">{tg('averageRating')}</div>
                       </div>
                     </div>
                   ) : (
@@ -178,7 +181,7 @@ export default function GuideDetailTabs({
                       <span className="text-2xl">💬</span>
                       <div>
                         <div className="font-bold text-yellow-700 text-lg">{reviews.length}</div>
-                        <div className="text-xs text-yellow-600">Reviews</div>
+                        <div className="text-xs text-yellow-600">{tg('reviews')}</div>
                       </div>
                     </div>
                   )}
@@ -187,9 +190,9 @@ export default function GuideDetailTabs({
                       <span className="text-2xl">📅</span>
                       <div>
                         <div className="font-bold text-body text-sm">
-                          {new Date(memberSince).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                          {new Date(memberSince).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
                         </div>
-                        <div className="text-xs text-subtle">Member since</div>
+                        <div className="text-xs text-subtle">{tg('memberSince')}</div>
                       </div>
                     </div>
                   )}
@@ -199,7 +202,7 @@ export default function GuideDetailTabs({
               {/* 언어 */}
               {spokenLanguages.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Languages</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('languages')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {spokenLanguages.map(skill => {
                       const lang = getLanguageByCode(skill.lang)
@@ -247,7 +250,7 @@ export default function GuideDetailTabs({
               {/* 프로필 사진 갤러리 */}
               {profilePhotos.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Photos</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('photos')}</h3>
                   <div className="grid grid-cols-3 gap-2">
                     {profilePhotos.map((url, i) => (
                       <button key={i} onClick={() => setPhotoIndex(i)}
@@ -261,12 +264,12 @@ export default function GuideDetailTabs({
 
               {/* 가이드 서비스 */}
               <div>
-                <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Guide Services</h3>
+                <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('guideServices')}</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3.5 bg-amber-50 rounded-xl border border-amber-100">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">💰</span>
-                      <span className="text-sm font-medium text-body">Hourly Rate</span>
+                      <span className="text-sm font-medium text-body">{tg('hourlyRate')}</span>
                     </div>
                     <GuideRateDisplay rate={guideRate} rateCurrency={rateCurrency} size="lg" />
                   </div>
@@ -274,7 +277,7 @@ export default function GuideDetailTabs({
                     <div className="flex items-center gap-3 p-3.5 bg-brand-light rounded-xl border border-edge-brand">
                       <span className="text-xl">🚗</span>
                       <div>
-                        <div className="text-sm font-medium text-body">Vehicle Included</div>
+                        <div className="text-sm font-medium text-body">{tg('vehicleIncluded')}</div>
                         {vehicleInfo && <div className="text-xs text-subtle mt-0.5">{vehicleInfo}</div>}
                       </div>
                     </div>
@@ -283,7 +286,7 @@ export default function GuideDetailTabs({
                     <div className="flex items-center gap-3 p-3.5 bg-success-light rounded-xl border border-green-100">
                       <span className="text-xl">🏠</span>
                       <div>
-                        <div className="text-sm font-medium text-body">Accommodation Included</div>
+                        <div className="text-sm font-medium text-body">{tg('accommodationIncluded')}</div>
                         {accommodationInfo && <div className="text-xs text-subtle mt-0.5">{accommodationInfo}</div>}
                       </div>
                     </div>
@@ -294,7 +297,7 @@ export default function GuideDetailTabs({
               {/* 활동 지역 */}
               {(guideRegions.length > 0 || guideRegionsLegacy.length > 0) && (
                 <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Guide Areas</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('guideAreas')}</h3>
                   <div className="space-y-2">
                     {guideRegions.length > 0
                       ? guideRegions.map(region => {
@@ -316,7 +319,7 @@ export default function GuideDetailTabs({
                                 </div>
                               ) : (
                                 <span className="text-xs text-amber-700 bg-surface border border-amber-200 px-2.5 py-1 rounded-full">
-                                  🗺️ Nationwide
+                                  🗺️ {tc('nationwide')}
                                 </span>
                               )}
                             </div>
@@ -332,7 +335,7 @@ export default function GuideDetailTabs({
                                 <span className="font-semibold text-sm text-heading">{c?.name || '–'}</span>
                               </div>
                               <span className="text-xs text-amber-700 bg-surface border border-amber-200 px-2.5 py-1 rounded-full">
-                                🗺️ Nationwide
+                                🗺️ {tc('nationwide')}
                               </span>
                             </div>
                           )
@@ -345,7 +348,7 @@ export default function GuideDetailTabs({
               {/* 차량/숙소 사진 */}
               {vehiclePhotos.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Vehicle Photos</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('vehiclePhotos')}</h3>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {vehiclePhotos.map((url, i) => (
                       <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-surface-sunken shrink-0">
@@ -357,7 +360,7 @@ export default function GuideDetailTabs({
               )}
               {accommodationPhotos.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">Accommodation Photos</h3>
+                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('accommodationPhotos')}</h3>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {accommodationPhotos.map((url, i) => (
                       <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-surface-sunken shrink-0">
@@ -397,8 +400,8 @@ export default function GuideDetailTabs({
               {certifications.length === 0 && sponsorVisitList.length === 0 && (
                 <div className="text-center py-12 text-hint">
                   <div className="text-5xl mb-3">🏆</div>
-                  <p className="font-medium text-subtle">{isKo ? '아직 인증이 없어요' : 'No certifications yet'}</p>
-                  <p className="text-sm mt-1">{isKo ? '챌린지를 완료하거나 스폰서 매장을 방문해 보세요!' : 'Complete challenges or visit sponsor stores!'}</p>
+                  <p className="font-medium text-subtle">{t('noCertificationsYet')}</p>
+                  <p className="text-sm mt-1">{t('noCertificationsDesc')}</p>
                 </div>
               )}
             </div>
@@ -425,7 +428,7 @@ export default function GuideDetailTabs({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm font-semibold text-body mb-1.5">{reviews.length} reviews</div>
+                    <div className="text-sm font-semibold text-body mb-1.5">{reviews.length} {tg('reviews').toLowerCase()}</div>
                     {[5,4,3,2,1].map(star => {
                       const count = reviews.filter(r => r.rating === star).length
                       const pct = (count / reviews.length) * 100
@@ -461,16 +464,16 @@ export default function GuideDetailTabs({
                                 {reviewer?.id
                                   ? <Link href={`/${locale}/users/${reviewer.id}`}
                                       className="font-semibold text-heading hover:text-brand transition-colors text-sm">
-                                      {reviewer.full_name || 'Anonymous'}
+                                      {reviewer.full_name || tc('anonymous')}
                                     </Link>
-                                  : <span className="font-semibold text-heading text-sm">Anonymous</span>
+                                  : <span className="font-semibold text-heading text-sm">{tc('anonymous')}</span>
                                 }
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                   <span className="text-yellow-400 text-sm leading-none">
                                     {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                   </span>
                                   <span suppressHydrationWarning className="text-xs text-hint">
-                                    {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                    {new Date(review.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}
                                   </span>
                                 </div>
                               </div>
@@ -496,8 +499,8 @@ export default function GuideDetailTabs({
               ) : (
                 <div className="text-center py-12 text-hint">
                   <div className="text-5xl mb-3">⭐</div>
-                  <p className="font-medium text-subtle">No reviews yet</p>
-                  <p className="text-sm mt-1">Be the first to review this guide!</p>
+                  <p className="font-medium text-subtle">{tg('noReviewsYet')}</p>
+                  <p className="text-sm mt-1">{tg('beFirstReview')}</p>
                 </div>
               )}
             </div>

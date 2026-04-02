@@ -13,7 +13,17 @@ const config: CapacitorConfig = {
       'clerk.com',
       '*.clerk.com',
       '*.clerk.accounts.dev',
+      // Google OAuth
       'accounts.google.com',
+      '*.google.com',
+      // Facebook OAuth
+      'facebook.com',
+      '*.facebook.com',
+      'm.facebook.com',
+      // Apple OAuth
+      'appleid.apple.com',
+      '*.apple.com',
+      // Supabase
       '*.supabase.co',
     ],
   },

@@ -1,4 +1,4 @@
-import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
+import { createClient, createAdminClient, getAuthUser, getAdminClientSafe } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import { getCountryByCode, getLevelInfo } from '@/data/countries'
@@ -13,21 +13,27 @@ import DeleteCompanionPostButton from './DeleteCompanionPostButton'
 import ItineraryEditor from '@/components/ItineraryEditor'
 import ItineraryView from '@/components/ItineraryView'
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
-  const { id } = await params
-  const admin = createAdminClient()
+  const { locale, id } = await params
+  const admin = getAdminClientSafe()
+  if (!admin) return { title: 'Trip | mytripfy' }
   const { data: post } = await admin.from('companion_posts').select('title, description, destination_country, start_date').eq('id', id).single()
   if (!post) return { title: 'Trip Not Found' }
   const country = getCountryByCode(post.destination_country)
-  return {
-    title: `${post.title} – ${country?.name || post.destination_country}`,
-    description: post.description?.slice(0, 160) || `Join this trip to ${country?.name || post.destination_country} on mytripfy.`,
-    openGraph: {
-      title: `${post.title} | mytripfy`,
-      description: post.description?.slice(0, 160) || `Find travel companions for ${country?.name || post.destination_country}.`,
-    },
-  }
+  const place = country?.name || post.destination_country
+  const desc =
+    post.description?.slice(0, 160) || `Join this trip to ${place} on mytripfy.`
+  return buildPageMetadata({
+    locale,
+    path: `/companions/${id}`,
+    title: `${post.title} – ${place}`,
+    description: desc,
+    openGraphType: 'article',
+    keywords: ['travel companion', place, post.destination_country, 'mytripfy'],
+  })
 }
 
 export const dynamic = 'force-dynamic'
@@ -45,6 +51,8 @@ export default async function CompanionDetailPage({
   params: Promise<{ locale: string; id: string }>
 }) {
   const { locale, id } = await params
+  const t = await getTranslations({ locale, namespace: 'CompanionDetail' })
+  const tc = await getTranslations({ locale, namespace: 'Common' })
   const supabase = await createClient()
   // Clerk auth()를 직접 사용 - shim 실패 방지
   const authUser = await getAuthUser()
@@ -172,13 +180,13 @@ export default async function CompanionDetailPage({
         {/* Back + 수정 버튼 */}
         <div className="flex items-center justify-between mb-6">
           <Link href={`/${locale}/companions`} className="text-sm text-subtle hover:text-brand flex items-center gap-1">
-            ← Back to listings
+            {tc('back')}
           </Link>
           {isOwner && (
             <div className="flex items-center gap-2">
               <Link href={`/${locale}/companions/${post.id}/edit`}>
                 <Button size="sm" variant="outline" className="rounded-full text-xs border-edge-brand text-brand hover:bg-brand-light">
-                  ✏️ 수정
+                  {tc('edit')}
                 </Button>
               </Link>
               <DeleteCompanionPostButton postId={post.id} locale={locale} />
@@ -217,15 +225,15 @@ export default async function CompanionDetailPage({
                     </div>
                   </div>
                   {effectiveStatus === 'open' ? (
-                    <span className="shrink-0 bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">OPEN</span>
+                    <span className="shrink-0 bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">{t('open')}</span>
                   ) : effectiveStatus === 'ended' ? (
-                    <span className="shrink-0 bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full">ENDED</span>
+                    <span className="shrink-0 bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('ended')}</span>
                   ) : (
-                    <span className="shrink-0 bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full">CLOSED</span>
+                    <span className="shrink-0 bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('closed')}</span>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2 text-sm mt-2">
-                  <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">{startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">{startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   <span className="bg-white/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
                   <span className="bg-white/20 px-3 py-1 rounded-full">{post.max_people} people</span>
                 </div>
@@ -248,15 +256,15 @@ export default async function CompanionDetailPage({
                   )}
                 </div>
                 {effectiveStatus === 'open' ? (
-                  <span className="ml-auto bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">OPEN</span>
+                  <span className="ml-auto bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">{t('open')}</span>
                 ) : effectiveStatus === 'ended' ? (
-                  <span className="ml-auto bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full">ENDED</span>
+                  <span className="ml-auto bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('ended')}</span>
                 ) : (
-                  <span className="ml-auto bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full">CLOSED</span>
+                  <span className="ml-auto bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('closed')}</span>
                 )}
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
-                <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">{startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">{startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 <span className="bg-white/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
                 <span className="bg-white/20 px-3 py-1 rounded-full">{post.max_people} people</span>
               </div>
@@ -295,7 +303,7 @@ export default async function CompanionDetailPage({
         <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-lg font-bold text-heading">Trip Itinerary</h3>
+              <h3 className="text-lg font-bold text-heading">{t('tripItinerary')}</h3>
               <p className="text-xs text-hint mt-0.5">
                 {itineraryDays.length > 0
                   ? `${itineraryDays.length} day${itineraryDays.length > 1 ? 's' : ''} · ${itineraryDays.flatMap((d: any) => d.trip_activities).length} activities`
@@ -340,20 +348,20 @@ export default async function CompanionDetailPage({
                 <span>{acceptedCount} accepted</span>
                 <span>·</span>
                 <span>{(applications?.length ?? 0)} total</span>
-                <span className="ml-auto bg-success-light text-success text-xs font-bold px-2 py-0.5 rounded-full">OPEN</span>
+                <span className="ml-auto bg-success-light text-success text-xs font-bold px-2 py-0.5 rounded-full">{t('open')}</span>
               </div>
               {!user ? (
                 <div className="text-center py-2">
-                  <p className="text-subtle text-sm mb-3">Login to apply for this trip</p>
-                  <Link href={`/${locale}/login`} className="block">
-                    <Button className="w-full bg-brand hover:bg-brand-hover rounded-xl py-5 text-base font-bold">Login to Apply</Button>
+                  <p className="text-subtle text-sm mb-3">{t('loginToApplyTrip')}</p>
+                  <Link href={`/${locale}/login?returnTo=/${locale}/companions/${id}`} className="block">
+                    <Button className="w-full bg-brand hover:bg-brand-hover rounded-xl py-5 text-base font-bold">{t('loginToApply')}</Button>
                   </Link>
                 </div>
               ) : !canApplyByGender ? (
                 <div className="bg-amber-light border border-amber-200 rounded-xl p-4 text-sm">
                   {pref === 'female_only' && <p className="text-amber-800 font-medium">👩 This trip is for women only.</p>}
                   {pref === 'male_only' && <p className="text-amber-800 font-medium">👨 This trip is for men only.</p>}
-                  <Link href={`/${locale}/profile/edit`} className="inline-block mt-2 text-xs text-amber-700 underline">Edit profile →</Link>
+                  <Link href={`/${locale}/profile/edit`} className="inline-block mt-2 text-xs text-amber-700 underline">{t('editProfileFirst')}</Link>
                 </div>
               ) : wasRemoved ? (
                 <div className="space-y-3">
@@ -361,7 +369,7 @@ export default async function CompanionDetailPage({
                   <ApplyButton postId={post.id} userId={user.id} locale={locale} alreadyApplied={false} wasRemoved={true} />
                 </div>
               ) : isFull ? (
-                <p className="text-center text-subtle text-sm py-3">This trip is already full.</p>
+                <p className="text-center text-subtle text-sm py-3">{t('tripFull')}</p>
               ) : (
                 <ApplyButton postId={post.id} userId={user.id} locale={locale} alreadyApplied={alreadyApplied || false} />
               )}
@@ -371,7 +379,7 @@ export default async function CompanionDetailPage({
           {/* 수락된 멤버 채팅 */}
           {!isOwner && isAccepted && (
             <div className="bg-brand-light border border-edge-brand rounded-2xl p-5">
-              <p className="font-bold text-blue-800 text-sm mb-1">You&apos;re in the trip!</p>
+              <p className="font-bold text-blue-800 text-sm mb-1">{t('youreIn')}</p>
               <p className="text-xs text-brand mb-3">
                 {acceptedCount >= 2 && groupChatId ? 'Join the group chat to coordinate.' : 'DM the host to coordinate.'}
               </p>
@@ -389,7 +397,7 @@ export default async function CompanionDetailPage({
 
           {/* Host Profile */}
           <div className="bg-surface rounded-2xl shadow-sm p-5">
-            <h3 className="font-bold text-heading mb-4 text-sm">Posted by</h3>
+            <h3 className="font-bold text-heading mb-4 text-sm">{t('postedBy')}</h3>
             <div className="flex items-start gap-3">
               <Link href={`/${locale}/users/${profile?.id}`} className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity overflow-hidden">
                 {(profile?.avatar_url as string) ? (
@@ -399,7 +407,7 @@ export default async function CompanionDetailPage({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Link href={`/${locale}/users/${profile?.id}`} className="font-bold text-heading hover:text-brand text-sm">
-                    {(profile?.full_name as string) || 'Anonymous'}
+                    {(profile?.full_name as string) || tc('anonymous')}
                   </Link>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
                     {levelInfo.badge} Lv.{levelInfo.level}
@@ -416,10 +424,10 @@ export default async function CompanionDetailPage({
                 {user && !isOwner && (
                   <div className="flex gap-2 mt-3">
                     <Link href={`/${locale}/messages/${profile?.id}?postId=${post.id}`}>
-                      <Button size="sm" className="bg-brand hover:bg-brand-hover text-white rounded-full text-xs px-3">Message</Button>
+                      <Button size="sm" className="bg-brand hover:bg-brand-hover text-white rounded-full text-xs px-3">{t('message')}</Button>
                     </Link>
                     <Link href={`/${locale}/reviews/write?userId=${profile?.id}`}>
-                      <Button size="sm" variant="outline" className="rounded-full text-xs border-yellow-300 text-warning hover:bg-warning-light">Review</Button>
+                      <Button size="sm" variant="outline" className="rounded-full text-xs border-yellow-300 text-warning hover:bg-warning-light">{t('review')}</Button>
                     </Link>
                   </div>
                 )}

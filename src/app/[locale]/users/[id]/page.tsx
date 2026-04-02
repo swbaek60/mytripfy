@@ -156,6 +156,8 @@ export default async function UserProfilePage({
     .maybeSingle()
 
   const t = await getTranslations({ locale, namespace: 'Profile' })
+  const tUser = await getTranslations({ locale, namespace: 'UserProfile' })
+  const tc = await getTranslations({ locale, namespace: 'Common' })
 
   const socialLinks = [
     { key: 'instagram_url', label: 'Instagram', icon: '📸', prefix: '' },
@@ -258,14 +260,14 @@ export default async function UserProfilePage({
               <Trophy className="w-6 h-6" />
               {experiencePoints}
             </p>
-            <p className="text-sm text-subtle mt-1">{locale.startsWith('ko') ? '경험' : 'Experience'} pts</p>
+            <p className="text-sm text-subtle mt-1">{tUser('experiencePts')} pts</p>
           </div>
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
             <p className="text-3xl font-bold text-amber flex items-center justify-center gap-1">
               <Trophy className="w-6 h-6" />
               {contributionPoints}
             </p>
-            <p className="text-sm text-subtle mt-1">{locale.startsWith('ko') ? '기여' : 'Contribution'} pts</p>
+            <p className="text-sm text-subtle mt-1">{tUser('contributionPts')} pts</p>
           </div>
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
             <p className="text-3xl font-bold text-success">{companionPosts?.length || 0}</p>
@@ -417,7 +419,7 @@ export default async function UserProfilePage({
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-xs text-hint">전국 지역 가능</span>
+                              <span className="text-xs text-hint">{tc('nationwide')}</span>
                             )}
                           </div>
                         )
@@ -541,9 +543,9 @@ export default async function UserProfilePage({
                       {country?.emoji} {country?.name || post.destination_country}
                     </p>
                     <p className="text-xs text-hint mt-1">
-                      {new Date(post.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(post.start_date).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
                       {' ~ '}
-                      {new Date(post.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(post.end_date).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </Link>
                 )
@@ -571,7 +573,7 @@ export default async function UserProfilePage({
           {reviewList.length > 0 && (
             <div className="bg-surface rounded-xl border border-edge p-4">
               <div className="text-sm font-semibold text-body mb-2">
-                {locale.startsWith('ko') ? '별점 분포' : 'Rating breakdown'}
+                {tUser('ratingBreakdown')}
               </div>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((star) => {
@@ -643,7 +645,7 @@ export default async function UserProfilePage({
                             {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                           </span>
                           <span suppressHydrationWarning className="text-xs text-hint ml-auto">
-                            {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            {new Date(review.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}
                           </span>
                         </div>
 

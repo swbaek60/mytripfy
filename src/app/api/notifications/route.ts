@@ -2,6 +2,38 @@ import { NextResponse } from 'next/server'
 import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+// GET /api/notifications → 알림 목록
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    const authUser = await getAuthUser()
+    if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', authUser.profileId)
+      .neq('type', 'message')
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // 읽음 처리
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', authUser.profileId)
+      .neq('type', 'message')
+      .eq('is_read', false)
+
+    return NextResponse.json({ notifications: data ?? [] })
+  } catch (e) {
+    console.error('notifications GET error:', e)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 // DELETE /api/notifications?id=xxx        → 개별 삭제
 // DELETE /api/notifications?all=true      → 전체 삭제
 export async function DELETE(req: Request) {

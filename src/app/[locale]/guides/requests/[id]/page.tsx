@@ -9,21 +9,24 @@ import GuideApplicationsList from './GuideApplicationsList'
 import DeleteGuideRequestButton from './DeleteGuideRequestButton'
 import type { Metadata } from 'next'
 import { getLanguageByCode, getLevelInfo as getLangLevel } from '@/data/languages'
+import { getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
-  const { id } = await params
+  const { locale, id } = await params
   const supabase = await createClient()
   const { data: req } = await supabase.from('guide_requests').select('title, destination_country, start_date').eq('id', id).single()
   if (!req) return { title: 'Guide Request Not Found' }
   const country = getCountryByCode(req.destination_country)
-  return {
-    title: `${req.title} – ${country?.name || req.destination_country}`,
-    description: `Find a local guide for your trip to ${country?.name || req.destination_country} on mytripfy.`,
-    openGraph: {
-      title: `${req.title} | mytripfy`,
-      description: `Guide request for ${country?.name || req.destination_country}.`,
-    },
-  }
+  const place = country?.name || req.destination_country
+  return buildPageMetadata({
+    locale,
+    path: `/guides/requests/${id}`,
+    title: `${req.title} – ${place}`,
+    description: `Find a local guide for your trip to ${place} on mytripfy.`,
+    openGraphType: 'article',
+    keywords: ['guide request', 'local guide', place, 'mytripfy'],
+  })
 }
 
 export default async function GuideRequestDetailPage({
@@ -32,6 +35,8 @@ export default async function GuideRequestDetailPage({
   params: Promise<{ locale: string; id: string }>
 }) {
   const { locale, id } = await params
+  const t = await getTranslations({ locale, namespace: 'GuideRequests' })
+  const tc = await getTranslations({ locale, namespace: 'Common' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -73,13 +78,13 @@ export default async function GuideRequestDetailPage({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600 flex items-center gap-1">
-            ← Back to guide requests
+            {tc('back')}
           </Link>
           {isOwner && (
             <div className="flex items-center gap-2">
               <Link href={`/${locale}/guides/requests/${id}/edit`}>
                 <Button size="sm" variant="outline" className="rounded-full text-xs px-4 border-amber-300 text-amber-600 hover:bg-amber-50">
-                  ✏️ 수정
+                  {tc('edit')}
                 </Button>
               </Link>
               <DeleteGuideRequestButton requestId={id} locale={locale} />
@@ -115,7 +120,7 @@ export default async function GuideRequestDetailPage({
                 </div>
                 <div className="flex flex-wrap gap-2 text-sm mt-2">
                   <span suppressHydrationWarning className="bg-surface/20 px-3 py-1 rounded-full">
-                    {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                   <span className="bg-surface/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
                 </div>
@@ -143,7 +148,7 @@ export default async function GuideRequestDetailPage({
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
                 <span suppressHydrationWarning className="bg-surface/20 px-3 py-1 rounded-full">
-                  {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
                 <span className="bg-surface/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
               </div>
@@ -156,7 +161,7 @@ export default async function GuideRequestDetailPage({
             {/* 선호 언어 */}
             {request.preferred_languages && (request.preferred_languages as string[]).length > 0 && (
               <div className="bg-purple-light border border-purple-100 rounded-xl p-4">
-                <div className="text-xs font-semibold text-purple-700 mb-2">🗣️ Preferred Guide Languages</div>
+                <div className="text-xs font-semibold text-purple-700 mb-2">🗣️ {t('preferredLangsTitle')}</div>
                 <div className="flex flex-wrap gap-2">
                   {(request.preferred_languages as string[]).map(code => {
                     const lang = getLanguageByCode(code)
@@ -168,7 +173,7 @@ export default async function GuideRequestDetailPage({
                   })}
                 </div>
                 <p className="text-xs text-purple-500 mt-2">
-                  이 언어를 사용하는 가이드에게 우선 알림이 발송됩니다
+                  {t('langNotificationHint')}
                 </p>
               </div>
             )}
@@ -183,8 +188,8 @@ export default async function GuideRequestDetailPage({
               <div className="border-t border-edge pt-5">
                 {!user ? (
                   <div className="text-center py-4">
-                    <p className="text-subtle text-sm mb-3">Login to apply as a guide</p>
-                    <Link href={`/${locale}/login`}>
+                    <p className="text-subtle text-sm mb-3">{t('loginToApply')}</p>
+                    <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests/${id}`)}`}>
                       <Button className="bg-amber-500 hover:bg-amber-600 rounded-full px-8 text-white">Login</Button>
                     </Link>
                   </div>
@@ -201,15 +206,15 @@ export default async function GuideRequestDetailPage({
 
             {!user && effectiveStatus === 'open' && (
               <div className="text-center py-4 border-t border-edge">
-                <p className="text-subtle text-sm mb-3">Register as a guide to apply for this request</p>
-                <Link href={`/${locale}/login`}>
+                <p className="text-subtle text-sm mb-3">{t('registerAsGuide')}</p>
+                <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests/${id}`)}`}>
                   <Button className="bg-amber-500 hover:bg-amber-600 rounded-full px-8 text-white">Login</Button>
                 </Link>
               </div>
             )}
             {user && !isOwner && effectiveStatus === 'open' && !userProfile?.is_guide && (
               <div className="text-center py-4 border-t border-edge">
-                <p className="text-subtle text-sm mb-3">Register as a guide in your profile to apply for requests</p>
+                <p className="text-subtle text-sm mb-3">{t('registerAsGuide')}</p>
                 <Link href={`/${locale}/profile/edit`}>
                   <Button variant="outline" className="rounded-full px-6 border-amber-300 text-amber-600 hover:bg-amber-50">Profile / Register as Guide</Button>
                 </Link>
@@ -219,7 +224,7 @@ export default async function GuideRequestDetailPage({
         </div>
 
         <div className="bg-surface rounded-2xl shadow-sm p-6">
-          <h3 className="font-bold text-heading mb-4">Posted by</h3>
+          <h3 className="font-bold text-heading mb-4">{t('postedBy')}</h3>
           <div className="flex items-center gap-4">
             <Link href={`/${locale}/users/${author?.id}`} className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center shrink-0 overflow-hidden">
               {(author?.avatar_url as string) ? (

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Users, MessageSquare, Trash2 } from 'lucide-react'
 
 interface GroupChat {
@@ -29,6 +30,7 @@ interface Props {
 
 export default function MessagesList({ locale, groupChats: initialGroups, directChats: initialDirect }: Props) {
   const router = useRouter()
+  const tc = useTranslations('Common')
   const [groups, setGroups] = useState(initialGroups)
   const [directs, setDirects] = useState(initialDirect)
   const [leavingId, setLeavingId] = useState<string | null>(null)
@@ -37,7 +39,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
   const leaveChat = async (chatId: string, label: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!confirm(`"${label}" 대화를 삭제하시겠습니까?\n(목록에서 제거됩니다)`)) return
+    if (!confirm(tc('deleteConfirm'))) return
     setLeavingId(chatId)
     try {
       const res = await fetch(`/api/messages/leave?chatId=${chatId}`, { method: 'DELETE' })
@@ -46,16 +48,16 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
         setDirects(prev => prev.filter(c => c.chatId !== chatId))
         router.refresh()
       } else {
-        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+        alert(tc('errorOccurred'))
       }
     } catch {
-      alert('네트워크 오류가 발생했습니다.')
+      alert(tc('errorUnexpected'))
     }
     setLeavingId(null)
   }
 
   const clearAll = async () => {
-    if (!confirm('모든 대화를 삭제하시겠습니까?')) return
+    if (!confirm(tc('deleteConfirm'))) return
     setClearingAll(true)
     try {
       const allIds = [...groups.map(c => c.chatId), ...directs.map(c => c.chatId)]
@@ -64,7 +66,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
       setDirects([])
       router.refresh()
     } catch {
-      alert('네트워크 오류가 발생했습니다.')
+      alert(tc('errorUnexpected'))
     }
     setClearingAll(false)
   }
@@ -103,7 +105,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
           className="flex items-center gap-1.5 text-xs text-danger hover:text-red-700 bg-danger-light hover:bg-danger-light px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          {clearingAll ? '삭제 중...' : 'Clear All'}
+          {clearingAll ? tc('deleting') : tc('delete')}
         </button>
       </div>
 
@@ -136,7 +138,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
                     </div>
                     {chat.lastAt && (
                       <span suppressHydrationWarning className="text-xs text-hint shrink-0">
-                        {new Date(chat.lastAt).toLocaleDateString('en-US')}
+                        {new Date(chat.lastAt).toLocaleDateString(locale)}
                       </span>
                     )}
                   </div>
@@ -146,7 +148,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
                   onClick={(e) => leaveChat(chat.chatId, chat.name, e)}
                   disabled={leavingId === chat.chatId}
                   className="absolute top-1/2 -translate-y-1/2 right-3 w-8 h-8 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
-                  title="삭제"
+                  title={tc('delete')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -173,24 +175,23 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
                       ) : <span className="text-hint text-xl">👤</span>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-heading">{chat.other?.full_name || 'Anonymous'}</p>
+                      <p className="font-semibold text-heading">{chat.other?.full_name || tc('anonymous')}</p>
                       {chat.lastMessage && (
                         <p className="text-sm text-subtle truncate">{chat.lastMessage}</p>
                       )}
                     </div>
                     {chat.lastAt && (
                       <span suppressHydrationWarning className="text-xs text-hint shrink-0">
-                        {new Date(chat.lastAt).toLocaleDateString('en-US')}
+                        {new Date(chat.lastAt).toLocaleDateString(locale)}
                       </span>
                     )}
                   </div>
                 </Link>
-                {/* 나가기 버튼 */}
                 <button
                   onClick={(e) => leaveChat(chat.chatId, chat.other?.full_name || 'DM', e)}
                   disabled={leavingId === chat.chatId}
                   className="absolute top-1/2 -translate-y-1/2 right-3 w-8 h-8 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
-                  title="삭제"
+                  title={tc('delete')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

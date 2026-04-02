@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,24 +41,25 @@ interface Props {
   } | null
 }
 
-/** 내 메시지에 붙는 읽음 표시 아이콘 */
-function ReadReceipt({ messageCreatedAt, otherLastReadAt }: { messageCreatedAt: string; otherLastReadAt: string | null }) {
+function ReadReceipt({ messageCreatedAt, otherLastReadAt, readLabel, sentLabel }: { messageCreatedAt: string; otherLastReadAt: string | null; readLabel: string; sentLabel: string }) {
   const isRead = otherLastReadAt !== null && new Date(otherLastReadAt) >= new Date(messageCreatedAt)
   if (isRead) {
     return (
-      <span className="flex items-center gap-0.5 text-brand" title="읽음">
+      <span className="flex items-center gap-0.5 text-brand" title={readLabel}>
         <CheckCheck className="w-3.5 h-3.5" />
       </span>
     )
   }
   return (
-    <span className="flex items-center gap-0.5 text-hint" title="전송됨">
+    <span className="flex items-center gap-0.5 text-hint" title={sentLabel}>
       <Check className="w-3.5 h-3.5" />
     </span>
   )
 }
 
 export default function ChatRoom({ chatId, currentUserId, otherProfile, initialMessages, locale, trip }: Props) {
+  const tc = useTranslations('Common')
+  const tm = useTranslations('Messages')
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -221,7 +223,7 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
         console.error('메시지 전송 실패:', body)
         setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id))
         setNewMessage(content)
-        alert(`메시지 전송 실패: ${body?.error || '알 수 없는 오류'}`)
+        alert(`${tm('sendFailed')} ${body?.error || tc('errorUnexpected')}`)
       } else if (body.message) {
         setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? { ...body.message, profiles: null } as Message : m))
       }
@@ -229,7 +231,7 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
       console.error('메시지 전송 오류:', e)
       setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id))
       setNewMessage(content)
-      alert('네트워크 오류가 발생했습니다.')
+      alert(tc('errorUnexpected'))
     }
     setSending(false)
   }
@@ -265,7 +267,7 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
         </Link>
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-bold text-heading">{otherProfile.full_name || 'Anonymous'}</span>
+            <span className="font-bold text-heading">{otherProfile.full_name || tc('anonymous')}</span>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
               {levelInfo.badge} Lv.{otherProfile.travel_level || 1}
             </span>
@@ -340,6 +342,8 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                         <ReadReceipt
                           messageCreatedAt={msg.created_at}
                           otherLastReadAt={otherLastReadAt}
+                          readLabel={tm('read')}
+                          sentLabel={tm('sent')}
                         />
                       )}
                       {!isMe && (

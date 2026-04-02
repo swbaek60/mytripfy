@@ -1,14 +1,12 @@
 'use client'
 
 import { useClerk, useSignIn, useSignUp } from '@clerk/nextjs'
-import { useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
 export default function SSOCallbackPage() {
   const clerk = useClerk()
   const { signIn } = useSignIn()
   const { signUp } = useSignUp()
-  const router = useRouter()
   const hasRun = useRef(false)
 
   useEffect(() => {
@@ -17,10 +15,13 @@ export default function SSOCallbackPage() {
       hasRun.current = true
 
       const navigate = async (url: string) => {
+        // 하드 리다이렉트: 세션 쿠키가 서버에 확실히 전달되도록 클라이언트 라우팅 대신 전체 페이지 이동
+        // router.push()는 클라이언트 사이드 네비게이션이라 모바일에서 세션 쿠키 전파 전에
+        // 서버 렌더링이 실행되어 auth()가 null을 반환하는 경우가 있음
         if (url.startsWith('http')) {
           window.location.href = url
         } else {
-          router.push(url)
+          window.location.href = url
         }
       }
 
@@ -70,13 +71,13 @@ export default function SSOCallbackPage() {
 
       navigate('/sign-in')
     })()
-  }, [clerk, signIn, signUp, router])
+  }, [clerk, signIn, signUp])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex flex-col items-center gap-4">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-        <p className="text-sm text-subtle">로그인 처리 중...</p>
+        <p className="text-sm text-subtle">Processing login...</p>
       </div>
     </div>
   )

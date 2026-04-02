@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,8 @@ function GroupReadReceipt({
   participantsReadAt,
   profilesByUserId,
   totalMembers,
+  allReadLabel,
+  readCountLabel,
 }: {
   messageCreatedAt: string
   senderId: string
@@ -74,6 +77,8 @@ function GroupReadReceipt({
   participantsReadAt: ParticipantReadAt[]
   profilesByUserId: Record<string, ProfileByUserId>
   totalMembers: number
+  allReadLabel: string
+  readCountLabel: string
 }) {
   const readers = participantsReadAt.filter(
     p =>
@@ -116,7 +121,7 @@ function GroupReadReceipt({
         )}
       </div>
       <span className="text-[10px] text-hint">
-        {readers.length === totalMembers - 1 ? '모두 읽음' : `${readers.length} 읽음`}
+        {readers.length === totalMembers - 1 ? allReadLabel : readCountLabel.replace('0', String(readers.length))}
       </span>
     </div>
   )
@@ -126,6 +131,8 @@ export default function GroupChatRoom({
   chatId, chatName, postId, currentUserId, hostId,
   initialMessages, initialMembers, locale,
 }: Props) {
+  const tc = useTranslations('Common')
+  const tm = useTranslations('Messages')
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [members, setMembers]   = useState<Member[]>(initialMembers)
   const [profilesByUserId, setProfilesByUserId] = useState<Record<string, ProfileByUserId>>({})
@@ -297,14 +304,14 @@ export default function GroupChatRoom({
       if (!res.ok) {
         console.error('Send failed:', body)
         setInput(text)
-        alert(`메시지 전송 실패: ${body?.error || '알 수 없는 오류'}`)
+        alert(`${tm('sendFailed')} ${body?.error || tc('errorUnexpected')}`)
       } else if (body.message) {
         setMessages(prev => [...prev, body.message as Message])
       }
     } catch (e) {
       console.error('Send error:', e)
       setInput(text)
-      alert('네트워크 오류가 발생했습니다.')
+      alert(tc('errorUnexpected'))
     }
 
     setSending(false)
@@ -486,6 +493,8 @@ export default function GroupChatRoom({
                       participantsReadAt={participantsReadAt}
                       profilesByUserId={profilesByUserId}
                       totalMembers={members.length}
+                      allReadLabel={tm('allRead')}
+                      readCountLabel={tm('readCount', { count: 0 })}
                     />
                   )}
                 </div>

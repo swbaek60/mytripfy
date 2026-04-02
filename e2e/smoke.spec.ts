@@ -13,10 +13,11 @@ test.describe('Smoke – 페이지 로드', () => {
     await expect(page.locator('body')).toBeVisible()
   })
 
-  test('로그인 /en/login', async ({ page }) => {
-    const res = await page.goto(`/${LOCALE}/login`)
-    expect(res?.status()).toBe(200)
-    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible({ timeout: 10000 })
+  test('로그인 /en/login → /sign-in (Clerk)', async ({ page }) => {
+    const res = await page.goto(`/${LOCALE}/login`, { waitUntil: 'commit' })
+    expect([200, 307, 308].includes(res?.status() ?? 0)).toBe(true)
+    await page.waitForURL(/\/sign-in/, { timeout: 20000 })
+    await expect(page.locator('.cl-rootBox').first()).toBeVisible({ timeout: 20000 })
   })
 
   test('동행 목록 /en/companions', async ({ page }) => {
@@ -67,14 +68,11 @@ test.describe('Smoke – 페이지 로드', () => {
     await expect(page.locator('body')).toBeVisible()
   })
 
-  test('대시보드(비로그인) /en/dashboard', async ({ page }) => {
-    const res = await page.goto(`/${LOCALE}/dashboard`)
-    expect(res?.status()).toBe(200)
-    const url = page.url()
-    const bodyVisible = await page.locator('body').isVisible()
-    expect(bodyVisible).toBe(true)
-    if (url.includes('/login')) expect(url).toContain('login')
-    else expect(url).toContain('dashboard')
+  test('대시보드(비로그인) /en/dashboard → /sign-in', async ({ page }) => {
+    const res = await page.goto(`/${LOCALE}/dashboard`, { waitUntil: 'commit' })
+    expect([200, 307, 308].includes(res?.status() ?? 0)).toBe(true)
+    await page.waitForURL(/\/sign-in/, { timeout: 20000 })
+    await expect(page).toHaveURL(/\/sign-in/)
   })
 
   test('프로필(비로그인) /en/profile', async ({ page }) => {

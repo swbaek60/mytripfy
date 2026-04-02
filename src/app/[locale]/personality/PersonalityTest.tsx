@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { PERSONALITY_TYPES } from '@/data/personalityTypes'
@@ -102,6 +103,7 @@ function calculatePersonality(answers: Record<string, string>): string {
 
 export default function PersonalityTest({ userId, locale }: { userId: string; locale: string }) {
   const router = useRouter()
+  const t = useTranslations('Personality')
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState<string | null>(null)
@@ -140,12 +142,12 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
       <div className="max-w-lg mx-auto text-center space-y-6">
         <div className="bg-surface rounded-2xl shadow-sm p-8">
           <div className="text-7xl mb-4">{p.emoji}</div>
-          <h2 className="text-2xl font-extrabold text-heading mb-2">You are...</h2>
+          <h2 className="text-2xl font-extrabold text-heading mb-2">{t('youAre')}</h2>
           <h3 className="text-3xl font-extrabold mb-4" style={{ color: p.color }}>{p.type}</h3>
           <p className="text-body leading-relaxed text-lg mb-6">{p.desc}</p>
 
           <div className="bg-surface-sunken rounded-xl p-4 text-left space-y-2 mb-6">
-            <p className="font-semibold text-body text-sm mb-3">Your travel DNA:</p>
+            <p className="font-semibold text-body text-sm mb-3">{t('travelDna')}</p>
             {Object.entries(answers).map(([key, val]) => (
               <div key={key} className="flex justify-between text-sm">
                 <span className="text-subtle capitalize">{key}:</span>
@@ -159,14 +161,14 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
               onClick={() => router.push(`/${locale}/companions`)}
               className="w-full bg-brand hover:bg-brand-hover rounded-full py-5"
             >
-              ✈️ Find Matching Companions
+              ✈️ {t('findCompanions')}
             </Button>
             <Button
               variant="outline"
               onClick={() => { setCurrentQ(0); setAnswers({}); setResult(null) }}
               className="w-full rounded-full"
             >
-              🔄 Retake Test
+              🔄 {t('retake')}
             </Button>
           </div>
         </div>
@@ -181,7 +183,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
       {/* Progress */}
       <div>
         <div className="flex justify-between text-sm text-subtle mb-2">
-          <span>Question {currentQ + 1} of {QUESTIONS.length}</span>
+          <span>{t('questionOf', { current: currentQ + 1, total: QUESTIONS.length })}</span>
           <span>{Math.round(progress)}%</span>
         </div>
         <div className="h-2 bg-surface-sunken rounded-full overflow-hidden">
@@ -214,7 +216,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
           onClick={() => setCurrentQ(prev => prev - 1)}
           className="text-sm text-hint hover:text-body transition-colors"
         >
-          ← Previous question
+          {t('previousQuestion')}
         </button>
       )}
     </div>

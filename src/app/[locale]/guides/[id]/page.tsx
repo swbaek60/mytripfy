@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { getLevelInfo, getCountryByCode, getCountryFlagEmoji } from '@/data/countries'
 import CountryFlag from '@/components/CountryFlag'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import { type LanguageSkill } from '@/data/languages'
 import type { GuideRegion } from '@/data/cities'
 import GuideContactModal from './GuideContactModal'
@@ -13,19 +14,31 @@ import GuideDetailTabs from './GuideDetailTabs'
 import type { CertificationItem } from './GuideDetailTabs'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
-  const { id } = await params
+  const { locale, id } = await params
   const supabase = await createClient()
   const { data: guide } = await supabase.from('profiles').select('full_name, bio, avatar_url, guide_regions').eq('id', id).single()
   if (!guide) return { title: 'Guide Not Found' }
-  return {
-    title: `${guide.full_name || 'Local Guide'} – Guide Profile`,
-    description: guide.bio || `Connect with ${guide.full_name || 'this local guide'} on mytripfy.`,
-    openGraph: {
-      title: `${guide.full_name || 'Local Guide'} | mytripfy`,
-      description: guide.bio || `Contact this local guide on mytripfy.`,
-      images: guide.avatar_url ? [{ url: guide.avatar_url }] : [],
-    },
+  const title = `${guide.full_name || 'Local Guide'} – Guide Profile`
+  const description =
+    (guide.bio as string | null)?.slice(0, 160) ||
+    `Connect with ${guide.full_name || 'this local guide'} on mytripfy.`
+  const base = buildPageMetadata({
+    locale,
+    path: `/guides/${id}`,
+    title,
+    description,
+    openGraphType: 'article',
+    keywords: ['local guide', 'private tour', 'mytripfy'],
+  })
+  const avatar = guide.avatar_url as string | null
+  if (avatar?.startsWith('http')) {
+    return {
+      ...base,
+      openGraph: { ...base.openGraph, images: [{ url: avatar, alt: title }] },
+      twitter: { ...base.twitter, images: [avatar] },
+    }
   }
+  return base
 }
 
 export default async function GuideDetailPage({

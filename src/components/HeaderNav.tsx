@@ -193,14 +193,19 @@ export default function HeaderNav({
                         <span className="text-hint">🌐</span>
                         Language
                       </span>
-                      <LanguageSelector currentLocale={locale} compact userId={userId} />
+                      <LanguageSelector
+                        currentLocale={locale}
+                        compact
+                        userId={userId}
+                        onOverlayOpen={() => setProfileOpen(false)}
+                      />
                     </div>
                     <div className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover transition-colors rounded-lg mx-1">
                       <span className="flex items-center gap-3 text-sm text-body">
                         <span className="text-hint">💱</span>
                         Currency
                       </span>
-                      <CurrencySelector compact />
+                      <CurrencySelector compact onOverlayOpen={() => setProfileOpen(false)} />
                     </div>
                   </div>
                   <div className="mx-4 my-1 h-px bg-edge/60" />
@@ -271,7 +276,7 @@ export default function HeaderNav({
           />
 
           {/* 메뉴 패널 */}
-          <div className="absolute right-0 top-0 h-dvh w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto">
+          <div className="absolute right-0 top-0 h-dvh max-h-[100dvh] w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto overscroll-y-contain pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
             <div className="flex items-center justify-between px-5 py-5 border-b border-edge/60">
               {userId ? (
                 <div className="flex items-center gap-3">
@@ -324,14 +329,19 @@ export default function HeaderNav({
                   <span className="text-hint">🌐</span>
                   {tLanguage}
                 </span>
-                <LanguageSelector currentLocale={locale} compact userId={userId} />
+                <LanguageSelector
+                  currentLocale={locale}
+                  compact
+                  userId={userId}
+                  onOverlayOpen={() => setMobileOpen(false)}
+                />
               </div>
               <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
                 <span className="flex items-center gap-3 text-sm font-medium text-body">
                   <span className="text-hint">💱</span>
                   {tCurrency}
                 </span>
-                <CurrencySelector compact />
+                <CurrencySelector compact onOverlayOpen={() => setMobileOpen(false)} />
               </div>
             </div>
 

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Siren } from 'lucide-react'
 import type { DisputeLabels } from '@/data/dispute-labels'
 
@@ -53,6 +54,7 @@ export default function CertFeedClient({
   } as Record<string, { label: string; color: string; bg: string }>
 
   const router = useRouter()
+  const tc = useTranslations('Challenges')
   const [isPending, startTransition] = useTransition()
   const [disputeTarget, setDisputeTarget] = useState<CertItem | null>(null)
   const [reason, setReason] = useState('')
@@ -74,7 +76,7 @@ export default function CertFeedClient({
   const canDispute = myCertCount >= 3
 
   const handleDispute = async () => {
-    if (!currentUserId) { router.push(`/${locale}/login`); return }
+    if (!currentUserId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
     if (!disputeTarget || !reason.trim() || reason.trim().length < 10) return
 
     setSubmitting(true)
@@ -90,7 +92,7 @@ export default function CertFeedClient({
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '신고 실패')
+      if (!res.ok) throw new Error(data.error || tc('reportFailed'))
       setSuccessMsg(L.successMsg)
       setTimeout(() => {
         setDisputeTarget(null)
@@ -111,13 +113,13 @@ export default function CertFeedClient({
       <div className="flex flex-wrap gap-2 mb-5">
         <input
           type="text"
-          placeholder="챌린지명 또는 사용자 검색..."
+          placeholder={tc('searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="flex-1 min-w-[160px] border border-edge rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple/40 bg-surface"
         />
         {[
-          { key: 'all',       label: 'All' },
+          { key: 'all',       label: tc('filterAll') },
           { key: 'clean',     label: L.status.clean },
           { key: 'flagged',   label: L.status.flagged },
           { key: 'reviewing', label: L.status.reviewing },
@@ -139,9 +141,9 @@ export default function CertFeedClient({
       {/* 통계 */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: '전체 인증', value: certs.length, icon: '🏅' },
-          { label: '딴지 진행', value: certs.filter(c => c.dispute_status === 'reviewing').length, icon: '⚖️' },
-          { label: '신고 접수', value: certs.filter(c => c.dispute_status === 'flagged').length, icon: '🚨' },
+          { label: tc('filterAll'), value: certs.length, icon: '🏅' },
+          { label: tc('filterDispute'), value: certs.filter(c => c.dispute_status === 'reviewing').length, icon: '⚖️' },
+          { label: tc('filterReported'), value: certs.filter(c => c.dispute_status === 'flagged').length, icon: '🚨' },
         ].map((s, i) => (
           <div key={i} className="bg-surface rounded-2xl border border-edge p-4 text-center">
             <div className="text-2xl mb-1">{s.icon}</div>
@@ -155,7 +157,7 @@ export default function CertFeedClient({
       {filtered.length === 0 ? (
         <div className="text-center py-20 text-hint">
           <div className="text-4xl mb-2">🔍</div>
-          <p className="font-medium">결과가 없습니다</p>
+          <p className="font-medium">{tc('noResults')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -207,7 +209,7 @@ export default function CertFeedClient({
                       {cert.title ?? cert.title_en}
                     </p>
                     <p className="text-[10px] opacity-60">
-                      {new Date(cert.created_at).toLocaleDateString('ko-KR')}
+                      {new Date(cert.created_at).toLocaleDateString(locale)}
                     </p>
                   </div>
 
@@ -264,8 +266,8 @@ export default function CertFeedClient({
                     {canFlag && (
                       <button
                         onClick={() => {
-                          if (!currentUserId) { router.push(`/${locale}/login`); return }
-                          if (myCertCount < 3) { alert('딴지걸기는 인증 3개 이상인 회원만 가능합니다.'); return }
+                          if (!currentUserId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
+                          if (myCertCount < 3) { alert(tc('disputeRequires3')); return }
                           setDisputeTarget(cert)
                           setReason('')
                           setError('')
@@ -317,7 +319,7 @@ export default function CertFeedClient({
               {successMsg ? (
                 <div className="text-center py-6">
                   <div className="flex justify-center mb-3"><Siren className="w-14 h-14 text-danger" /></div>
-                  <p className="text-lg font-bold text-heading">딴지 접수 완료!</p>
+                  <p className="text-lg font-bold text-heading">{tc('disputeSubmitted')}</p>
                   <p className="text-sm text-subtle mt-1">{successMsg}</p>
                 </div>
               ) : (
@@ -346,7 +348,7 @@ export default function CertFeedClient({
                     className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
                   />
                   <p className={`text-xs mt-1 ${reason.length < 10 ? 'text-danger' : 'text-success'}`}>
-                    {reason.length}/10자 이상 필요
+                    {tc('minCharsRequired', { count: reason.length })}
                   </p>
 
                   {error && (
@@ -359,7 +361,7 @@ export default function CertFeedClient({
                       disabled={submitting}
                       className="flex-1 border border-edge text-body font-semibold py-3 rounded-xl hover:bg-surface-hover transition-colors text-sm"
                     >
-                      취소
+                      {tc('cancel')}
                     </button>
                     <button
                       onClick={handleDispute}
@@ -369,9 +371,9 @@ export default function CertFeedClient({
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
                           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          처리 중...
+                          {tc('processing')}
                         </span>
-                      ) : <span className="flex items-center justify-center gap-1.5"><Siren className="w-4 h-4" />딴지 접수하기</span>}
+                      ) : <span className="flex items-center justify-center gap-1.5"><Siren className="w-4 h-4" />{tc('submitDispute')}</span>}
                     </button>
                   </div>
                 </>

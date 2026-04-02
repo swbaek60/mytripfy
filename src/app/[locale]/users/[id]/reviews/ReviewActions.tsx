@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2, X, Check } from 'lucide-react'
 
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ReviewActions({ reviewId, initialRating, initialContent }: Props) {
   const router = useRouter()
+  const tc = useTranslations('Common')
   const [editing, setEditing] = useState(false)
   const [rating, setRating] = useState(initialRating)
   const [hovered, setHovered] = useState(0)
@@ -34,16 +36,16 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
         setEditing(false)
         router.refresh()
       } else {
-        alert('수정에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+        alert(tc('errorOccurred'))
       }
     } catch {
       setSaving(false)
-      alert('수정에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+      alert(tc('errorOccurred'))
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) return
+    if (!confirm(tc('deleteConfirm'))) return
     setDeleting(true)
     try {
       const res = await fetch(`/api/reviews?reviewId=${reviewId}`, { method: 'DELETE' })
@@ -51,11 +53,11 @@ export default function ReviewActions({ reviewId, initialRating, initialContent 
       if (res.ok) {
         router.refresh()
       } else {
-        alert('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+        alert(tc('errorOccurred'))
       }
     } catch {
       setDeleting(false)
-      alert('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+      alert(tc('errorOccurred'))
     }
   }
 

@@ -93,9 +93,8 @@ export default function UserChallengeAchievements({
   disputedKeys?: Set<string>
 }) {
   const t = useTranslations('UserProfile')
-  const isKo = locale.startsWith('ko')
   const displayTitle = (c: CertificationItem) =>
-    isKo && c.challenges?.title_ko ? c.challenges.title_ko : (c.challenges?.title_en ?? '')
+    locale.startsWith('ko') && c.challenges?.title_ko ? c.challenges.title_ko : (c.challenges?.title_en ?? '')
 
   const [expandedImg, setExpandedImg] = useState<string | null>(null)
   const [disputeTarget, setDisputeTarget] = useState<DisputeTargetCert | null>(null)
@@ -129,7 +128,7 @@ export default function UserChallengeAchievements({
 
   const deleteCert = async (challengeId: string) => {
     if (!isOwnProfile) return
-    if (!confirm(isKo ? '이 챌린지 인증을 취소할까요?' : 'Cancel this certification?')) return
+    if (!confirm(t('cancelCertConfirm'))) return
     setDeletingCertId(challengeId)
     try {
       const res = await fetch('/api/challenges/certs', {
@@ -139,11 +138,11 @@ export default function UserChallengeAchievements({
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || (isKo ? '삭제 실패' : 'Delete failed'))
+        throw new Error(data.error || t('deleteFailed'))
       }
       router.refresh()
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : (isKo ? '인증 취소에 실패했습니다.' : 'Failed to cancel certification.'))
+      alert(e instanceof Error ? e.message : t('cancelCertFailed'))
     } finally {
       setDeletingCertId(null)
     }
@@ -153,7 +152,7 @@ export default function UserChallengeAchievements({
     const img = cert.image_url || (cert.challenges as { image_url?: string } | null)?.image_url
     const category = cert.challenges?.category ?? ''
     const emoji = CATEGORY_EMOJI[category] ?? '✅'
-    const categoryLabel = CATEGORY_LABEL[category] ? (isKo ? CATEGORY_LABEL[category].ko : CATEGORY_LABEL[category].en) : category || 'Challenge'
+    const categoryLabel = CATEGORY_LABEL[category] ? (locale.startsWith('ko') ? CATEGORY_LABEL[category].ko : CATEGORY_LABEL[category].en) : category || 'Challenge'
     const key = getKey(cert)
     const alreadyDisputed = localDisputedKeys.has(key)
     const dispStatus = cert.dispute_status || 'clean'
@@ -213,7 +212,7 @@ export default function UserChallengeAchievements({
             }}
             disabled={deletingCertId === cert.challenge_id}
             className="absolute top-1 right-1 w-6 h-6 bg-surface-sunken0/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
-            title={isKo ? '인증 취소' : 'Cancel certification'}
+            title={t('cancelCert')}
           >
             <Trash2 className="w-3 h-3" />
           </button>
@@ -223,8 +222,8 @@ export default function UserChallengeAchievements({
           <button
             onClick={(e) => {
               e.stopPropagation()
-              if (!currentUserId) { router.push(`/${locale}/login`); return }
-              if (myCertCount < 3) { alert('딴지걸기는 인증 3개 이상인 회원만 가능합니다.'); return }
+              if (!currentUserId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
+              if (myCertCount < 3) { alert(t('disputeRequires')); return }
               setDisputeTarget({
                 user_id: userId,
                 challenge_id: cert.challenge_id,
@@ -285,7 +284,7 @@ export default function UserChallengeAchievements({
 
       {currentUserId && !isOwnProfile && myCertCount < 3 && (
         <p className="text-xs text-amber bg-amber-light border border-amber-200 rounded-lg px-3 py-1.5 mb-3 flex items-center gap-1">
-          <Siren className="w-3.5 h-3.5" /> 내 인증이 3개 이상이면 딴지걸기가 가능합니다
+          <Siren className="w-3.5 h-3.5" /> {t('disputeRequires')}
         </p>
       )}
 
@@ -301,12 +300,12 @@ export default function UserChallengeAchievements({
                   categoryFilter === '' ? 'bg-amber-light0 text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
                 }`}
               >
-                {isKo ? '전체' : 'All'} ({displayList.length})
+                {t('allCategory')} ({displayList.length})
               </button>
               {orderedCategories.map((cat) => {
                 const list = byCategory.get(cat)!
                 const emoji = CATEGORY_EMOJI[cat] ?? '✅'
-                const label = CATEGORY_LABEL[cat] ? (isKo ? CATEGORY_LABEL[cat].ko : CATEGORY_LABEL[cat].en) : cat
+                const label = CATEGORY_LABEL[cat] ? (locale.startsWith('ko') ? CATEGORY_LABEL[cat].ko : CATEGORY_LABEL[cat].en) : cat
                 return (
                   <button
                     key={cat}
@@ -327,7 +326,7 @@ export default function UserChallengeAchievements({
           {(categoryFilter === '' ? orderedCategories : [categoryFilter].filter(c => byCategory.has(c))).map((category) => {
             const list = byCategory.get(category)!
             const emoji = CATEGORY_EMOJI[category] ?? '✅'
-            const categoryLabel = CATEGORY_LABEL[category] ? (isKo ? CATEGORY_LABEL[category].ko : CATEGORY_LABEL[category].en) : category
+            const categoryLabel = CATEGORY_LABEL[category] ? (locale.startsWith('ko') ? CATEGORY_LABEL[category].ko : CATEGORY_LABEL[category].en) : category
             return (
               <div key={category} className="mb-6 last:mb-0">
                 <h3 className="text-sm font-semibold text-body mb-2 flex items-center gap-1.5">

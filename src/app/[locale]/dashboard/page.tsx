@@ -177,7 +177,7 @@ export default async function DashboardPage({
                         <span className="text-xl shrink-0">{country?.emoji || '🌍'}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-heading truncate text-sm">{req?.title || 'Guide request'}</p>
-                          <p suppressHydrationWarning className="text-xs text-subtle">{req?.start_date ? new Date(req.start_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US') : ''}</p>
+                          <p suppressHydrationWarning className="text-xs text-subtle">{req?.start_date ? new Date(req.start_date).toLocaleDateString(locale) : ''}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${APP_STATUS_COLORS[app.status] || 'bg-surface-sunken text-body'}`}>
                           {app.status}
@@ -214,7 +214,7 @@ export default async function DashboardPage({
                 const country = trip.destination_country ? getCountryByCode(trip.destination_country) : null
                 const start = new Date(trip.start_date)
                 const end = new Date(trip.end_date)
-                const dateFmt = locale.startsWith('ko') ? 'ko-KR' : 'en-US'
+                const dateFmt = locale
                 const dateLabel =
                   !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())
                     ? `${start.toLocaleDateString(dateFmt)} – ${end.toLocaleDateString(dateFmt)}`

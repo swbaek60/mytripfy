@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/server'
 import { auth } from '@clerk/nextjs/server'
-import { sendEmail } from '@/utils/ses'
+import { sendEmail } from '@/utils/email'
 import { contactGuideEmail } from '@/utils/emailTemplates'
 
 async function getProfileById(id: string) {
@@ -71,14 +71,6 @@ export async function POST(req: NextRequest) {
       locale,
     })
 
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      console.error('contact-guide: AWS SES env vars missing')
-      return NextResponse.json(
-        { error: 'Email delivery failed', code: 'AWS_CREDENTIALS_MISSING' },
-        { status: 500 }
-      )
-    }
-
     const result = await sendEmail({
       to: guideEmail,
       subject,
@@ -86,18 +78,8 @@ export async function POST(req: NextRequest) {
       replyTo: sender.email ?? undefined,
     })
     if (!result.success) {
-      const err = result.error as { name?: string; message?: string; Code?: string } | undefined
-      const code = err?.name || err?.Code
-      const reason = [code, err?.message].filter(Boolean).join(': ')
-      console.error('contact-guide: SES send failed', reason)
-
-      const isSandboxRecipient = code === 'MessageRejected' || (err?.message && /recipient|verify|sandbox/i.test(String(err.message)))
-      const errorCode = isSandboxRecipient ? 'SES_SANDBOX_RECIPIENT' : 'SES_SEND_FAILED'
-
-      return NextResponse.json(
-        { error: 'Email delivery failed', code: errorCode, detail: reason },
-        { status: 500 }
-      )
+      console.error('contact-guide: email send failed via', result.provider, result.error)
+      return NextResponse.json({ error: 'Email delivery failed' }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })

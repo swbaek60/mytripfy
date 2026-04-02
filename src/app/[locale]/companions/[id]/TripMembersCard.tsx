@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Users, MessageSquare } from 'lucide-react'
 import { getLevelInfo } from '@/data/countries'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 
 interface Member {
   id: string
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export default function TripMembersCard({ locale, host, acceptedMembers, groupChatId }: Props) {
+  const t = useTranslations('CompanionDetail')
+  const tc = useTranslations('Common')
   const allMembers = [host, ...acceptedMembers]
   if (allMembers.length === 0) return null
   const showGroupChat = groupChatId && allMembers.length >= 3
@@ -33,7 +36,7 @@ export default function TripMembersCard({ locale, host, acceptedMembers, groupCh
             <Users className="w-5 h-5 text-brand" />
             Travel Group ({allMembers.length})
           </h3>
-          <p className="text-sm text-subtle mt-0.5">Who&apos;s going on this trip</p>
+          <p className="text-sm text-subtle mt-0.5">{t('whosGoing')}</p>
         </div>
         {showGroupChat && (
           <Link href={`/${locale}/messages/group/${groupChatId}`}>
@@ -63,7 +66,7 @@ export default function TripMembersCard({ locale, host, acceptedMembers, groupCh
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-heading text-sm truncate">
-                    {m.full_name || 'Anonymous'}
+                    {m.full_name || tc('anonymous')}
                   </span>
                   {m.isHost && (
                     <span className="text-[10px] bg-amber-light text-amber-700 px-1.5 py-0.5 rounded font-medium shrink-0">

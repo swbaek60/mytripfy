@@ -3,10 +3,22 @@ import Header from '@/components/Header'
 import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | mytripfy',
-  description: 'Privacy Policy for mytripfy - how we collect, use and protect your personal information.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/privacy',
+    title: t('privacyTitle'),
+    description: t('privacyDesc'),
+    keywords: ['privacy policy', 'mytripfy', 'personal data', 'GDPR'],
+  })
 }
 
 export default async function PrivacyPage({

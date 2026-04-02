@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/utils/supabase/server'
-import { sendEmail } from '@/utils/ses'
+import { sendEmail } from '@/utils/email'
 import { companionApplicationAcceptedEmail, companionApplicationRejectedEmail } from '@/utils/emailTemplates'
 import { getCountryByCode } from '@/data/countries'
 

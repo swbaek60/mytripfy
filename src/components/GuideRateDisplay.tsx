@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useCurrency } from '@/context/CurrencyContext'
 import { getCurrency } from '@/utils/currency'
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function GuideRateDisplay({ rate, rateCurrency = 'USD', size = 'sm' }: Props) {
+  const tc = useTranslations('Common')
   const { formatPrice, selectedCurrency } = useCurrency()
   const isFree = !rate || rate === 0
   const fromCurrency = rateCurrency || 'USD'
@@ -32,7 +34,7 @@ export default function GuideRateDisplay({ rate, rateCurrency = 'USD', size = 's
         <span className="text-sm text-subtle">/hr</span>
         {!isSameCurrency && (
           <p className="text-xs text-hint mt-0.5">
-            원래 요금: {cur.symbol}{rate?.toLocaleString()} {fromCurrency}/hr
+            {tc('originalRate')} {cur.symbol}{rate?.toLocaleString()} {fromCurrency}/hr
           </p>
         )}
       </div>

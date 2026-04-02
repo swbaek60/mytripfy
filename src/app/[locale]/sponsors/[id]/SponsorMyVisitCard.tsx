@@ -66,7 +66,7 @@ export default function SponsorMyVisitCard({
     }
   }
 
-  const dateStr = new Date(createdAt).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US', {
+  const dateStr = new Date(createdAt).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

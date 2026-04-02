@@ -37,23 +37,22 @@ test.describe('Navigation – 홈', () => {
   })
 })
 
-test.describe('Navigation – 로그인 페이지', () => {
-  test('로그인 페이지에 이메일 로그인·회원가입·소셜 버튼이 있다', async ({ page }) => {
-    await page.goto(`/${LOCALE}/login`)
-    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with apple/i })).toBeVisible()
-    await expect(page.getByLabel(/email/i)).toBeVisible()
-    await expect(page.getByLabel(/password/i)).toBeVisible()
-    await expect(page.getByRole('button', { name: /log in|login/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /sign up|signup/i })).toBeVisible()
+test.describe('Navigation – 로그인(Clerk /sign-in)', () => {
+  test('/en/login 리다이렉트 후 Clerk SignIn 루트가 보인다', async ({ page }) => {
+    await page.goto(`/${LOCALE}/login`, { waitUntil: 'commit' })
+    await page.waitForURL(/\/sign-in/, { timeout: 20000 })
+    await expect(page.locator('.cl-rootBox').first()).toBeVisible({ timeout: 20000 })
+    const email = page.locator('input[type="email"], input[name="identifier"], input#identifier-field')
+    await expect(email.first()).toBeVisible({ timeout: 15000 })
   })
 
-  test('소셜 로그인 form의 action이 oauth-start이고 target이 _self이다', async ({ page }) => {
-    await page.goto(`/${LOCALE}/login`)
-    const form = page.locator('form').filter({ has: page.getByRole('button', { name: /continue with facebook/i }) })
-    await expect(form).toHaveAttribute('action', /oauth-start/)
-    await expect(form).toHaveAttribute('target', '_self')
+  test('/sign-in 에서 소셜·이메일 로그인 UI가 있다', async ({ page }) => {
+    await page.goto('/sign-in')
+    await expect(page.locator('.cl-rootBox').first()).toBeVisible({ timeout: 20000 })
+    const hasSocial =
+      (await page.getByRole('button', { name: /google|facebook|apple|continue/i }).count()) > 0
+    const hasEmail = (await page.locator('input[type="email"], input[name="identifier"]').count()) > 0
+    expect(hasSocial || hasEmail).toBe(true)
   })
 })
 

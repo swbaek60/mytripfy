@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import type { DisputeLabels } from '@/data/dispute-labels'
 
 export default function JuryClient({
@@ -27,13 +28,14 @@ export default function JuryClient({
 }) {
   const L = labels
   const router = useRouter()
+  const td = useTranslations('Dispute')
   const [isPending, startTransition] = useTransition()
   const [voting, setVoting] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const handleVote = async (vote: 'valid' | 'invalid') => {
-    if (!currentUserId) { router.push(`/${locale}/login`); return }
+    if (!currentUserId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
     setVoting(true)
     setError('')
     try {
@@ -43,7 +45,7 @@ export default function JuryClient({
         body: JSON.stringify({ cert_user_id: certUserId, cert_challenge_id: challengeId, vote }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '투표 실패')
+      if (!res.ok) throw new Error(data.error || td('voteFailed'))
 
       setResult(data.result)
       setTimeout(() => {
@@ -62,22 +64,22 @@ export default function JuryClient({
         {result === 'invalidated' && (
           <>
             <div className="text-4xl mb-2">❌</div>
-            <p className="font-bold text-danger">판결: 인증 무효!</p>
-            <p className="text-sm text-subtle mt-1">인증이 취소되고 포인트가 차감되었습니다.</p>
+            <p className="font-bold text-danger">{td('verdictInvalidTitle')}</p>
+            <p className="text-sm text-subtle mt-1">{td('verdictInvalidDesc')}</p>
           </>
         )}
         {result === 'dismissed' && (
           <>
             <div className="text-4xl mb-2">✅</div>
-            <p className="font-bold text-success">판결: 정당한 인증!</p>
-            <p className="text-sm text-subtle mt-1">딴지가 기각되었습니다.</p>
+            <p className="font-bold text-success">{td('verdictValidTitle')}</p>
+            <p className="text-sm text-subtle mt-1">{td('verdictValidDesc')}</p>
           </>
         )}
         {result === 'pending' && (
           <>
             <div className="text-4xl mb-2">🗳️</div>
-            <p className="font-bold text-brand-hover">투표 완료 (+2pt 적립 예정)</p>
-            <p className="text-sm text-subtle mt-1">아직 최종 판결이 나지 않았습니다. 더 많은 배심원 투표가 필요합니다.</p>
+            <p className="font-bold text-brand-hover">{td('verdictReviewingTitle')}</p>
+            <p className="text-sm text-subtle mt-1">{td('verdictReviewingDesc')}</p>
           </>
         )}
       </div>
@@ -90,7 +92,7 @@ export default function JuryClient({
         <p className="font-semibold text-body">
           {L.jury.alreadyVoted}: {myVote === 'valid' ? L.jury.validBtn : L.jury.invalidBtn}
         </p>
-        <p className="text-xs text-hint mt-1">Final verdict will appear when decided.</p>
+        <p className="text-xs text-hint mt-1">{td('finalVerdictPending')}</p>
       </div>
     )
   }
@@ -115,8 +117,8 @@ export default function JuryClient({
   if (!currentUserId) {
     return (
       <div className="mt-5 bg-surface-sunken rounded-2xl p-4 text-center">
-        <p className="text-sm text-subtle mb-2">Login required to vote.</p>
-        <a href={`/${locale}/login`} className="text-purple font-bold text-sm underline">Login →</a>
+        <p className="text-sm text-subtle mb-2">{td('loginRequired')}</p>
+        <a href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/challenges/disputes/${certUserId}/${challengeId}`)}`} className="text-purple font-bold text-sm underline">{td('loginLink')}</a>
       </div>
     )
   }
@@ -136,7 +138,7 @@ export default function JuryClient({
       </div>
 
       <p className="text-xs text-body mb-4 leading-relaxed">
-        Review the certification photo and flag reasons, then vote honestly.
+        {td('viewCertPhoto')}
       </p>
 
       {error && (

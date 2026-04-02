@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export default function ApplyButton({
   postId,
@@ -19,6 +20,8 @@ export default function ApplyButton({
   wasRemoved?: boolean
 }) {
   const router = useRouter()
+  const t = useTranslations('CompanionDetail')
+  const tc = useTranslations('Common')
   const [applied, setApplied] = useState(alreadyApplied)
   const [showForm, setShowForm] = useState(false)
   const [message, setMessage] = useState('')
@@ -45,11 +48,11 @@ export default function ApplyButton({
       }).catch(console.error)
     } else {
       if (res.status === 403) {
-        alert(data?.error || '이 동행은 성별 조건에 맞는 회원만 신청할 수 있습니다.')
+        alert(data?.error || t('applyGenderRestrict'))
       } else if (res.status === 404) {
-        alert('게시글을 찾을 수 없습니다.')
+        alert(t('applyNotFound'))
       } else {
-        alert(data?.error || '신청에 실패했습니다.')
+        alert(data?.error || t('applyFailed'))
       }
     }
   }
@@ -70,8 +73,8 @@ export default function ApplyButton({
     return (
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="flex-1 bg-success-light border border-green-200 rounded-xl p-4 text-center">
-          <p className="text-success font-medium">✅ You have applied for this trip!</p>
-          <p className="text-success text-sm mt-1">Waiting for the host to respond.</p>
+          <p className="text-success font-medium">{t('appliedTrip')}</p>
+          <p className="text-success text-sm mt-1">{t('waitingHost')}</p>
         </div>
         <Button
           variant="outline"
@@ -79,7 +82,7 @@ export default function ApplyButton({
           disabled={loading}
           className="border-red-200 text-danger hover:bg-danger-light shrink-0"
         >
-          Cancel Application
+          {t('cancelApp')}
         </Button>
       </div>
     )
@@ -88,7 +91,7 @@ export default function ApplyButton({
   if (showForm) {
     return (
       <div className="space-y-3">
-        <label className="text-sm font-medium text-body">Message to host (optional)</label>
+        <label className="text-sm font-medium text-body">{t('messageToHost')}</label>
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
@@ -102,14 +105,14 @@ export default function ApplyButton({
             disabled={loading}
             className="flex-1 bg-brand hover:bg-brand-hover rounded-xl"
           >
-            {loading ? 'Submitting...' : '🚀 Submit Application'}
+            {loading ? t('submitting') : t('submitApp')}
           </Button>
           <Button
             variant="outline"
             onClick={() => setShowForm(false)}
             className="rounded-xl"
           >
-            Cancel
+            {tc('cancel')}
           </Button>
         </div>
       </div>
@@ -121,7 +124,7 @@ export default function ApplyButton({
       onClick={() => setShowForm(true)}
       className="w-full bg-brand hover:bg-brand-hover rounded-xl py-6 text-lg font-bold"
     >
-      ✈️ Apply to Join This Trip
+      {t('applyJoin')}
     </Button>
   )
 }

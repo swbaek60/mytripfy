@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { getLevelInfo } from '@/data/countries'
 import Link from 'next/link'
 import { MessageSquare, Users } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface Application {
   id: string
@@ -31,6 +32,8 @@ export default function ApplicationsList({
   locale: string
 }) {
   const router = useRouter()
+  const t = useTranslations('CompanionDetail')
+  const tc = useTranslations('Common')
   const [loading, setLoading] = useState<string | null>(null)
 
   const updateStatus = async (appId: string, applicantId: string, status: 'accepted' | 'rejected') => {
@@ -45,12 +48,12 @@ export default function ApplicationsList({
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        alert(`오류가 발생했습니다: ${body?.error || res.statusText}`)
+        alert(`${tc('errorOccurred')} ${body?.error || res.statusText}`)
         setLoading(null)
         return
       }
     } catch (e) {
-      alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+      alert(tc('errorUnexpected'))
       setLoading(null)
       return
     }
@@ -67,7 +70,7 @@ export default function ApplicationsList({
   }
 
   const removeMember = async (applicantId: string) => {
-    if (!confirm('Remove this member from the trip group?')) return
+    if (!confirm(t('qaRemoveConfirm'))) return
     setLoading(applicantId)
     const supabase = createClient()
 
@@ -115,7 +118,7 @@ export default function ApplicationsList({
         <div>
           <h3 className="font-bold text-heading text-lg flex items-center gap-2">
             <Users className="w-5 h-5 text-brand" />
-            Applications
+            {t('qaApplications')}
           </h3>
           <p className="text-sm text-subtle mt-0.5">
             Accepted <span className="text-success font-semibold">{accepted.length}</span>
@@ -127,14 +130,14 @@ export default function ApplicationsList({
       </div>
 
       {applications.length === 0 ? (
-        <p className="text-center text-hint py-6">No applications yet.</p>
+        <p className="text-center text-hint py-6">{t('noApplications')}</p>
       ) : (
         <div className="space-y-3">
           {/* 수락됨 */}
           {accepted.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-success uppercase tracking-wider mb-2">
-                Accepted Members ({accepted.length})
+                {t('qaAcceptedMembers')} ({accepted.length})
               </p>
               {accepted.map(app => <AppCard key={app.id} app={app} locale={locale} status="accepted"
                 onRemove={() => removeMember(app.applicant_id)}
@@ -195,6 +198,7 @@ function AppCard({
   onMessage?: string
   loading: string | null
 }) {
+  const tc = useTranslations('Common')
   const profile = app.profiles as Record<string, unknown>
   const levelInfo = getLevelInfo((profile?.travel_level as number) || 1)
 
@@ -218,7 +222,7 @@ function AppCard({
           <div className="flex items-center gap-2 flex-wrap">
             <Link href={`/${locale}/users/${app.applicant_id}`}>
               <span className="font-semibold text-heading hover:text-brand text-sm">
-                {(profile?.full_name as string) || 'Anonymous'}
+                {(profile?.full_name as string) || tc('anonymous')}
               </span>
             </Link>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>

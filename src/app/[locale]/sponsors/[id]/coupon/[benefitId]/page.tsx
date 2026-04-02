@@ -62,8 +62,7 @@ export default async function CouponCapturePage({
       : benefit.benefit_type === 'discount_fixed' && (benefit.value_num != null || benefit.value_text)
         ? t('discountFixed', { value: benefit.value_text || benefit.value_num })
         : t(BENEFIT_TYPE_KEYS[benefit.benefit_type] || 'otherBenefit')
-  const endDate = new Date(benefit.end_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US')
-  const isKo = locale.startsWith('ko')
+  const endDate = new Date(benefit.end_date).toLocaleDateString(locale)
   const countryInfo = sponsor.country_code ? getCountryByCode(sponsor.country_code) : null
   const locationParts = [sponsor.address, sponsor.city, sponsor.region].filter(Boolean)
   const fullAddress = locationParts.length > 0 ? locationParts.join(', ') : null
@@ -77,7 +76,7 @@ export default async function CouponCapturePage({
           href={`/${locale}/sponsors/${id}`}
           className="text-sm text-hint hover:text-gray-600"
         >
-          ← {isKo ? '매장으로 돌아가기' : 'Back to store'}
+          ← {t('backToStore')}
         </Link>
       </div>
 
@@ -120,12 +119,12 @@ export default async function CouponCapturePage({
         </div>
 
         <p className="text-xs text-hint mt-6">
-          {isKo ? '매장에서 이 화면을 보여주세요' : 'Show this screen at the store'}
+          {t('showAtStore')}
         </p>
       </div>
 
       <p className="text-[10px] text-hint mt-6">
-        mytripfy · {isKo ? '캡처 후 매장에서 사용' : 'Screenshot to use at store'}
+        mytripfy · {t('screenshotToUse')}
       </p>
     </div>
   )

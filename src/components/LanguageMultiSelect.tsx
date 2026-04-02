@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { LANGUAGES, getLanguageByCode } from '@/data/languages'
 
 interface Props {
@@ -14,8 +15,9 @@ export default function LanguageMultiSelect({
   value,
   onChange,
   maxItems = 8,
-  placeholder = '🔍 언어 검색 (예: English, 한국어...)',
+  placeholder,
 }: Props) {
+  const tc = useTranslations('Common')
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -84,7 +86,7 @@ export default function LanguageMultiSelect({
             onChange={e => setSearch(e.target.value)}
             onFocus={() => setOpen(true)}
             onBlur={handleBlur}
-            placeholder={placeholder}
+            placeholder={placeholder || tc('searchLanguage')}
             className="w-full h-10 rounded-xl border border-edge px-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
           />
 
@@ -115,7 +117,7 @@ export default function LanguageMultiSelect({
               className="absolute z-20 top-12 left-0 right-0 bg-surface border border-edge rounded-xl shadow-lg"
               onMouseDown={handleDropdownMouseDown}
             >
-              <div className="px-4 py-3 text-sm text-hint text-center">검색 결과 없음</div>
+              <div className="px-4 py-3 text-sm text-hint text-center">{tc('noResults')}</div>
             </div>
           )}
         </div>

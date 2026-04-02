@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getCountryByCode } from '@/data/countries'
+import { useTranslations } from 'next-intl'
 
 type CompanionPost = {
   id: string
@@ -38,11 +39,11 @@ export default function MyPostsSection({
   myGuideRequests: GuideRequest[] | null
   locale: string
 }) {
+  const t = useTranslations('Dashboard')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const isKo = locale.startsWith('ko')
 
   const filterOptions = [
-    { value: 'all', label: isKo ? '전체' : 'All' },
+    { value: 'all', label: t('all') },
     { value: 'open', label: 'Open' },
     { value: 'closed', label: 'Closed' },
     { value: 'completed', label: 'Completed' },
@@ -60,7 +61,7 @@ export default function MyPostsSection({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-body">
-          {isKo ? '상태 필터' : 'Filter'}:
+          {t('statusFilter')}:
         </span>
         {filterOptions.map((opt) => (
           <button
@@ -77,7 +78,7 @@ export default function MyPostsSection({
           </button>
         ))}
         <span className="text-xs text-hint ml-1">
-          ({totalShown} {isKo ? '건' : 'items'})
+          ({totalShown} {t('items')})
         </span>
       </div>
 
@@ -86,7 +87,7 @@ export default function MyPostsSection({
         <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-heading">
-              {isKo ? '동행 찾기' : 'My Trips'} ({posts.length})
+              {t('myTrips')} ({posts.length})
             </h2>
             <Link href={`/${locale}/companions/new`}>
               <Button variant="outline" size="sm" className="rounded-full text-xs border-edge-brand text-brand">
@@ -106,7 +107,7 @@ export default function MyPostsSection({
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-heading truncate text-sm">{post.title}</p>
                         <p className="text-xs text-subtle">
-                          {new Date(post.start_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US')} · {appCount} {isKo ? '명 신청' : 'applicants'}
+                          {new Date(post.start_date).toLocaleDateString(locale)} · {appCount} {t('applicants')}
                         </p>
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[post.status] || 'bg-surface-sunken text-body'}`}>
@@ -119,10 +120,10 @@ export default function MyPostsSection({
             </div>
           ) : (
             <div className="text-center py-6 text-hint text-sm">
-              {statusFilter === 'all' ? (isKo ? '등록한 동행 글이 없습니다.' : 'No trips posted yet.') : (isKo ? '해당 상태의 글이 없습니다.' : 'No items for this filter.')}
+              {statusFilter === 'all' ? t('noTripsYet') : t('noGuideRequestsYetFilter')}
               {statusFilter === 'all' && (
                 <Link href={`/${locale}/companions/new`}>
-                  <Button variant="link" className="text-brand text-sm mt-1 block">+ {isKo ? '첫 동행 글 쓰기' : 'Post your first trip'}</Button>
+                  <Button variant="link" className="text-brand text-sm mt-1 block">+ {t('postFirstTrip')}</Button>
                 </Link>
               )}
             </div>
@@ -133,7 +134,7 @@ export default function MyPostsSection({
         <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-heading">
-              {isKo ? '가이드 찾기' : 'My Guide Requests'} ({guideReqs.length})
+              {t('myGuideRequestsTitle')} ({guideReqs.length})
             </h2>
             <Link href={`/${locale}/guides/requests/new`}>
               <Button variant="outline" size="sm" className="rounded-full text-xs border-amber-300 text-amber">
@@ -153,7 +154,7 @@ export default function MyPostsSection({
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-heading truncate text-sm">{req.title}</p>
                         <p className="text-xs text-subtle">
-                          {new Date(req.start_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US')} · {appCount} {isKo ? '명 지원' : 'applied'}
+                          {new Date(req.start_date).toLocaleDateString(locale)} · {appCount} {t('applied')}
                         </p>
                       </div>
                       {req.status && (
@@ -171,10 +172,10 @@ export default function MyPostsSection({
             </div>
           ) : (
             <div className="text-center py-6 text-hint text-sm">
-              {statusFilter === 'all' ? (isKo ? '등록한 가이드 요청이 없습니다.' : 'No guide requests yet.') : (isKo ? '해당 상태의 글이 없습니다.' : 'No items for this filter.')}
+              {statusFilter === 'all' ? t('noGuideApps') : t('noGuideRequestsYetFilter')}
               {statusFilter === 'all' && (
                 <Link href={`/${locale}/guides/requests/new`}>
-                  <Button variant="link" className="text-amber text-sm mt-1 block">+ {isKo ? '가이드 요청 쓰기' : 'Post a guide request'}</Button>
+                  <Button variant="link" className="text-amber text-sm mt-1 block">+ {t('postGuideRequest')}</Button>
                 </Link>
               )}
             </div>

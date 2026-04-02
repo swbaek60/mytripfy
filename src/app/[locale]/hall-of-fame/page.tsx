@@ -3,7 +3,25 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 import { getLevelInfo, getCountryByCode } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import { Trophy, Medal, Award, Compass, Users, LayoutList } from 'lucide-react'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/hall-of-fame',
+    title: t('hallOfFameTitle'),
+    description: t('hallOfFameDesc'),
+    keywords: ['travel leaderboard', 'challenge ranking', 'mytripfy'],
+  })
+}
 import HallOfFameList from './HallOfFameList'
 import {
   getTierForPoints,

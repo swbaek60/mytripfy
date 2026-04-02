@@ -12,6 +12,7 @@ import Link from 'next/link'
 import PostCoverUpload from '@/components/PostCoverUpload'
 import LanguageMultiSelect from '@/components/LanguageMultiSelect'
 import { getLanguageByCode } from '@/data/languages'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   userId: string
@@ -21,6 +22,8 @@ interface Props {
 
 export default function GuideRequestEditForm({ userId, locale, request }: Props) {
   const router = useRouter()
+  const t = useTranslations('GuideRequests')
+  const tc = useTranslations('Common')
   const id = request.id as string
 
   const [saving, setSaving] = useState(false)
@@ -67,11 +70,11 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
   const handleSubmit = async () => {
     if (!title || !country || !startDate || !endDate) {
-      setError('필수 항목을 모두 입력해주세요.')
+      setError(t('requiredFields'))
       return
     }
     if (endDate < startDate) {
-      setError('종료일은 시작일 이후여야 합니다.')
+      setError('End date must be after start date.')
       return
     }
 
@@ -114,13 +117,13 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
       }
 
       if (dbError) {
-        setError(`저장 실패: ${dbError.message}`)
+        setError(`${tc('errorSubmit')} ${dbError.message}`)
         return
       }
 
       router.push(`/${locale}/guides/requests/${id}`)
     } catch (err) {
-      setError('예상치 못한 오류가 발생했습니다.')
+      setError(tc('errorUnexpected'))
       console.error(err)
     } finally {
       setSaving(false)
@@ -132,7 +135,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-heading">✏️ Edit Guide Request</h2>
         <Link href={`/${locale}/guides/requests/${id}`} className="text-sm text-subtle hover:text-amber-600">
-          ← 돌아가기
+          {tc('back')}
         </Link>
       </div>
 
@@ -144,7 +147,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
       {/* 여행 정보 */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-heading border-b border-edge pb-3">Trip Details</h3>
+        <h3 className="font-bold text-heading border-b border-edge pb-3">{t('tripDetails')}</h3>
 
         <div className="space-y-1.5">
           <Label>Title <span className="text-danger">*</span></Label>
@@ -167,7 +170,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
         {country && (
           <div className="space-y-2">
-            <Label>Cities (optional)</Label>
+            <Label>{t('citiesOptional')}</Label>
             {selectedCities.length > 0 && (
               <div className="flex flex-wrap gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
                 {selectedCities.map(city => (
@@ -227,7 +230,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
         {/* 상태 변경 */}
         <div className="space-y-1.5">
-          <Label>Status</Label>
+          <Label>{t('status')}</Label>
           <div className="flex gap-2">
             {(['open', 'closed', 'completed'] as const).map(s => (
               <button
@@ -248,15 +251,15 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
               </button>
             ))}
           </div>
-          <p className="text-xs text-hint">Closed / Completed 로 변경하면 새 가이드 신청을 받지 않습니다.</p>
+          <p className="text-xs text-hint">{t('statusChangeNote')}</p>
         </div>
       </div>
 
       {/* 설명 */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-heading border-b border-edge pb-3">Description</h3>
+        <h3 className="font-bold text-heading border-b border-edge pb-3">{t('description')}</h3>
         <div className="space-y-1.5">
-          <Label>What do you need from a guide? (optional)</Label>
+          <Label>{t('descHint')}</Label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
@@ -270,21 +273,21 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
       {/* 선호 언어 */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
         <div className="border-b border-edge pb-3">
-          <h3 className="font-bold text-heading">🗣️ Preferred Guide Languages (optional)</h3>
+          <h3 className="font-bold text-heading">🗣️ {t('preferredLangsTitle')}</h3>
           <p className="text-xs text-subtle mt-1">
-            가이드가 사용할 수 있으면 좋을 언어를 선택하세요.
+            {t('preferredLangsDesc')}
           </p>
         </div>
         <LanguageMultiSelect
           value={preferredLanguages}
           onChange={setPreferredLanguages}
-          placeholder="🔍 언어 검색 (예: English, Korean...)"
+          placeholder={tc('searchLanguage')}
         />
         {preferredLanguages.length > 0 && (
           <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-800">
             <span className="text-sm">💡</span>
             <span>
-              <strong>{preferredLanguages.map(c => getLanguageByCode(c)?.name).join(', ')}</strong> 가능한 가이드에게 알림이 발송됩니다.
+              {t('langNotificationHint')}
             </span>
           </div>
         )}
@@ -292,7 +295,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
       {/* 커버 이미지 */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-bold text-heading border-b border-edge pb-3">Cover Image (optional)</h3>
+        <h3 className="font-bold text-heading border-b border-edge pb-3">{t('coverImage')}</h3>
         <PostCoverUpload userId={userId} currentUrl={coverImage} onUpload={setCoverImage} />
       </div>
 
@@ -301,7 +304,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
         disabled={saving}
         className="w-full bg-amber-500 hover:bg-amber-600 py-6 text-lg rounded-xl text-white"
       >
-        {saving ? '저장 중...' : '💾 저장하기'}
+        {saving ? tc('saving') : `💾 ${tc('save')}`}
       </Button>
     </div>
   )

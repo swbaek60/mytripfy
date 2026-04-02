@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
     localPatterns: [
       { pathname: '/logo.png' },
       { pathname: '/logo-transparent.png' },
+      { pathname: '/mytripfy-logo.png' },
+      { pathname: '/og-image.png' },
     ],
     remotePatterns: [
       // Clerk 사용자 프로필 이미지 (Google, Facebook OAuth 등)

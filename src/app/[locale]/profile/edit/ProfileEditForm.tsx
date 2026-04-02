@@ -278,7 +278,7 @@ export default function ProfileEditForm({
               {/* Travel Personality Test */}
               <div className="border-t border-edge pt-5">
                 <p className="text-sm font-semibold text-body mb-2">
-                  {locale.startsWith('ko') ? '여행 성향 테스트' : 'Travel Personality Test'}
+                  {t('personality_title')}
                 </p>
                 {travelPersonality ? (
                   <div className="rounded-xl p-4 bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100">
@@ -296,17 +296,17 @@ export default function ProfileEditForm({
                       </div>
                     </div>
                     <Link href={`/${locale}/personality`} className="inline-block mt-3 text-sm font-medium text-violet-600 hover:text-violet-700">
-                      {locale.startsWith('ko') ? '다시 테스트하기 →' : 'Retake test →'}
+                      {t('personality_retake')}
                     </Link>
                   </div>
                 ) : (
                   <p className="text-sm text-subtle mb-2">
-                    {locale.startsWith('ko') ? '8가지 질문으로 나의 여행 스타일을 알아보세요.' : 'Answer 8 questions to discover your travel style.'}
+                    {t('personality_desc')}
                   </p>
                 )}
                 <Link href={`/${locale}/personality`}>
                   <Button type="button" variant="outline" className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 mt-1">
-                    {travelPersonality ? (locale.startsWith('ko') ? '여행 성향 테스트' : 'Travel Personality Test') : (locale.startsWith('ko') ? '테스트 하러 가기 →' : 'Take the test →')}
+                    {travelPersonality ? t('personality_title') : t('personality_take')}
                   </Button>
                 </Link>
               </div>
@@ -472,7 +472,7 @@ export default function ProfileEditForm({
                 <div className="flex items-center gap-3 p-4 rounded-xl mb-4" style={{ backgroundColor: currentLevel.color + '20' }}>
                   <span className="text-3xl">{currentLevel.badge}</span>
                   <div>
-                    <div className="font-bold text-heading">Lv.{currentLevel.level} {currentLevel.titleKo}</div>
+                    <div className="font-bold text-heading">Lv.{currentLevel.level} {currentLevel.title}</div>
                     <div className="text-sm text-body">
                       {currentLevel.level < 10
                         ? t('visited_level_next', { n: Math.max(0, (TRAVEL_LEVELS[currentLevel.level]?.minCountries || 50) - totalVisitedCount) })

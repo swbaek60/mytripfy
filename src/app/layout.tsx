@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react'
-import type { Viewport } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
+
+/** 파비콘은 src/app/favicon.ico·icon.png·apple-icon.png (npm run icons 로 생성) */
+export const metadata: Metadata = {
+  manifest: '/manifest.json',
+}
 
 export const viewport: Viewport = {
   width: 'device-width',

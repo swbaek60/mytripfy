@@ -1,5 +1,6 @@
 import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import Header from '@/components/Header'
 import ChatRoom from './ChatRoom'
 
@@ -108,7 +109,8 @@ export default async function MessagePage({
 
       if (!newChat || chatError) {
         console.error('Failed to create chat', chatError)
-        throw new Error('채팅방을 생성할 수 없습니다.')
+        const tc = await getTranslations({ locale, namespace: 'Common' })
+        throw new Error(tc('errorOccurred'))
       }
 
       chatId = newChat.id

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { CHALLENGES, CATEGORY_LABELS, DIFFICULTY_LABELS, type ChallengeCategory } from '@/data/challenges'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as ChallengeCategory[]
@@ -32,6 +33,7 @@ export default function ChallengesClient({
   visitedCountries, initialTab,
 }: Props) {
   const router = useRouter()
+  const tc = useTranslations('Challenges')
   const [, startTransition] = useTransition()
   const [localCompleted, setLocalCompleted] = useState<Set<number>>(new Set(completedIds))
   const [activeTab, setActiveTab] = useState<'challenges' | 'countries'>(initialTab)
@@ -61,7 +63,7 @@ export default function ChallengesClient({
   })
 
   const toggle = async (challengeId: number) => {
-    if (!userId) { router.push(`/${locale}/login`); return }
+    if (!userId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
     if (autoCompleted.has(challengeId)) return  // 자동 완료는 토글 불가
 
     const supabase = createClient()
@@ -262,12 +264,12 @@ export default function ChallengesClient({
               <div>
                 <h2 className="font-bold text-heading">🌍 Visited Countries</h2>
                 <p className="text-sm text-subtle mt-0.5">
-                  <span className="font-bold text-brand">{countryCount}개국</span> 방문 완료
+                  <span className="font-bold text-brand">{tc('countriesVisited', { count: countryCount })}</span> {tc('visitComplete')}
                 </p>
               </div>
               <Link href={`/${locale}/profile/edit#countries`}>
                 <button className="px-4 py-2 bg-brand text-white text-xs font-medium rounded-full hover:bg-brand-hover transition-colors">
-                  + 국가 추가
+                  {tc('addCountry')}
                 </button>
               </Link>
             </div>
@@ -307,10 +309,10 @@ export default function ChallengesClient({
             ) : (
               <div className="text-center py-10 text-hint">
                 <div className="text-5xl mb-3">🗺️</div>
-                <p className="text-sm">아직 방문한 국가가 없습니다.</p>
+                <p className="text-sm">{tc('noCountriesYet')}</p>
                 <Link href={`/${locale}/profile/edit#countries`}>
                   <button className="mt-3 text-brand text-sm hover:underline">
-                    첫 번째 국가를 추가해보세요! →
+                    {tc('addFirstCountry')}
                   </button>
                 </Link>
               </div>
@@ -321,7 +323,7 @@ export default function ChallengesClient({
 
       {!userId && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-footer-bg text-white text-sm px-5 py-3 rounded-full shadow-xl">
-          <Link href={`/${locale}/login`} className="font-medium hover:underline">Log in</Link> to track your challenges 🏆
+          <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/challenges`)}`} className="font-medium hover:underline">Log in</Link> to track your challenges 🏆
         </div>
       )}
     </main>

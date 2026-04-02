@@ -24,7 +24,7 @@ export default function SponsorVisitListCard({
   const t = useTranslations('Sponsors')
   const [deleting, setDeleting] = useState(false)
   const name = visit.profiles?.full_name || t('visitor')
-  const dateStr = new Date(visit.created_at).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US', {
+  const dateStr = new Date(visit.created_at).toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

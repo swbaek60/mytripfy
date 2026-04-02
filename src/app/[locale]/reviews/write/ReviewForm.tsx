@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ReviewForm({ user, targetProfile, locale, existingReview }: Props) {
   const router = useRouter()
+  const tc = useTranslations('Common')
   const isEdit = !!existingReview
 
   const [rating, setRating] = useState(existingReview?.rating ?? 0)
@@ -55,7 +57,7 @@ export default function ReviewForm({ user, targetProfile, locale, existingReview
 
   const handleDelete = async () => {
     if (!existingReview) return
-    if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) return
+    if (!confirm(tc('deleteConfirm'))) return
     setDeleting(true)
 
     try {

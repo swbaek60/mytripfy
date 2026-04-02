@@ -3,6 +3,24 @@ import Link from 'next/link'
 import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { getDisputeLabels } from '@/data/dispute-labels'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/challenges/guide',
+    title: t('challengesGuideTitle'),
+    description: t('challengesGuideDesc'),
+    keywords: ['how travel challenges work', 'mytripfy guide', 'challenge rules'],
+  })
+}
 
 export default async function ChallengeGuidePage({
   params,

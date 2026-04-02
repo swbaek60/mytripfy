@@ -5,6 +5,24 @@ import CertFeedClient from './CertFeedClient'
 import { getDisputeLabels } from '@/data/dispute-labels'
 import { getTranslationsForChallenges } from '@/utils/challengeTranslations'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  return buildPageMetadata({
+    locale,
+    path: '/challenges/feed',
+    title: t('challengesFeedTitle'),
+    description: t('challengesFeedDesc'),
+    keywords: ['travel certifications', 'challenge feed', 'mytripfy'],
+  })
+}
 
 export default async function ChallengeFeedPage({
   params,
@@ -14,6 +32,7 @@ export default async function ChallengeFeedPage({
   const { locale } = await params
   const L = getDisputeLabels(locale)
   const t = await getTranslations({ locale, namespace: 'ChallengeFeed' })
+  const tc = await getTranslations({ locale, namespace: 'Challenges' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -118,7 +137,7 @@ export default async function ChallengeFeedPage({
             </Link>
             <Link href={`/${locale}/challenges`}>
               <button className="border border-edge bg-surface text-body text-xs font-semibold px-3 py-2 rounded-full hover:bg-surface-hover transition-colors">
-                ← 챌린지 허브
+                {tc('backToHub')}
               </button>
             </Link>
           </div>

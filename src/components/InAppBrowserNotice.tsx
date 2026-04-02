@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 
 /** 인앱 브라우저(웹뷰) 감지. 로그인 페이지 등에서 전체 UI 분기용으로 export. */
 export function isInAppBrowser(): boolean {
@@ -89,48 +90,52 @@ function getChromeIosUrl(): string {
   return `googlechromes://${url}`
 }
 
-const noticeContent = (
-  copied: boolean,
-  onCopy: () => void,
-  onOpenExternal: () => void,
-  showCloseButton: boolean,
+function NoticeContent({
+  copied,
+  onCopy,
+  onOpenExternal,
+  showCloseButton,
+  onClose,
+}: {
+  copied: boolean
+  onCopy: () => void
+  onOpenExternal: () => void
+  showCloseButton: boolean
   onClose: () => void
-) => (
-  <>
-    <p className="font-medium">
-      Google 로그인은 앱 안 브라우저(카카오톡·라인·인스타·페이스북·왓츠앱·텔레그램 등)에서 사용할 수 없습니다.
-    </p>
-    <p className="mt-2 text-amber-800">
-      <strong>브라우저에서 열기</strong>를 누르면 Safari 또는 Chrome으로 넘어갈 수 있습니다.
-      앱에 따라 동작하지 않을 수 있으니, 그때는 <strong>주소 복사</strong> 후 Safari·Chrome에 붙여넣어 주세요.
-    </p>
-    <div className="mt-4 flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        onClick={onOpenExternal}
-        className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-light0"
-      >
-        브라우저에서 열기
-      </button>
-      <button
-        type="button"
-        onClick={onCopy}
-        className="rounded-lg bg-amber-200 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-300"
-      >
-        {copied ? '✓ 복사됨!' : '주소 복사'}
-      </button>
-      {showCloseButton && (
+}) {
+  const t = useTranslations('InAppBrowser')
+  return (
+    <>
+      <p className="font-medium">{t('title')}</p>
+      <p className="mt-2 text-amber-800">{t('desc')}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={onClose}
-          className="text-xs underline text-amber-700 hover:text-amber-900"
+          onClick={onOpenExternal}
+          className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-light0"
         >
-          안내 닫기
+          {t('openInBrowser')}
         </button>
-      )}
-    </div>
-  </>
-)
+        <button
+          type="button"
+          onClick={onCopy}
+          className="rounded-lg bg-amber-200 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-300"
+        >
+          {copied ? t('copied') : t('copyAddress')}
+        </button>
+        {showCloseButton && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs underline text-amber-700 hover:text-amber-900"
+          >
+            {t('closeNotice')}
+          </button>
+        )}
+      </div>
+    </>
+  )
+}
 
 export default function InAppBrowserNotice({ standalone = false }: { standalone?: boolean }) {
   const [show, setShow] = useState(false)
@@ -178,7 +183,7 @@ export default function InAppBrowserNotice({ standalone = false }: { standalone?
           : 'mb-4 rounded-xl border border-amber-200 bg-amber-light p-4 text-sm text-amber-900'
       }
     >
-      {noticeContent(copied, copyUrl, openInExternalBrowser, !standalone, () => setShow(false))}
+      <NoticeContent copied={copied} onCopy={copyUrl} onOpenExternal={openInExternalBrowser} showCloseButton={!standalone} onClose={() => setShow(false)} />
     </div>
   )
 }

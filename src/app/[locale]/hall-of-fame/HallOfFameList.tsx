@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { getLevelInfo, getCountryByCode } from '@/data/countries'
 import { getTierForPoints, getContributionTierForPoints } from '@/data/challengeTiers'
@@ -54,6 +55,7 @@ export default function HallOfFameList({
   anonymousLabel,
   pointsLabel,
 }: Props) {
+  const th = useTranslations('HallOfFame')
   const getTier = tab === 'contribution' ? getContributionTierForPoints : getTierForPoints
 
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
@@ -104,7 +106,7 @@ export default function HallOfFameList({
 
     const result: CertItem[] = (certs || []).map((c: Record<string, unknown>) => {
       const ch = c.challenges as { title_en: string; title_ko: string | null; category: string } | null
-      const isKo = locale.startsWith('ko')
+      const isKo = locale.startsWith('ko') // for title_ko / title_en data selection
       return {
         challenge_id: c.challenge_id as string,
         image_url: c.image_url as string,
@@ -180,10 +182,10 @@ export default function HallOfFameList({
                       ? 'bg-purple text-white'
                       : 'bg-purple-light text-purple hover:bg-purple-light border border-purple-200'
                   }`}
-                  title="인증 사진 보기"
+                  title={th('viewCerts')}
                 >
                   <Users className="w-3.5 h-3.5" />
-                  인증
+                  {th('viewCerts')}
                 </button>
               </div>
 
@@ -193,8 +195,8 @@ export default function HallOfFameList({
                   <div className="flex items-center justify-between py-3">
                     <p className="text-sm font-semibold text-body flex items-center gap-1.5">
                       <Users className="w-4 h-4 text-purple" />
-                      {displayName}의 인증 사진
-                      {!certLoading && <span className="text-hint font-normal">({certData.length}건)</span>}
+                      {th('certsOf', { name: displayName })}
+                      {!certLoading && <span className="text-hint font-normal">{th('certsCount', { count: certData.length })}</span>}
                     </p>
                     <button onClick={() => { setExpandedUserId(null); setCertData([]) }} className="w-6 h-6 bg-surface-sunken rounded-full flex items-center justify-center hover:bg-surface-hover">
                       <X className="w-3.5 h-3.5" />
@@ -204,10 +206,10 @@ export default function HallOfFameList({
                   {certLoading ? (
                     <div className="text-center py-6 text-hint text-sm">
                       <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                      불러오는 중...
+                      {th('loadingCerts')}
                     </div>
                   ) : certData.length === 0 ? (
-                    <p className="text-sm text-hint py-4 text-center">인증 사진이 없습니다.</p>
+                    <p className="text-sm text-hint py-4 text-center">{th('noCerts')}</p>
                   ) : (
                     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                       {certData.map(cert => {
@@ -238,8 +240,8 @@ export default function HallOfFameList({
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  if (!currentUserId) { router.push(`/${locale}/login`); return }
-                                  if (myCertCount < 3) { alert('딴지걸기는 인증 3개 이상인 회원만 가능합니다.'); return }
+                                  if (!currentUserId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
+                                  if (myCertCount < 3) { alert(th('disputeRequires3Certs')); return }
                                   setDisputeTarget({
                                     user_id: profile.id,
                                     challenge_id: cert.challenge_id,
@@ -249,7 +251,7 @@ export default function HallOfFameList({
                                   })
                                 }}
                                 className="absolute top-1 right-1 w-6 h-6 bg-danger/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow"
-                                title="딴지걸기"
+                                title={th('viewCerts')}
                               >
                                 <Siren className="w-3 h-3" />
                               </button>
@@ -266,7 +268,7 @@ export default function HallOfFameList({
                             )}
 
                             {alreadyDisputed && (
-                              <div className="absolute top-1 right-1 bg-gray-600/80 text-white text-[7px] font-bold px-1 py-0.5 rounded-full">접수</div>
+                              <div className="absolute top-1 right-1 bg-gray-600/80 text-white text-[7px] font-bold px-1 py-0.5 rounded-full">{th('filedLabel')}</div>
                             )}
 
                             {/* 챌린지명 */}
@@ -281,12 +283,12 @@ export default function HallOfFameList({
 
                   {!currentUserId && (
                     <p className="text-xs text-hint mt-3 text-center">
-                      <Link href={`/${locale}/login`} className="text-purple font-semibold hover:underline">로그인</Link>하면 딴지걸기가 가능합니다
+                      <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/hall-of-fame`)}`} className="text-purple font-semibold hover:underline">{th('loginForDispute')}</Link>
                     </p>
                   )}
                   {currentUserId && !canDispute && currentUserId !== profile.id && (
                     <p className="text-xs text-amber mt-3 text-center flex items-center justify-center gap-1">
-                      <Siren className="w-3.5 h-3.5" /> 내 인증이 3개 이상이면 딴지걸기가 가능합니다
+                      <Siren className="w-3.5 h-3.5" /> {th('disputeRequires3Certs')}
                     </p>
                   )}
                 </div>

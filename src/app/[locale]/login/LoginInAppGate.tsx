@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { isInAppBrowser } from '@/components/InAppBrowserNotice'
 import InAppBrowserNotice from '@/components/InAppBrowserNotice'
 
@@ -56,6 +57,7 @@ function tryOpenExternalBrowser(url: string): void {
  * 2. 자동 이동이 안 되면(iOS 등) 수동 안내 화면 표시
  */
 export default function LoginInAppGate({ children }: { children: React.ReactNode }) {
+  const tc = useTranslations('Common')
   const [isInApp, setIsInApp] = useState<boolean | null>(null)
   const [autoAttempted, setAutoAttempted] = useState(false)
 
@@ -78,7 +80,7 @@ export default function LoginInAppGate({ children }: { children: React.ReactNode
       <div className="w-full max-w-md">
         <div className="bg-surface rounded-3xl shadow-xl overflow-hidden">
           <div className="px-8 py-12 text-center text-hint text-sm">
-            잠시만요...
+            {tc('pleaseWait')}
           </div>
         </div>
       </div>
@@ -94,8 +96,8 @@ export default function LoginInAppGate({ children }: { children: React.ReactNode
           <div className="bg-surface rounded-3xl shadow-xl overflow-hidden">
             <div className="px-8 py-12 text-center">
               <div className="text-2xl mb-3">🌐</div>
-              <p className="text-body text-sm font-medium">브라우저로 이동 중...</p>
-              <p className="text-hint text-xs mt-1">잠시만 기다려 주세요</p>
+              <p className="text-body text-sm font-medium">{tc('redirecting')}</p>
+              <p className="text-hint text-xs mt-1">{tc('pleaseWait')}</p>
             </div>
           </div>
         </div>

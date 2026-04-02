@@ -72,6 +72,7 @@ export default function ChallengeClient({
 }) {
   const router = useRouter()
   const t = useTranslations('ChallengesPage')
+  const tc = useTranslations('Challenges')
   const [certs, setCerts] = useState<Certification[]>(initialCertifications)
   const [wishIds, setWishIds] = useState<Set<string>>(() => new Set(initialWishIds))
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
@@ -201,7 +202,7 @@ export default function ChallengeClient({
   const [deletingCertId, setDeletingCertId] = useState<string | null>(null)
   const deleteCert = async (challengeId: string) => {
     if (!userId) return
-    if (!confirm('이 챌린지 인증을 취소할까요?')) return
+    if (!confirm(tc('certCancelConfirm'))) return
     setDeletingCertId(challengeId)
     try {
       const res = await fetch('/api/challenges/certs', {
@@ -211,13 +212,13 @@ export default function ChallengeClient({
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || '삭제 실패')
+        throw new Error(data.error || tc('deleteFailed'))
       }
       setCerts(prev => prev.filter(c => c.challenge_id !== challengeId))
       setCommCerts(prev => prev.filter(c => !(c.challenge_id === challengeId && c.user_id === userId)))
       router.refresh()
     } catch (e: any) {
-      alert(e.message || '인증 취소에 실패했습니다.')
+      alert(e.message || tc('certCancelFailed'))
     } finally {
       setDeletingCertId(null)
     }
@@ -362,7 +363,7 @@ export default function ChallengeClient({
                     <div className="flex items-center justify-between gap-2 w-full">
                       <div className="flex items-center gap-1.5 text-success text-xs font-semibold">
                         <span className="text-base">✅</span>
-                        <span>Certified</span>
+                        <span>{tc('certified')}</span>
                       </div>
                       {userId && (
                         <button
@@ -371,7 +372,7 @@ export default function ChallengeClient({
                           onClick={(e) => { e.stopPropagation(); deleteCert(challenge.id) }}
                           disabled={deletingCertId === challenge.id}
                           className="p-1 rounded-lg text-hint hover:text-danger hover:bg-danger-light disabled:opacity-50 transition-colors"
-                          title="인증 취소"
+                          title={tc('certCancel')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -381,7 +382,7 @@ export default function ChallengeClient({
                     <button
                       suppressHydrationWarning
                       onClick={() => {
-                        if (!userId) { router.push(`/${locale}/login`); return }
+                        if (!userId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
                         setSelectedChallenge(challenge)
                       }}
                       className="w-full py-2 rounded-xl border-2 border-dashed border-purple/30 text-purple text-xs font-bold hover:bg-purple-light hover:border-purple transition-colors"
@@ -400,7 +401,7 @@ export default function ChallengeClient({
                         className="flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium text-brand hover:bg-brand-light border border-edge-brand hover:border-edge-brand transition-colors"
                       >
                         <Users className="w-3.5 h-3.5" />
-                        {count > 0 ? `${count}명 인증` : '인증 현황 보기'}
+                        {count > 0 ? tc('certCount', { count }) : tc('viewCerts')}
                       </button>
                     )
                   })()}
@@ -442,10 +443,10 @@ export default function ChallengeClient({
             </h2>
             <span className="text-sm text-hint font-normal">{commCerts.length}건</span>
             {!userId && (
-              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full">로그인하면 딴지걸기 가능</span>
+              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full">{tc('loginForDispute')}</span>
             )}
             {userId && myCertCount < 3 && (
-              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> 인증 3개 이상이면 딴지걸기 가능</span>
+              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> {tc('disputeRequires3')}</span>
             )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -481,7 +482,7 @@ export default function ChallengeClient({
                         }}
                         disabled={deletingCertId === cert.challenge_id}
                         className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
-                        title="인증 취소"
+                        title={tc('certCancel')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -490,12 +491,12 @@ export default function ChallengeClient({
                         suppressHydrationWarning
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (!userId) { router.push(`/${locale}/login`); return }
-                          if (myCertCount < 3) { alert('딴지걸기는 인증 3개 이상인 회원만 가능합니다.'); return }
+                          if (!userId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
+                          if (myCertCount < 3) { alert(tc('disputeRequires3')); return }
                           setDisputeTarget(cert)
                         }}
                         className="absolute top-2 right-2 w-8 h-8 bg-danger/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                        title="딴지걸기"
+                        title={tc('disputeTitle')}
                       >
                         <Siren className="w-4 h-4" />
                       </button>
@@ -504,7 +505,7 @@ export default function ChallengeClient({
                     {/* 이미 딴지 건 표시 */}
                     {cert.already_disputed && (
                       <div className="absolute top-2 right-2 bg-gray-600/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                        딴지접수
+                        {tc('disputeFiled')}
                       </div>
                     )}
 
@@ -515,8 +516,8 @@ export default function ChallengeClient({
                         cert.dispute_status === 'flagged' ? 'bg-gold text-white' :
                         'bg-danger text-white'
                       }`}>
-                        {cert.dispute_status === 'reviewing' ? '⚖️ 심사중' :
-                         cert.dispute_status === 'flagged' ? '🚨 신고' : '❌ 무효'}
+                        {cert.dispute_status === 'reviewing' ? `⚖️ ${tc('statusReviewing')}` :
+                         cert.dispute_status === 'flagged' ? `🚨 ${tc('statusFlagged')}` : `❌ ${tc('statusInvalidated')}`}
                       </div>
                     )}
 
@@ -527,7 +528,7 @@ export default function ChallengeClient({
                         onClick={e => e.stopPropagation()}
                         className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-brand/80 hover:bg-brand-hover/90 py-1 transition-colors"
                       >
-                        ⚖️ 배심원 참여
+                        ⚖️ {tc('juryJoin')}
                       </Link>
                     )}
 
@@ -566,7 +567,7 @@ export default function ChallengeClient({
                 <h2 className="font-extrabold text-heading text-lg">{certViewChallenge.title || certViewChallenge.title_en}</h2>
                 <p className="text-sm text-subtle mt-0.5 flex items-center gap-1.5">
                   <Users className="w-4 h-4" />
-                  {certViewLoading ? '불러오는 중...' : `${certViewData.length}명이 인증했습니다`}
+                  {certViewLoading ? tc('loading') : tc('certifiedCount', { count: certViewData.length })}
                 </p>
               </div>
               <button suppressHydrationWarning onClick={() => setCertViewChallenge(null)} className="w-8 h-8 bg-surface-sunken rounded-full flex items-center justify-center hover:bg-surface-hover">✕</button>
@@ -575,12 +576,12 @@ export default function ChallengeClient({
               {certViewLoading ? (
                 <div className="text-center py-12 text-hint">
                   <div className="w-8 h-8 border-2 border-purple/60 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                  불러오는 중...
+                  {tc('loading')}
                 </div>
               ) : certViewData.length === 0 ? (
                 <div className="text-center py-12 text-hint">
                   <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  아직 인증한 사람이 없습니다.
+                  {tc('noCertsYet')}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -597,7 +598,7 @@ export default function ChallengeClient({
                               cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
                               cert.dispute_status === 'flagged' ? 'bg-gold text-white' : 'bg-danger text-white'
                             }`}>
-                              {cert.dispute_status === 'reviewing' ? '⚖️ 심사중' : cert.dispute_status === 'flagged' ? '🚨 신고' : '❌ 무효'}
+                              {cert.dispute_status === 'reviewing' ? `⚖️ ${tc('statusReviewing')}` : cert.dispute_status === 'flagged' ? `🚨 ${tc('statusFlagged')}` : `❌ ${tc('statusInvalidated')}`}
                             </div>
                           )}
                           {/* 내 인증: 취소 / 남의 인증: 딴지걸기 */}
@@ -611,7 +612,7 @@ export default function ChallengeClient({
                               }}
                               disabled={deletingCertId === cert.challenge_id}
                               className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
-                              title="인증 취소"
+                              title={tc('certCancel')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -620,8 +621,8 @@ export default function ChallengeClient({
                               suppressHydrationWarning
                               onClick={(e) => {
                                 e.stopPropagation()
-                                if (!userId) { router.push(`/${locale}/login`); return }
-                                if (myCertCount < 3) { alert('딴지걸기는 인증 3개 이상인 회원만 가능합니다.'); return }
+                                if (!userId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
+                                if (myCertCount < 3) { alert(tc('disputeRequires3')); return }
                                 setDisputeTarget({
                                   user_id: cert.user_id,
                                   challenge_id: cert.challenge_id,
@@ -631,17 +632,17 @@ export default function ChallengeClient({
                                 })
                               }}
                               className="absolute top-2 right-2 w-8 h-8 bg-danger/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                              title="딴지걸기"
+                              title={tc('disputeTitle')}
                             >
                               <Siren className="w-4 h-4" />
                             </button>
                           ) : null}
                           {cert.already_disputed && (
-                            <div className="absolute top-2 right-2 bg-gray-600/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">딴지접수</div>
+                            <div className="absolute top-2 right-2 bg-gray-600/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">{tc('disputeFiled')}</div>
                           )}
                           {cert.dispute_status === 'reviewing' && (
                             <Link href={`/${locale}/challenges/disputes/${cert.user_id}/${cert.challenge_id}`} onClick={e => e.stopPropagation()} className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-brand/80 hover:bg-brand-hover/90 py-1 transition-colors">
-                              ⚖️ 배심원 참여
+                              ⚖️ {tc('juryJoin')}
                             </Link>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
@@ -655,7 +656,7 @@ export default function ChallengeClient({
                           </div>
                         </div>
                         <p className="text-[10px] text-hint px-2.5 py-1.5">
-                          {new Date(cert.created_at).toLocaleDateString('ko-KR')}
+                          {new Date(cert.created_at).toLocaleDateString(locale)}
                         </p>
                       </div>
                     )
@@ -732,7 +733,7 @@ export default function ChallengeClient({
               {showSuccess ? (
                 <div className="py-6 animate-in zoom-in duration-300">
                   <div className="text-6xl mb-3">🎊</div>
-                  <h3 className="text-2xl font-bold text-heading mb-1">Challenge Complete!</h3>
+                  <h3 className="text-2xl font-bold text-heading mb-1">{tc('challengeComplete')}</h3>
                   <p className="text-purple font-bold text-lg">+{selectedChallenge.points} Points Earned</p>
                 </div>
               ) : (
@@ -749,7 +750,7 @@ export default function ChallengeClient({
 
                   <div className="border-2 border-dashed border-purple/30 rounded-2xl p-8 hover:bg-purple-light transition-colors relative cursor-pointer group">
                     <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
-                    <div className="text-sm font-bold text-purple">Upload your photo</div>
+                    <div className="text-sm font-bold text-purple">{tc('uploadPhoto')}</div>
                     <div className="text-xs text-hint mt-1">{t(getVerifyHintKey(selectedChallenge.category))}</div>
                     <input
                       type="file"
@@ -774,7 +775,7 @@ export default function ChallengeClient({
                     disabled={uploading}
                     className="mt-5 text-sm text-hint hover:text-body disabled:opacity-50"
                   >
-                    Cancel
+                    {tc('cancel')}
                   </button>
                 </>
               )}

@@ -4,6 +4,9 @@ import Link from 'next/link'
 import ChallengeClient from './ChallengeClient'
 import { notFound } from 'next/navigation'
 import { getChallengesForCategoryWithLocale } from '@/utils/challengeTranslations'
+import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
 export interface CommunityCert {
   user_id: string
@@ -35,6 +38,23 @@ const CATEGORY_MAP: Record<string, { title: string; emoji: string }> = {
   scuba:        { title: '100 Dive Sites',   emoji: '🤿' },
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; category: string }>
+}): Promise<Metadata> {
+  const { locale, category } = await params
+  const catInfo = CATEGORY_MAP[category]
+  if (!catInfo) return { title: 'Challenges | mytripfy' }
+  return buildPageMetadata({
+    locale,
+    path: `/challenges/${category}`,
+    title: `${catInfo.title} — travel challenges | mytripfy`,
+    description: `Browse and complete ${catInfo.title} challenges on mytripfy. Earn points and join the global traveler community.`,
+    keywords: ['travel challenge', category.replace(/_/g, ' '), 'mytripfy', 'bucket list'],
+  })
+}
+
 export default async function CategoryChallengePage({
   params,
 }: {
@@ -45,6 +65,7 @@ export default async function CategoryChallengePage({
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
+  const tc = await getTranslations({ locale, namespace: 'Challenges' })
   const catInfo = CATEGORY_MAP[category]
   if (!catInfo) notFound()
 
@@ -132,7 +153,7 @@ export default async function CategoryChallengePage({
             {user ? (
               <div className="w-full max-w-xs bg-surface-sunken p-4 rounded-2xl border border-edge">
                 <div className="flex justify-between text-sm font-bold text-body mb-2">
-                  <span>My Progress</span>
+                  <span>{tc('myProgress')}</span>
                   <span className="text-purple">{completedCount} / 100</span>
                 </div>
                 <div className="w-full bg-edge-strong rounded-full h-2.5">

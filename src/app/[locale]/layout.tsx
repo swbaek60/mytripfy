@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "@/globals.css";
 import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
+import {getMessages, getTranslations} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import {getFallbackMessages} from '@/i18n/request';
 import { CurrencyProvider } from '@/context/CurrencyContext';
+import SiteJsonLd from '@/components/seo/SiteJsonLd';
+import { rootMetadataBase } from '@/lib/seo/build-metadata';
+import { ogLocaleFor, ogImageAbsoluteUrl } from '@/lib/seo/site';
 
 const headingFont = Plus_Jakarta_Sans({
   variable: "--font-heading",
@@ -21,62 +24,76 @@ const bodyFont = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "mytripfy – Find Travel Companions & Local Guides Worldwide",
-    template: "%s | mytripfy",
-  },
-  description: "Connect with travel companions and local guides in 100+ countries. Join trips, discover local experiences, complete travel challenges and explore the world together.",
-  keywords: ["travel companion", "local guide", "travel platform", "trip partner", "travel together", "mytripfy"],
-  authors: [{ name: "mytripfy" }],
-  creator: "mytripfy",
-  metadataBase: new URL("https://mytripfy.com"),
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://mytripfy.com",
-    siteName: "mytripfy",
-    title: "mytripfy – Find Travel Companions & Local Guides Worldwide",
-    description: "Connect with travel companions and local guides in 100+ countries. Join trips, discover local experiences, complete travel challenges.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "mytripfy – World's Best Travel Companion Platform",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "mytripfy – Find Travel Companions & Local Guides Worldwide",
-    description: "Connect with travel companions and local guides in 100+ countries.",
-    images: ["/og-image.png"],
-    creator: "@mytripfy",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Seo" });
+  const tPages = await getTranslations({ locale, namespace: "SeoPages" });
+  const google = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+  const og = ogImageAbsoluteUrl();
+
+  return {
+    ...rootMetadataBase(),
+    title: {
+      default: t("defaultTitle"),
+      template: "%s | mytripfy",
+    },
+    description: t("defaultDescription"),
+    keywords: t("keywords")
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean),
+    authors: [{ name: "mytripfy" }],
+    creator: "mytripfy",
+    applicationName: "mytripfy",
+    referrer: "origin-when-cross-origin",
+    formatDetection: { email: false, address: false, telephone: false },
+    openGraph: {
+      type: "website",
+      locale: ogLocaleFor(locale),
+      siteName: "mytripfy",
+      title: tPages("homeOgTitle"),
+      description: tPages("homeOgDesc"),
+      images: [
+        {
+          url: og,
+          width: 1200,
+          height: 630,
+          alt: "mytripfy – travel companions & local guides",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("defaultTitle"),
+      description: t("defaultDescription"),
+      images: [og],
+      creator: "@mytripfy",
+      site: "@mytripfy",
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-icon.png",
-  },
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "mytripfy",
-  },
-};
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "mytripfy",
+    },
+    ...(google ? { verification: { google } } : {}),
+  };
+}
 
 export default async function LocaleLayout({
   children,
@@ -109,6 +126,7 @@ export default async function LocaleLayout({
       className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
       data-locale={locale}
     >
+      <SiteJsonLd locale={locale} />
       <NextIntlClientProvider locale={locale} messages={messages}>
         <CurrencyProvider>
           {children}

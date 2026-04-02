@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import JuryClient from './JuryClient'
 import { getDisputeLabels } from '@/data/dispute-labels'
 import { getTranslationsForChallenges } from '@/utils/challengeTranslations'
+import { getTranslations } from 'next-intl/server'
 
 export default async function DisputePage({
   params,
@@ -13,6 +14,7 @@ export default async function DisputePage({
 }) {
   const { locale, certUserId, challengeId } = await params
   const L = getDisputeLabels(locale)
+  const td = await getTranslations({ locale, namespace: 'Dispute' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -77,7 +79,7 @@ export default async function DisputePage({
 
         {/* 뒤로가기 */}
         <Link href={`/${locale}/challenges/feed`} className="text-sm text-subtle hover:text-purple">
-          ← 커뮤니티 피드로
+          {td('backToFeed')}
         </Link>
 
         {/* 상태 배너 */}
@@ -85,10 +87,9 @@ export default async function DisputePage({
           <div className="bg-brand-light border-2 border-edge-brand rounded-2xl px-5 py-4 flex items-start gap-3">
             <span className="text-2xl">⚖️</span>
             <div>
-              <p className="font-bold text-heading">배심원 심사 진행 중</p>
+              <p className="font-bold text-heading">{td('verdictReviewingTitle')}</p>
               <p className="text-sm text-brand-hover mt-0.5">
-                이 인증에 대해 {(disputes || []).length}건의 딴지가 접수되었습니다.
-                현재 커뮤니티 배심원이 투표 중입니다. 3표 이상 무효 판정 시 인증이 취소됩니다.
+                {td('statusReviewingBanner')}
               </p>
             </div>
           </div>
@@ -97,8 +98,8 @@ export default async function DisputePage({
           <div className="bg-danger-light border-2 border-red-200 rounded-2xl px-5 py-4 flex items-start gap-3">
             <span className="text-2xl">❌</span>
             <div>
-              <p className="font-bold text-heading">인증 무효 처리됨</p>
-              <p className="text-sm text-danger mt-0.5">배심원 투표 결과 이 인증이 무효 처리되었습니다.</p>
+              <p className="font-bold text-heading">{td('verdictInvalidTitle')}</p>
+              <p className="text-sm text-danger mt-0.5">{td('statusInvalidBanner')}</p>
             </div>
           </div>
         )}
@@ -106,8 +107,8 @@ export default async function DisputePage({
           <div className="bg-success-light border-2 border-green-200 rounded-2xl px-5 py-4 flex items-start gap-3">
             <span className="text-2xl">✅</span>
             <div>
-              <p className="font-bold text-heading">딴지 기각 — 정당한 인증</p>
-              <p className="text-sm text-success mt-0.5">배심원 투표 결과 이 인증이 유효하다고 판정되었습니다.</p>
+              <p className="font-bold text-heading">{td('verdictValidTitle')}</p>
+              <p className="text-sm text-success mt-0.5">{td('statusValidBanner')}</p>
             </div>
           </div>
         )}
@@ -138,7 +139,7 @@ export default async function DisputePage({
               <div>
                 <p className="font-bold text-heading">{profile?.full_name ?? 'Unknown'}</p>
                 <p className="text-xs text-hint">
-                  {new Date(cert.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 인증
+                  {new Date(cert.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })} {td('certDate')}
                 </p>
               </div>
             </div>
@@ -152,32 +153,30 @@ export default async function DisputePage({
 
         {/* 투표 현황 */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm border border-edge">
-          <h2 className="font-bold text-heading mb-4">⚖️ 배심원 투표 현황</h2>
+          <h2 className="font-bold text-heading mb-4">⚖️ {td('juryVoteStatus')}</h2>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-success-light rounded-xl p-4 text-center">
               <div className="text-3xl font-extrabold text-success">{validCount}</div>
-              <div className="text-sm font-semibold text-success mt-1">✅ 유효 판정</div>
-              <div className="text-xs text-success mt-0.5">3표 도달 시 딴지 기각</div>
+              <div className="text-sm font-semibold text-success mt-1">✅ {td('validVotes')}</div>
             </div>
             <div className="bg-danger-light rounded-xl p-4 text-center">
               <div className="text-3xl font-extrabold text-danger">{invalidCount}</div>
-              <div className="text-sm font-semibold text-danger mt-1">❌ 무효 판정</div>
-              <div className="text-xs text-danger mt-0.5">3표 도달 시 인증 취소</div>
+              <div className="text-sm font-semibold text-danger mt-1">❌ {td('invalidVotes')}</div>
             </div>
           </div>
 
           {/* 프로그레스 */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-subtle w-8">유효</span>
+              <span className="text-xs text-subtle w-8">{td('valid')}</span>
               <div className="flex-1 bg-surface-sunken rounded-full h-2.5">
                 <div className="bg-success h-2.5 rounded-full transition-all" style={{ width: `${Math.min(100, (validCount / 3) * 100)}%` }} />
               </div>
               <span className="text-xs text-hint">{validCount}/3</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-subtle w-8">무효</span>
+              <span className="text-xs text-subtle w-8">{td('invalid')}</span>
               <div className="flex-1 bg-surface-sunken rounded-full h-2.5">
                 <div className="bg-danger h-2.5 rounded-full transition-all" style={{ width: `${Math.min(100, (invalidCount / 3) * 100)}%` }} />
               </div>
@@ -201,7 +200,7 @@ export default async function DisputePage({
           {/* 투표자 목록 */}
           {(votes || []).length > 0 && (
             <div className="mt-4 pt-4 border-t border-edge">
-              <p className="text-xs font-semibold text-subtle mb-2">배심원 투표 내역</p>
+              <p className="text-xs font-semibold text-subtle mb-2">{td('juryVoteHistory')}</p>
               <div className="space-y-2">
                 {(votes || []).map((v, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -214,7 +213,7 @@ export default async function DisputePage({
                     )}
                     <span className="text-xs text-body">{(v.profiles as any)?.full_name ?? 'User'}</span>
                     <span className={`ml-auto text-xs font-bold ${v.vote === 'valid' ? 'text-success' : 'text-danger'}`}>
-                      {v.vote === 'valid' ? '✅ 유효' : '❌ 무효'}
+                      {v.vote === 'valid' ? `✅ ${td('voteValid')}` : `❌ ${td('voteInvalid')}`}
                     </span>
                   </div>
                 ))}
@@ -225,9 +224,9 @@ export default async function DisputePage({
 
         {/* 딴지 이유들 */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm border border-edge">
-          <h2 className="font-bold text-heading mb-4">🚩 접수된 딴지 ({(disputes || []).length}건)</h2>
+          <h2 className="font-bold text-heading mb-4">🚩 {td('filedDisputes')} ({(disputes || []).length})</h2>
           {(disputes || []).length === 0 ? (
-            <p className="text-sm text-hint text-center py-4">딴지가 없습니다.</p>
+            <p className="text-sm text-hint text-center py-4">{td('noDisputes')}</p>
           ) : (
             <div className="space-y-3">
               {(disputes || []).map((d, i) => (
@@ -237,10 +236,10 @@ export default async function DisputePage({
                       {i + 1}
                     </div>
                     <span className="text-xs font-semibold text-body">
-                      {(d.profiles as any)?.full_name ?? '익명'}
+                      {(d.profiles as any)?.full_name ?? td('anonymous')}
                     </span>
                     <span className="ml-auto text-[10px] text-hint">
-                      {new Date(d.created_at).toLocaleDateString('ko-KR')}
+                      {new Date(d.created_at).toLocaleDateString(locale)}
                     </span>
                   </div>
                   <p className="text-sm text-body leading-relaxed">{d.reason}</p>

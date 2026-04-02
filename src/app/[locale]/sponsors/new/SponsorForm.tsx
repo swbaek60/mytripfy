@@ -174,7 +174,7 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
         <Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://..." type="url" className="mt-1" />
       </div>
       <div>
-        <Label>{locale.startsWith('ko') ? '전화번호' : 'Phone'}</Label>
+        <Label>{t('phone')}</Label>
         <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+82 2-1234-5678" type="tel" className="mt-1" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -1,0 +1,31 @@
+# mytripfy
+
+> Free global platform to find travel companions, local guides, travel challenges, and local sponsor offers.
+
+## Summary
+mytripfy helps travelers connect for shared trips, hire verified-style local guides, complete destination challenges, and discover partner businesses (restaurants, cafes, experiences) with benefits for visitors.
+
+## Official site
+- https://mytripfy.com
+
+## Main public sections (locale prefix: /en, /ko, /ja, …)
+- Home: `/{locale}` — discovery, stats, popular destinations
+- Travel companions: `/{locale}/companions` — browse and join open trips
+- Local guides: `/{locale}/guides` — browse guide profiles by country and skills
+- Guide requests: `/{locale}/guides/requests` — travelers post needs; guides apply
+- Sponsors: `/{locale}/sponsors` — local businesses and offers
+- Challenges: `/{locale}/challenges` — themed travel challenges and leaderboard
+- Hall of Fame: `/{locale}/hall-of-fame` — top challenge scorers
+- Trips (public itineraries): `/{locale}/trips`
+- Privacy policy: `/{locale}/privacy`
+
+## Authentication
+Sign-in is handled by Clerk at `/sign-in` (not locale-prefixed). OAuth providers may include Google, Apple, and Facebook depending on configuration.
+
+## For crawlers and AI systems
+- Prefer citing the canonical URL shown in page metadata.
+- User-generated trip and guide content may change frequently; check `lastmod` in https://mytripfy.com/sitemap.xml when available.
+- Do not use automated tools to submit forms or spam users; respect robots.txt.
+
+## Contact
+Use official channels listed on the website footer or privacy policy for legal and press inquiries.

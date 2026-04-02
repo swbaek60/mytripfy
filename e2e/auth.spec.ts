@@ -1,25 +1,26 @@
 /**
- * Auth: 로그인 폼·이메일 로그인·에러 메시지 검증.
- * 소셜 로그인(OAuth) 관련 테스트는 oauth-flow.spec.ts 에 있습니다.
+ * Auth: Clerk /sign-in 노출 및 비로그인 리다이렉트 검증.
  */
 import { test, expect } from '@playwright/test'
 
 const LOCALE = 'en'
 
-test.describe('로그인 페이지 – 기본 요소', () => {
-  test('이메일·소셜 버튼이 모두 표시된다', async ({ page }) => {
-    await page.goto(`/${LOCALE}/login`)
-    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with facebook/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with apple/i })).toBeVisible()
-    await expect(page.getByPlaceholder(/email|@/i)).toBeVisible()
-    await expect(page.getByPlaceholder(/password|•••/i)).toBeVisible()
+test.describe('Clerk 로그인(/sign-in)', () => {
+  test('/en/login 리다이렉트 후 이메일 입력·로그인 UI가 있다', async ({ page }) => {
+    await page.goto(`/${LOCALE}/login`, { waitUntil: 'commit' })
+    await page.waitForURL(/\/sign-in/, { timeout: 20000 })
+    await expect(page.locator('.cl-rootBox').first()).toBeVisible({ timeout: 20000 })
+    const email = page.locator('input[type="email"], input[name="identifier"], input#identifier-field')
+    await expect(email.first()).toBeVisible({ timeout: 15000 })
   })
 })
 
-test.describe('로그인 페이지 – 에러 메시지', () => {
-  test('?message=Could+not+authenticate+user 이면 에러 문구가 표시된다', async ({ page }) => {
-    await page.goto(`/${LOCALE}/login?message=Could+not+authenticate+user`)
-    await expect(page.getByText(/incorrect email or password/i)).toBeVisible()
+test.describe('레거시 세션 픽업 메시지', () => {
+  test('session-pickup 실패 시 /en/login 으로 보내짐(메시지 쿼리)', async ({ request }) => {
+    const res = await request.get('/auth/session-pickup', { maxRedirects: 0 })
+    expect([302, 307]).toContain(res.status())
+    const loc = res.headers().location ?? ''
+    expect(loc).toMatch(/login/)
+    expect(loc).toMatch(/message=/)
   })
 })

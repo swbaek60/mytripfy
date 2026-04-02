@@ -91,30 +91,40 @@ async function resolveProfile(clerkUserId: string): Promise<{ id: string; email:
 
   // 4. 신규 프로필 생성
   try {
+    const insertPayload: Record<string, unknown> = {
+      clerk_id: clerkUserId,
+      full_name: clerkUserObj?.fullName ?? null,
+      avatar_url: clerkUserObj?.imageUrl ?? null,
+      preferred_locale: 'en',
+    }
+    if (email) insertPayload.email = email
+
     const { data: created, error: insertErr } = await admin
       .from('profiles')
-      .insert({
-        clerk_id: clerkUserId,
-        email: email || null,
-        full_name: clerkUserObj?.fullName ?? null,
-        avatar_url: clerkUserObj?.imageUrl ?? null,
-        preferred_locale: 'en',
-      })
+      .insert(insertPayload)
       .select('id, email')
       .single()
 
     if (insertErr) {
-      // 이메일 중복으로 INSERT 실패 시 upsert 재시도
-      if (insertErr.code === '23505' && email) {
-        const { data: retried } = await admin
+      if (insertErr.code === '23505') {
+        // unique 충돌 → email 또는 clerk_id로 재조회
+        if (email) {
+          const { data: retried } = await admin
+            .from('profiles')
+            .select('id, email')
+            .eq('email', email)
+            .maybeSingle()
+          if (retried) {
+            await admin.from('profiles').update({ clerk_id: clerkUserId }).eq('id', retried.id)
+            return { id: retried.id, email }
+          }
+        }
+        const { data: byClerk } = await admin
           .from('profiles')
           .select('id, email')
-          .eq('email', email)
+          .eq('clerk_id', clerkUserId)
           .maybeSingle()
-        if (retried) {
-          await admin.from('profiles').update({ clerk_id: clerkUserId }).eq('id', retried.id)
-          return { id: retried.id, email }
-        }
+        if (byClerk) return { id: byClerk.id, email: byClerk.email ?? '' }
       }
       console.error('[resolveProfile] profile insert failed:', insertErr.message, 'code:', insertErr.code)
       return null

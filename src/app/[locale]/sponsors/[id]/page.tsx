@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { getCountryByCode } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import SponsorDetailClient from './SponsorDetailClient'
 import SponsorMyVisitCard from './SponsorMyVisitCard'
 import SponsorVisitListSection from './SponsorVisitListSection'
@@ -34,11 +35,36 @@ const BENEFIT_TYPE_KEYS: Record<string, string> = {
 export async function generateMetadata({
   params,
 }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
-  const { id } = await params
+  const { locale, id } = await params
   const supabase = await createClient()
-  const { data } = await supabase.from('sponsors').select('name, name_en').eq('id', id).eq('status', 'active').single()
-  const name = data?.name_en || data?.name || 'Sponsor'
-  return { title: `${name} | Sponsors | mytripfy` }
+  const { data } = await supabase
+    .from('sponsors')
+    .select('name, name_en, description, description_en, logo_url, cover_image_url')
+    .eq('id', id)
+    .eq('status', 'active')
+    .single()
+  if (!data) return { title: 'Sponsor | mytripfy' }
+  const name = data.name_en || data.name || 'Sponsor'
+  const rawDesc = (data.description_en || data.description || '').trim()
+  const description =
+    rawDesc.slice(0, 160) || `${name} — local sponsor on mytripfy for travelers.`
+  const base = buildPageMetadata({
+    locale,
+    path: `/sponsors/${id}`,
+    title: `${name} | Sponsors | mytripfy`,
+    description,
+    openGraphType: 'article',
+    keywords: [name, 'travel sponsor', 'local business', 'mytripfy'],
+  })
+  const img = (data.cover_image_url || data.logo_url) as string | null
+  if (img?.startsWith('http')) {
+    return {
+      ...base,
+      openGraph: { ...base.openGraph, images: [{ url: img, alt: name }] },
+      twitter: { ...base.twitter, images: [img] },
+    }
+  }
+  return base
 }
 
 export default async function SponsorDetailPage({
@@ -183,7 +209,7 @@ export default async function SponsorDetailPage({
                       <p className="font-semibold text-heading">{b.title_en || b.title}</p>
                       {b.description && <p className="text-sm text-subtle mt-0.5">{b.description}</p>}
                       <p className="text-xs text-hint mt-1">
-                        {t('validUntil', { date: new Date(b.end_date).toLocaleDateString(locale.startsWith('ko') ? 'ko-KR' : 'en-US') })}
+                        {t('validUntil', { date: new Date(b.end_date).toLocaleDateString(locale) })}
                       </p>
                     </div>
                     <SponsorDetailClient

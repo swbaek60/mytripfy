@@ -10,6 +10,7 @@ import CountrySelect from '@/components/CountrySelect'
 import { getCitiesForCountry } from '@/data/cities'
 import Link from 'next/link'
 import PostCoverUpload from '@/components/PostCoverUpload'
+import { useTranslations } from 'next-intl'
 
 const PURPOSES = [
   { value: 'tourism',     label: '🏖️ Tourism' },
@@ -47,6 +48,8 @@ export default function CompanionForm({
   initialData?: InitialData
 }) {
   const router = useRouter()
+  const t = useTranslations('CompanionDetail')
+  const tc = useTranslations('Common')
   const isEdit = !!initialData
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -194,11 +197,11 @@ export default function CompanionForm({
               disabled={deleting}
               className="border-red-200 text-danger hover:bg-danger-light rounded-full text-xs"
             >
-              {deleting ? 'Deleting...' : '🗑️ Delete'}
+              {deleting ? tc('deleting') : `🗑️ ${tc('delete')}`}
             </Button>
           )}
           <Link href={isEdit && initialData ? `/${locale}/companions/${initialData.id}` : `/${locale}/companions`}>
-            <Button variant="ghost" className="text-subtle">← Back</Button>
+            <Button variant="ghost" className="text-subtle">{tc('back')}</Button>
           </Link>
         </div>
       </div>
@@ -212,8 +215,8 @@ export default function CompanionForm({
       {/* Cover Photo */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-3">
         <div>
-          <h2 className="font-bold text-heading">Cover Photo</h2>
-          <p className="text-xs text-hint mt-0.5">Add a photo to make your post stand out (optional)</p>
+          <h2 className="font-bold text-heading">{t('coverPhoto')}</h2>
+          <p className="text-xs text-hint mt-0.5">{t('coverPhotoHint')}</p>
         </div>
         <PostCoverUpload
           userId={userId}
@@ -224,7 +227,7 @@ export default function CompanionForm({
 
       {/* Title */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-heading border-b border-edge pb-3">Trip Details</h2>
+        <h2 className="font-bold text-heading border-b border-edge pb-3">{t('tripDetails')}</h2>
 
         <div className="space-y-1.5">
           <Label>Post Title <span className="text-danger">*</span></Label>
@@ -313,7 +316,7 @@ export default function CompanionForm({
                 + Add
               </Button>
             </div>
-            <p className="text-xs text-hint">Click a city to select/deselect. Press Enter or click Add for unlisted cities.</p>
+            <p className="text-xs text-hint">{t('citySelectHint')}</p>
           </div>
         )}
 
@@ -331,10 +334,10 @@ export default function CompanionForm({
 
       {/* Preferences */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-heading border-b border-edge pb-3">Companion Preferences</h2>
+        <h2 className="font-bold text-heading border-b border-edge pb-3">{t('companionPreferences')}</h2>
 
         <div className="space-y-1.5">
-          <Label>Trip Purpose</Label>
+          <Label>{t('tripPurpose')}</Label>
           <div className="flex flex-wrap gap-2">
             {PURPOSES.map(p => (
               <button
@@ -354,7 +357,7 @@ export default function CompanionForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Gender Preference</Label>
+            <Label>{t('genderPreference')}</Label>
             <select
               value={genderPref}
               onChange={e => setGenderPref(e.target.value)}
@@ -366,7 +369,7 @@ export default function CompanionForm({
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label>Number of People (incl. you)</Label>
+            <Label>{t('numPeople')}</Label>
             <Input
               type="number" min={2} max={20}
               value={maxPeople}
@@ -378,9 +381,9 @@ export default function CompanionForm({
 
       {/* Description */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
-        <h2 className="font-bold text-heading border-b border-edge pb-3">Description</h2>
+        <h2 className="font-bold text-heading border-b border-edge pb-3">{t('descriptionLabel')}</h2>
         <div className="space-y-1.5">
-          <Label>Introduce your trip (optional)</Label>
+          <Label>{t('descriptionHint')}</Label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
@@ -396,10 +399,10 @@ export default function CompanionForm({
         disabled={saving}
         className="w-full bg-brand hover:bg-brand-hover py-6 text-lg rounded-xl"
       >
-        {saving
-          ? (isEdit ? 'Saving...' : 'Posting...')
-          : (isEdit ? '💾 Save Changes' : '🚀 Post My Trip')
-        }
+      {saving
+        ? tc('saving')
+        : (isEdit ? `💾 ${tc('save')}` : '🚀 Post My Trip')
+      }
       </Button>
     </div>
   )

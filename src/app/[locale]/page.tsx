@@ -158,31 +158,35 @@ export default async function Home({
     <div className="flex min-h-screen flex-col bg-surface">
       <Header locale={locale} currentPath="/" />
 
-      {/* ─── HERO ─── */}
-      <section className="relative overflow-hidden min-h-0 sm:min-h-[440px] flex items-center">
+      {/* ─── HERO (모바일·태블릿·데스크탑) ─── */}
+      <section className="relative overflow-hidden min-h-0 sm:min-h-[400px] flex items-center">
         <div className="absolute inset-0">
           <img
             src="/hero-travel-together.jpg"
             alt="Travel together - diverse friends smiling"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover brightness-[1.12] contrast-[1.03]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/70 via-[#0F172A]/40 to-[#1E40AF]/60 pointer-events-none" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/32 to-indigo-950/58 pointer-events-none" aria-hidden />
+        </div>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-64 h-64 sm:w-96 sm:h-96 bg-brand-light/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-64 h-64 sm:w-96 sm:h-96 bg-indigo-500/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 md:py-20 text-center">
-          <h1 className="text-3xl min-[480px]:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 leading-tight tracking-tight">
+        <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 text-center">
+          <h1 className="text-3xl min-[480px]:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-5 leading-tight tracking-tight px-0 sm:px-2 [text-shadow:0_1px_2px_rgb(0_0_0/45%),0_2px_24px_rgb(0_0_0/35%)]">
             {h('title1')}<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4A853] to-[#F5C563]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">
               {h('title2')}
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base md:text-lg text-blue-100/90 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-blue-200 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-1">
             {h('subtitle')}<br className="hidden sm:block" />
             {h('features')}
           </p>
 
-          <div className="w-full max-w-2xl mx-auto">
+          <div className="w-full px-0 sm:px-4 max-w-2xl mx-auto">
             <HomeSearch locale={locale} />
           </div>
         </div>

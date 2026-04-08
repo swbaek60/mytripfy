@@ -106,7 +106,10 @@ export default function HeaderNav({
           <LanguageSelector currentLocale={locale} compact iconOnly userId={userId} />
           <CurrencySelector compact iconOnly />
           <Link href={`/${locale}/login`}>
-            <button suppressHydrationWarning className="bg-brand hover:bg-brand-hover text-white text-[11px] sm:text-xs font-medium px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full transition-colors shrink-0 leading-tight">
+            <button
+              suppressHydrationWarning
+              className="bg-brand hover:bg-brand-hover text-white font-medium rounded-full transition-colors shrink-0 leading-tight text-[calc(0.875rem*0.7)] px-[calc(1rem*0.7)] py-[calc(0.5rem*0.7)]"
+            >
               {tLogin}
             </button>
           </Link>
@@ -315,7 +318,10 @@ export default function HeaderNav({
             ) : (
               <div className="px-4 py-4 border-b border-edge">
                 <Link href={`/${locale}/login`} onClick={() => setMobileOpen(false)}>
-                  <button suppressHydrationWarning className="w-full bg-brand hover:bg-brand-hover text-white text-xs font-medium py-2 rounded-lg transition-colors">
+                  <button
+                    suppressHydrationWarning
+                    className="w-full bg-brand hover:bg-brand-hover text-white font-medium rounded-lg transition-colors text-[calc(0.875rem*0.7)] py-[calc(0.75rem*0.7)]"
+                  >
                     {tLogin}
                   </button>
                 </Link>

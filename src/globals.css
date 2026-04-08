@@ -362,3 +362,29 @@ body {
 nextjs-portal {
   display: none !important;
 }
+
+/* 모바일: Clerk 로그인·가입 — 주요 버튼·하단 전환 링크를 기본 대비 70% (텍스트·패딩·최소 높이) */
+@media (max-width: 767px) {
+  .cl-rootBox .cl-formButtonPrimary {
+    font-size: calc(0.875rem * 0.7) !important;
+    min-height: calc(2.75rem * 0.7) !important;
+    padding: calc(0.5rem * 0.7) calc(1rem * 0.7) !important;
+  }
+  .cl-rootBox .cl-socialButtonsBlockButton {
+    font-size: calc(0.8125rem * 0.7) !important;
+    min-height: calc(2.75rem * 0.7) !important;
+    padding: calc(0.5rem * 0.7) calc(0.75rem * 0.7) !important;
+  }
+  .cl-rootBox .cl-footerActionLink,
+  .cl-rootBox .cl-footerActionText {
+    font-size: calc(0.8125rem * 0.7) !important;
+  }
+  .cl-rootBox .cl-backLink {
+    font-size: calc(0.8125rem * 0.7) !important;
+  }
+  /* 상단 탭 형태 전환(로그인↔가입)이 버튼인 경우 */
+  .cl-rootBox .cl-navbarButton,
+  .cl-rootBox .cl-navbarButtonText {
+    font-size: calc(0.8125rem * 0.7) !important;
+  }
+}

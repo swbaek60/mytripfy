@@ -176,7 +176,7 @@ export default async function Home({
         <div className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 text-center">
           <h1 className="text-3xl min-[480px]:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-5 leading-tight tracking-tight px-0 sm:px-2 [text-shadow:0_1px_2px_rgb(0_0_0/45%),0_2px_24px_rgb(0_0_0/35%)]">
             {h('title1')}<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">
+            <span className="text-white">
               {h('title2')}
             </span>
           </h1>

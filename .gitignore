@@ -44,4 +44,7 @@ next-env.d.ts
 # clerk configuration (can include secrets)
 /.clerk/
 
+# 로컬 배포용 GitHub PAT (절대 커밋 금지)
+/scripts/deploy.local.bat
+
 .vercel

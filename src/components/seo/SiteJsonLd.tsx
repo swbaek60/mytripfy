@@ -1,3 +1,4 @@
+import { LOGO_SVG_PRIMARY } from '@/lib/brand/logoAssets'
 import { routing } from '@/i18n/routing'
 import { SITE_URL, absoluteLocaleUrl, ogImageAbsoluteUrl } from '@/lib/seo/site'
 
@@ -18,7 +19,7 @@ export default function SiteJsonLd({ locale }: Props) {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/logo-transparent.png`,
+        url: `${SITE_URL}${LOGO_SVG_PRIMARY}`,
       },
       sameAs: ['https://twitter.com/mytripfy'],
     },

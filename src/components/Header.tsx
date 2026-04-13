@@ -63,7 +63,10 @@ export default async function Header({
       href={`/${locale}`}
       className="shrink-0 flex items-center justify-start h-12 md:h-auto md:mr-2 w-auto py-1 md:py-0"
     >
-      <Logo className="h-10 sm:h-11 md:h-[2.8rem] lg:h-[3.2rem]" />
+      <Logo
+        className="h-9 min-[380px]:h-10 sm:h-11 md:h-[2.8rem] lg:h-[3.2rem] max-w-full"
+        priority
+      />
     </Link>
   )
 

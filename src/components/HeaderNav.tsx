@@ -200,7 +200,6 @@ export default function HeaderNav({
                         currentLocale={locale}
                         compact
                         userId={userId}
-                        onOverlayOpen={() => setProfileOpen(false)}
                       />
                     </div>
                     <div className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover transition-colors rounded-lg mx-1">
@@ -208,7 +207,7 @@ export default function HeaderNav({
                         <span className="text-hint">💱</span>
                         Currency
                       </span>
-                      <CurrencySelector compact onOverlayOpen={() => setProfileOpen(false)} />
+                      <CurrencySelector compact />
                     </div>
                   </div>
                   <div className="mx-4 my-1 h-px bg-edge/60" />
@@ -339,7 +338,6 @@ export default function HeaderNav({
                   currentLocale={locale}
                   compact
                   userId={userId}
-                  onOverlayOpen={() => setMobileOpen(false)}
                 />
               </div>
               <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
@@ -347,7 +345,7 @@ export default function HeaderNav({
                   <span className="text-hint">💱</span>
                   {tCurrency}
                 </span>
-                <CurrencySelector compact onOverlayOpen={() => setMobileOpen(false)} />
+                <CurrencySelector compact />
               </div>
             </div>
 

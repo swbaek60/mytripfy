@@ -6,6 +6,7 @@ import {
   LOGO_SVG_REVERSE,
   LOGO_WORDMARK_ASPECT,
 } from '@/lib/brand/logoAssets'
+import { cn } from '@/lib/utils'
 
 export type LogoVariant = 'primary' | 'reverse'
 
@@ -36,7 +37,11 @@ export default function Logo({
   if (failed) {
     return (
       <span
-        className={`font-bold text-xl tracking-tight drop-shadow-sm ${variant === 'reverse' ? 'text-white' : 'text-heading'} ${className}`}
+        className={cn(
+          'font-bold text-xl tracking-tight drop-shadow-sm',
+          variant === 'reverse' ? 'text-white' : 'text-heading',
+          className,
+        )}
         style={{ fontFamily: 'system-ui, sans-serif' }}
       >
         mytripfy
@@ -52,7 +57,10 @@ export default function Logo({
       alt="mytripfy"
       width={intrinsicW}
       height={intrinsicH}
-      className={`block w-auto max-w-full h-auto object-contain object-left ${className}`}
+      className={cn(
+        'block h-8 w-auto max-w-full shrink-0 object-contain object-left',
+        className,
+      )}
       style={{ aspectRatio: `${intrinsicW} / ${intrinsicH}` }}
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : 'auto'}

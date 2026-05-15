@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getUnreadNotificationCount, getUnreadMessageCount } from '@/utils/notifications'
+import { getHeaderBadgeCounts } from '@/utils/notifications'
 import Logo from '@/components/Logo'
 import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/utils/supabase/server'
@@ -48,12 +48,12 @@ export default async function Header({
 
       if (profileData) {
         profile = profileData
-        const [uc, umc] = await Promise.all([
-          getUnreadNotificationCount(profileData.id),
-          getUnreadMessageCount(profileData.id),
-        ])
-        unreadCount = uc
-        unreadMessageCount = umc
+        const { unreadNotifications, unreadMessages } = await getHeaderBadgeCounts(
+          admin,
+          profileData.id
+        )
+        unreadCount = unreadNotifications
+        unreadMessageCount = unreadMessages
       }
     } catch { /* DB 조회 실패 시 무시 */ }
   }
@@ -61,10 +61,10 @@ export default async function Header({
   const logoSlot = (
     <Link
       href={`/${locale}`}
-      className="shrink-0 flex items-center justify-start h-12 md:h-auto md:mr-2 w-auto py-1 md:py-0"
+      className="shrink-0 flex items-center justify-start h-9 min-[380px]:h-10 md:h-auto md:mr-2 w-auto min-w-0 py-0.5 md:py-0"
     >
       <Logo
-        className="h-9 min-[380px]:h-10 sm:h-11 md:h-[2.8rem] lg:h-[3.2rem] max-w-full"
+        className="!h-[1.152rem] min-[380px]:!h-[1.28rem] sm:!h-[1.408rem] md:!h-[1.434rem] lg:!h-[1.638rem] max-w-full"
         priority
       />
     </Link>

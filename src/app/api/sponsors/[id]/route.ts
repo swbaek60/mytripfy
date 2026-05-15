@@ -126,27 +126,39 @@ export async function PATCH(
       const { data: existingBenefits } = await supabase.from('sponsor_benefits').select('id').eq('sponsor_id', id)
       const existingIds = (existingBenefits ?? []).map((r: { id: string }) => r.id)
       const toDelete = existingIds.filter((bid: string) => !keptIds.includes(bid))
-      for (const bid of toDelete) {
-        await supabase.from('sponsor_benefits').delete().eq('id', bid).eq('sponsor_id', id)
+      if (toDelete.length > 0) {
+        const { error: delErr } = await supabase
+          .from('sponsor_benefits')
+          .delete()
+          .eq('sponsor_id', id)
+          .in('id', toDelete)
+        if (delErr) console.error('sponsor_benefits batch delete', delErr)
       }
+      const insertRows: Record<string, unknown>[] = []
+      const updatePromises: Promise<void>[] = []
       for (const b of benefitsPayload) {
         if (!b.title?.trim() || !BENEFIT_TYPES.includes(b.benefit_type) || !b.start_date || !b.end_date || b.end_date < today) continue
         if (b.id) {
-          await supabase
-            .from('sponsor_benefits')
-            .update({
-              title: b.title.trim(),
-              title_en: b.title_en?.trim() || null,
-              benefit_type: b.benefit_type,
-              value_num: b.value_num ?? null,
-              value_text: b.value_text?.trim() || null,
-              start_date: b.start_date,
-              end_date: b.end_date,
-            })
-            .eq('id', b.id)
-            .eq('sponsor_id', id)
+          updatePromises.push(
+            (async () => {
+              const { error: upErr } = await supabase
+                .from('sponsor_benefits')
+                .update({
+                  title: b.title.trim(),
+                  title_en: b.title_en?.trim() || null,
+                  benefit_type: b.benefit_type,
+                  value_num: b.value_num ?? null,
+                  value_text: b.value_text?.trim() || null,
+                  start_date: b.start_date,
+                  end_date: b.end_date,
+                })
+                .eq('id', b.id)
+                .eq('sponsor_id', id)
+              if (upErr) console.error('sponsor_benefits update', upErr)
+            })()
+          )
         } else {
-          await supabase.from('sponsor_benefits').insert({
+          insertRows.push({
             sponsor_id: id,
             title: b.title.trim(),
             title_en: b.title_en?.trim() || null,
@@ -157,6 +169,11 @@ export async function PATCH(
             end_date: b.end_date,
           })
         }
+      }
+      if (updatePromises.length) await Promise.all(updatePromises)
+      if (insertRows.length) {
+        const { error: insErr } = await supabase.from('sponsor_benefits').insert(insertRows)
+        if (insErr) console.error('sponsor_benefits batch insert', insErr)
       }
     }
 

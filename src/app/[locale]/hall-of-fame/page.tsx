@@ -80,22 +80,18 @@ export default async function HallOfFamePage({
       .limit(PAGE_SIZE)
     experienceList = (fromProfiles ?? []) as LeaderRow[]
   }
-  // 뷰/프로필 둘 다 비었으면 challenge_certifications에서 직접 집계 (미적용 DB도 동작)
+  // 뷰/프로필 둘 다 비었으면 DB에서 인증 점수 집계(RPC) → 프로필 조인 (전체 cert 로드 방지)
   if (experienceList.length === 0) {
-    const { data: certs } = await supabase
-      .from('challenge_certifications')
-      .select('user_id, challenges(points)')
-    const pointsByUser = new Map<string, number>()
-    for (const row of certs ?? []) {
-      const uid = (row as { user_id: string }).user_id
-      const ch = (row as { challenges: { points: number } | { points: number }[] | null }).challenges
-      const pts = Array.isArray(ch) ? (ch[0]?.points ?? 0) : (ch?.points ?? 0)
-      pointsByUser.set(uid, (pointsByUser.get(uid) ?? 0) + pts)
-    }
-    const sortedIds = [...pointsByUser.entries()]
-      .filter(([, p]) => p > 0)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, PAGE_SIZE)
+    const { data: aggRows, error: aggErr } = await supabase.rpc('leaderboard_experience_from_certs', {
+      p_limit: PAGE_SIZE,
+    })
+    const sortedIds =
+      !aggErr && Array.isArray(aggRows)
+        ? (aggRows as { user_id: string; challenge_points: number }[]).map((r) => [
+            r.user_id,
+            Number(r.challenge_points),
+          ] as [string, number])
+        : []
     if (sortedIds.length > 0) {
       const { data: profiles } = await supabase
         .from('profiles')
@@ -108,6 +104,36 @@ export default async function HallOfFamePage({
         travel_level: (profileMap.get(id) as { travel_level?: number })?.travel_level ?? null,
         challenge_points,
       })) as LeaderRow[]
+    } else {
+      // RPC 미배포 시에만 이전 방식(느림) 폴백
+      const { data: certs } = await supabase
+        .from('challenge_certifications')
+        .select('user_id, challenges(points)')
+        .limit(5000)
+      const pointsByUser = new Map<string, number>()
+      for (const row of certs ?? []) {
+        const uid = (row as { user_id: string }).user_id
+        const ch = (row as { challenges: { points: number } | { points: number }[] | null }).challenges
+        const pts = Array.isArray(ch) ? (ch[0]?.points ?? 0) : (ch?.points ?? 0)
+        pointsByUser.set(uid, (pointsByUser.get(uid) ?? 0) + pts)
+      }
+      const fallbackSorted = [...pointsByUser.entries()]
+        .filter(([, p]) => p > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, PAGE_SIZE)
+      if (fallbackSorted.length > 0) {
+        const { data: profilesFb } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, travel_level, nationality')
+          .in('id', fallbackSorted.map(([fid]) => fid))
+        const profileMapFb = new Map((profilesFb ?? []).map((p) => [p.id, p]))
+        experienceList = fallbackSorted.map(([id, challenge_points]) => ({
+          ...profileMapFb.get(id),
+          id,
+          travel_level: (profileMapFb.get(id) as { travel_level?: number })?.travel_level ?? null,
+          challenge_points,
+        })) as LeaderRow[]
+      }
     }
   }
 

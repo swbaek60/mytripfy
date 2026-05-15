@@ -30,7 +30,10 @@ export async function GET() {
       dbResult.data.forEach(row => {
         rates[row.currency_code] = Number(row.rate_from_usd)
       })
-      return NextResponse.json({ rates, source: 'db' })
+      return NextResponse.json(
+        { rates, source: 'db' },
+        { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } }
+      )
     }
 
     // DB에 데이터 없으면 API 직접 호출 (fallback)

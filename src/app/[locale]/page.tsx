@@ -88,7 +88,9 @@ export default async function Home({
       supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_guide', true),
       supabase
         .from('companion_posts')
-        .select('*, profiles(id, full_name, avatar_url, travel_level, trust_score, nationality)')
+        .select(
+          'id, title, start_date, end_date, destination_country, destination_city, status, created_at, profiles(id, full_name, avatar_url)'
+        )
         .eq('status', 'open')
         .order('created_at', { ascending: false })
         .limit(6),
@@ -100,7 +102,9 @@ export default async function Home({
         .not('destination_country', 'is', null),
       supabase
         .from('profiles')
-        .select('*')
+        .select(
+          'id, full_name, avatar_url, nationality, travel_level, trust_score, guide_hourly_rate'
+        )
         .eq('is_guide', true)
         .order('trust_score', { ascending: false })
         .limit(4),

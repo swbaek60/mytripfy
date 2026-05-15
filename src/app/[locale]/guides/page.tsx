@@ -13,6 +13,13 @@ import type { GuideRegion } from '@/data/cities'
 import GuidesFilterBar from './GuidesFilterBar'
 import CountryFlag from '@/components/CountryFlag'
 
+/** 가이드 카드에 쓰는 컬럼만 조회 (대량 select * 방지) */
+const GUIDE_CARD_COLUMNS =
+  'id, full_name, avatar_url, travel_level, nationality, spoken_languages, guide_city_regions, guide_regions, trust_score, review_count, bio, guide_has_vehicle, guide_has_accommodation, email_verified, travel_count, guide_hourly_rate, rate_currency, created_at'
+
+/** 도시/언어는 클라이언트 필터 → 상한으로 페이로드 제한 */
+const CLIENT_FILTER_FETCH_CAP = 280
+
 export async function generateMetadata({
   params,
 }: {
@@ -57,10 +64,13 @@ export default async function GuidesPage({
   }
   const { col: orderCol, asc: orderAsc } = orderMap[sort] ?? orderMap.rating
 
+  const qTrim = q?.trim()
+  const needsClientFilter = Boolean(city || lang)
+
   // ── 쿼리 ──
   let query = supabase
     .from('profiles')
-    .select('*')
+    .select(GUIDE_CARD_COLUMNS)
     .eq('is_guide', true)
     .order(orderCol, { ascending: orderAsc })
     .order('created_at', { ascending: false })
@@ -69,14 +79,13 @@ export default async function GuidesPage({
   if (vehicle === '1') query = query.eq('guide_has_vehicle', true)
   if (accommodation === '1') query = query.eq('guide_has_accommodation', true)
   if (free === '1') query = query.or('guide_hourly_rate.is.null,guide_hourly_rate.eq.0')
+  if (qTrim) query = query.ilike('full_name', `%${qTrim.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
+
+  if (needsClientFilter) query = query.limit(CLIENT_FILTER_FETCH_CAP)
+  else if (showAllGuides) query = query.limit(500)
+  else query = query.limit(80)
 
   let { data: guides } = await query
-
-  // 이름 검색 (클라이언트 필터)
-  if (q && guides) {
-    const ql = q.toLowerCase()
-    guides = guides.filter(g => (g.full_name as string | null)?.toLowerCase().includes(ql))
-  }
 
   // 언어 필터
   if (lang && guides) {

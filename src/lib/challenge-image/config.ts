@@ -25,7 +25,7 @@ export interface CategoryImageConfig {
 }
 
 /** 전역 캐시 버전. 올리면 per_item / category_versioned 캐시만 무효화. category_persistent는 유지 */
-export const CACHE_VERSION = 'v145'
+export const CACHE_VERSION = 'v146'
 
 const CONFIGS: Record<string, CategoryImageConfig> = {
   attractions: {
@@ -111,10 +111,10 @@ const CONFIGS: Record<string, CategoryImageConfig> = {
   },
   fishing: {
     id: 'fishing',
-    cacheStrategy: 'category_versioned',
-    fetchStrategy: 'api',
-    useCanonicalProxy: false,
-    eagerLoad: true,
+    cacheStrategy: 'per_item',
+    fetchStrategy: 'none', // 모든 항목 직접 URL 존재, API 불필요
+    useCanonicalProxy: true, // canonical URL 사용으로 thumb URL 의존성 제거
+    eagerLoad: false, // lazy-load: 100개 동시 프록시 요청 방지 (rate-limit 회피)
     maxConcurrent: 4,
     fetchTimeoutMs: 0,
   },
@@ -123,36 +123,36 @@ const CONFIGS: Record<string, CategoryImageConfig> = {
     cacheStrategy: 'category_versioned',
     fetchStrategy: 'api',
     useCanonicalProxy: true,
-    eagerLoad: true,
+    eagerLoad: false, // lazy-load
     maxConcurrent: 4,
     fetchTimeoutMs: 0,
   },
   skiing: {
     id: 'skiing',
-    cacheStrategy: 'category_versioned',
-    fetchStrategy: 'api',
-    useCanonicalProxy: false,
-    eagerLoad: true,
+    cacheStrategy: 'per_item',
+    fetchStrategy: 'none', // 모든 항목 직접 URL 존재, API 불필요
+    useCanonicalProxy: true, // canonical URL 사용으로 thumb URL 의존성 제거
+    eagerLoad: false, // lazy-load: 100개 동시 프록시 요청 방지 (rate-limit 회피)
     maxConcurrent: 4,
     fetchTimeoutMs: 0,
   },
   scuba: {
     id: 'scuba',
-    cacheStrategy: 'category_versioned',
-    fetchStrategy: 'api',
-    useCanonicalProxy: false,
-    eagerLoad: true,
+    cacheStrategy: 'per_item',
+    fetchStrategy: 'none', // 모든 항목 직접 URL 존재, API 불필요
+    useCanonicalProxy: true, // canonical URL 사용으로 thumb URL 의존성 제거
+    eagerLoad: false, // lazy-load: 100개 동시 프록시 요청 방지 (rate-limit 회피)
     maxConcurrent: 4,
     fetchTimeoutMs: 0,
   },
   countries: {
     id: 'countries',
     cacheStrategy: 'per_item',
-    fetchStrategy: 'findImage',
+    fetchStrategy: 'none', // countryCode → flagcdn.com 직접 사용, Wikipedia API 불필요
     useCanonicalProxy: true,
-    eagerLoad: false, // 지연 로딩으로 동시 프록시 요청 줄여 깨짐 방지
-    maxConcurrent: 100,
-    fetchTimeoutMs: 15000,
+    eagerLoad: true, // flagcdn.com은 빠르고 신뢰적이므로 eager 로딩
+    maxConcurrent: 4,
+    fetchTimeoutMs: 0,
   },
   foods: {
     id: 'foods',

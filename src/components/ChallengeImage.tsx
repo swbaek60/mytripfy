@@ -3933,12 +3933,18 @@ interface Props {
   className?: string
 }
 
-export default function ChallengeImage({ id, titleEn, category, className = '' }: Props) {
+export default function ChallengeImage({ id, titleEn, category, countryCode, className = '' }: Props) {
   const cat = CATEGORY_GRADIENTS[category] ?? { from: '#6b7280', to: '#4b5563', emoji: '🌟' }
   const key = cacheKey(id)
 
+  // countries 카테고리: countryCode가 있으면 flagcdn.com 직접 사용 (프록시/API 불필요, 신뢰성 높음)
+  const flagCdnUrl = category === 'countries' && countryCode
+    ? `https://flagcdn.com/w320/${countryCode.toLowerCase()}.png`
+    : undefined
+
   // 직접 URL 있으면 초기값으로 설정. 캐시는 useEffect에서만 읽음 (SSR/클라이언트 일치로 hydration 오류 방지)
   const [imgUrl, setImgUrl] = useState<string | 'loading' | 'failed'>(() => {
+    if (flagCdnUrl) return flagCdnUrl
     const direct = getDirectImageUrl(category, titleEn)
     return direct ?? 'loading'
   })
@@ -3950,6 +3956,12 @@ export default function ChallengeImage({ id, titleEn, category, className = '' }
   useEffect(() => {
     purgeOldImageCache()
     try {
+      // countries: countryCode가 있으면 flagcdn.com 직접 사용 (재마운트 시에도 유지)
+      if (flagCdnUrl) {
+        setImgUrl(flagCdnUrl)
+        try { localStorage.setItem(key, flagCdnUrl) } catch { /* ignore */ }
+        return
+      }
       const conf = getCategoryImageConfig(category)
       const direct = getDirectImageUrl(category, titleEn)
       if (direct) {

@@ -92,6 +92,7 @@ async function resolveProfile(clerkUserId: string): Promise<{ id: string; email:
   // 4. 신규 프로필 생성
   try {
     const insertPayload: Record<string, unknown> = {
+      id: crypto.randomUUID(),
       clerk_id: clerkUserId,
       full_name: clerkUserObj?.fullName ?? null,
       avatar_url: clerkUserObj?.imageUrl ?? null,

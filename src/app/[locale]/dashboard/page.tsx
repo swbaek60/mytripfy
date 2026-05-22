@@ -17,7 +17,7 @@ export default async function DashboardPage({
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-  if (!user) redirect(`/sign-in`)
+  if (!user) redirect(`/${locale}/login?returnTo=/${locale}/dashboard`)
 
   const [
     { data: myPosts },

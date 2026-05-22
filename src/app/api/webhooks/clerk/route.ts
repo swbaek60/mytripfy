@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
         } else {
           // 3. 완전 신규 프로필 생성
           const { error } = await admin.from('profiles').insert({
+            id: crypto.randomUUID(),
             clerk_id: data.id,
             email: primaryEmail,
             full_name: fullName,
@@ -115,6 +116,7 @@ export async function POST(req: NextRequest) {
       } else {
         // 이메일 없는 신규 유저 (소셜 로그인 일부)
         const { error } = await admin.from('profiles').insert({
+          id: crypto.randomUUID(),
           clerk_id: data.id,
           email: null,
           full_name: fullName,

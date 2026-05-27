@@ -204,63 +204,96 @@ export default async function CompanionsPage({
 
         {/* Posts Grid */}
         {posts && posts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {posts.map((post) => {
-              const country = getCountryByCode(post.destination_country)
+              const countryInfo = getCountryByCode(post.destination_country)
               const profile = post.profiles as Record<string, unknown>
               const appCount = appCountMap[post.id] ?? 0
               const startDate = new Date(post.start_date)
               const endDate = new Date(post.end_date)
               const nights = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+              const avatarUrl = profile?.avatar_url as string | undefined
+              const fullName = (profile?.full_name as string) || 'Anonymous'
+              const initials = fullName.charAt(0).toUpperCase()
 
               return (
                 <Link key={post.id} href={`/${locale}/companions/${post.id}`}>
-                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border border-edge/60 hover:border-edge-brand h-full flex flex-col overflow-hidden">
+                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer border border-edge/50 hover:border-brand/40 h-full flex flex-col overflow-hidden group">
 
-                    {/* Cover Image */}
-                    {post.cover_image ? (
-                      <div className="w-full bg-surface-sunken overflow-hidden" style={{ aspectRatio: '16/7' }}>
-                        <img src={post.cover_image} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                      </div>
-                    ) : (
-                      <div className="w-full bg-gradient-to-r from-brand to-indigo flex items-center justify-center gap-2 px-4 py-4">
-                        <CountryFlag code={post.destination_country} size="sm" className="drop-shadow" />
-                        <span className="text-white text-base font-bold opacity-90 tracking-wide">
-                          {country?.name || post.destination_country}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="p-5 flex flex-col flex-1">
-                    {/* Destination: 커버 있을 때만 플래그+국가 (없으면 파란 헤더에 이미 표시) */}
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="min-w-0 flex-1">
-                        {post.cover_image ? (
-                          <div className="flex items-center gap-2">
-                            <CountryFlag code={post.destination_country} size="sm" className="shrink-0" />
-                            <div>
-                              <div className="font-bold text-heading text-lg leading-tight">
-                                {country?.name || post.destination_country}
-                              </div>
-                              {post.destination_city && (
-                                <div className="text-sm text-subtle flex flex-wrap gap-1 mt-0.5">
-                                  {post.destination_city.split(', ').map((c: string) => (
-                                    <span key={c} className="bg-surface-sunken text-body px-1.5 py-0.5 rounded text-xs">{c}</span>
-                                  ))}
-                                </div>
-                              )}
+                    {/* Split Header: Left = Profile, Right = Trip photo or Flag */}
+                    <div className="flex h-44 overflow-hidden">
+                      {/* Left — Poster profile */}
+                      <div className="w-1/2 relative bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden border-r border-white/30">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={fullName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-brand/20 to-brand/40 flex flex-col items-center justify-center gap-1">
+                            <div className="w-14 h-14 rounded-full bg-brand/30 border-2 border-brand/40 flex items-center justify-center">
+                              <span className="text-2xl font-bold text-brand">{initials}</span>
                             </div>
                           </div>
-                        ) : post.destination_city ? (
-                          <div className="text-sm text-subtle">
-                            📍 {post.destination_city}
-                          </div>
-                        ) : null}
+                        )}
+                        {/* Name overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
+                          <p className="text-white text-xs font-medium truncate">{fullName}</p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs bg-surface-sunken text-body px-2 py-1 rounded-full">
-                          {nights}N {nights + 1}D
-                        </span>
+
+                      {/* Right — Trip cover or country flag */}
+                      <div className="w-1/2 relative overflow-hidden">
+                        {post.cover_image ? (
+                          <>
+                            <img
+                              src={post.cover_image}
+                              alt=""
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                          </>
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-brand/80 to-indigo/90 flex flex-col items-center justify-center gap-2">
+                            <div className="transform group-hover:scale-110 transition-transform duration-300">
+                              <img
+                                src={`https://flagcdn.com/80x60/${post.destination_country.toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/160x120/${post.destination_country.toLowerCase()}.png 2x`}
+                                width={80}
+                                height={60}
+                                alt={post.destination_country}
+                                className="rounded-md shadow-lg object-cover"
+                              />
+                            </div>
+                            <span className="text-white/90 text-xs font-semibold tracking-wide">
+                              {countryInfo?.name || post.destination_country}
+                            </span>
+                          </div>
+                        )}
+                        {/* Duration badge */}
+                        <div className="absolute top-2 right-2">
+                          <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                            {nights}N {nights + 1}D
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-4 flex flex-col flex-1">
+
+                      {/* Destination */}
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <CountryFlag code={post.destination_country} size="sm" className="shrink-0" />
+                          <span className="font-bold text-heading text-sm truncate">
+                            {countryInfo?.name || post.destination_country}
+                          </span>
+                          {post.destination_city && (
+                            <span className="text-subtle text-xs truncate">· {post.destination_city.split(', ')[0]}</span>
+                          )}
+                        </div>
                         {user && (
                           <BookmarkButton
                             userId={user.id}
@@ -271,48 +304,48 @@ export default async function CompanionsPage({
                           />
                         )}
                       </div>
-                    </div>
 
-                    {/* Title */}
-                    <h3 className="font-semibold text-heading mb-3 line-clamp-2">{post.title}</h3>
+                      {/* Title */}
+                      <h3 className="font-semibold text-heading text-sm mb-3 line-clamp-2 leading-snug">{post.title}</h3>
 
-                    {/* Badges */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {post.purpose && (
-                        <span className="text-xs bg-brand-light text-brand-hover px-2.5 py-1 rounded-full">
-                          {PURPOSE_LABELS[post.purpose] || post.purpose}
+                      {/* Badges */}
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {post.purpose && (
+                          <span className="text-[11px] bg-brand-light text-brand-hover px-2 py-0.5 rounded-full font-medium">
+                            {PURPOSE_LABELS[post.purpose] || post.purpose}
+                          </span>
+                        )}
+                        <span className="text-[11px] bg-purple-light text-purple px-2 py-0.5 rounded-full font-medium">
+                          {GENDER_LABELS[post.gender_preference] || 'Anyone'}
                         </span>
-                      )}
-                      <span className="text-xs bg-purple-light text-purple px-2.5 py-1 rounded-full">
-                        {GENDER_LABELS[post.gender_preference] || '👫 Anyone'}
-                      </span>
-                      <span className="text-xs bg-success-light text-success px-2.5 py-1 rounded-full">
-                        {post.max_people} people
-                      </span>
-                    </div>
-
-                    {/* Dates */}
-                    <div suppressHydrationWarning className="text-sm text-subtle mb-4">
-                      {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-
-                    {/* Footer: Profile + App count */}
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge/60">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-brand-muted flex items-center justify-center text-sm">
-                          {(profile?.avatar_url as string) ? (
-                            <img src={profile.avatar_url as string} alt="" className="w-full h-full rounded-full object-cover" />
-                          ) : <span className="text-xs text-blue-400">?</span>}
-                        </div>
-                        <span className="text-sm text-body font-medium">
-                          {(profile?.full_name as string) || 'Anonymous'}
+                        <span className="text-[11px] bg-success-light text-success px-2 py-0.5 rounded-full font-medium">
+                          👥 {post.max_people}
                         </span>
                       </div>
-                      <span className="text-xs text-hint">
-                        {appCount > 0 ? `${appCount} applied` : 'Be the first!'}
-                      </span>
+
+                      {/* Dates */}
+                      <div suppressHydrationWarning className="text-xs text-subtle mb-3 flex items-center gap-1">
+                        <span>📅</span>
+                        <span>{startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge/50">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-brand-muted overflow-hidden flex items-center justify-center shrink-0">
+                            {avatarUrl ? (
+                              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[9px] font-bold text-brand">{initials}</span>
+                            )}
+                          </div>
+                          <span className="text-xs text-body font-medium truncate max-w-[100px]">{fullName}</span>
+                        </div>
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${appCount > 0 ? 'bg-brand-light text-brand' : 'text-hint'}`}>
+                          {appCount > 0 ? `${appCount} applied` : 'Be the first!'}
+                        </span>
+                      </div>
                     </div>
-                    </div>{/* end inner p-5 div */}
                   </div>
                 </Link>
               )

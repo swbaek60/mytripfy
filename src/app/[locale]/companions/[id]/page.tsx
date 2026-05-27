@@ -202,74 +202,91 @@ export default async function CompanionDetailPage({
 
         {/* Main Card */}
         <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
-          {/* Header Banner */}
-          {post.cover_image ? (
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/7' }}>
-              <img src={post.cover_image} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                <div className="flex items-end justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
-                      <CountryFlag code={post.destination_country} size="lg" />
+          {/* Split Header: Left = Poster profile, Right = Cover photo or flag */}
+          <div className="flex h-56 sm:h-64 overflow-hidden">
+            {/* Left — Poster profile photo */}
+            <div className="w-1/2 relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden border-r border-white/30 flex items-center justify-center">
+              {(profile?.avatar_url as string) ? (
+                <img
+                  src={profile.avatar_url as string}
+                  alt={(profile?.full_name as string) || ''}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-brand/20 to-brand/40 flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-brand/30 border-2 border-brand/40 flex items-center justify-center">
+                    <span className="text-4xl font-bold text-brand">
+                      {((profile?.full_name as string) || 'A').charAt(0).toUpperCase()}
                     </span>
-                    <div>
-                      <h1 className="text-2xl font-bold drop-shadow">{destCountry?.name || post.destination_country}</h1>
-                      {post.destination_city && (
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {post.destination_city.split(', ').map((c: string) => (
-                            <span key={c} className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{c}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
                   </div>
-                  {effectiveStatus === 'open' ? (
-                    <span className="shrink-0 bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">{t('open')}</span>
-                  ) : effectiveStatus === 'ended' ? (
-                    <span className="shrink-0 bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('ended')}</span>
-                  ) : (
-                    <span className="shrink-0 bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('closed')}</span>
-                  )}
                 </div>
-                <div className="flex flex-wrap gap-2 text-sm mt-2">
-                  <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">{startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  <span className="bg-white/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
-                  <span className="bg-white/20 px-3 py-1 rounded-full">{post.max_people} people</span>
-                </div>
+              )}
+              {/* Name + level overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-3">
+                <p className="text-white font-semibold text-sm truncate">{(profile?.full_name as string) || 'Anonymous'}</p>
+                <p className="text-white/70 text-xs">{levelInfo.badge} Lv.{levelInfo.level}</p>
               </div>
             </div>
-          ) : (
-            <div className="bg-gradient-to-r from-brand to-indigo p-6 text-white">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="drop-shadow">
-                  <CountryFlag code={post.destination_country} size="lg" />
-                </span>
-                <div>
-                  <h1 className="text-2xl font-bold">{destCountry?.name || post.destination_country}</h1>
-                  {post.destination_city && (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {post.destination_city.split(', ').map((c: string) => (
-                        <span key={c} className="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full">{c}</span>
-                      ))}
-                    </div>
-                  )}
+
+            {/* Right — Trip cover image or flag */}
+            <div className="w-1/2 relative overflow-hidden">
+              {post.cover_image ? (
+                <>
+                  <img src={post.cover_image} alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
+                </>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-brand/80 to-indigo/90 flex flex-col items-center justify-center gap-3">
+                  <img
+                    src={`https://flagcdn.com/160x120/${post.destination_country.toLowerCase()}.png`}
+                    srcSet={`https://flagcdn.com/320x240/${post.destination_country.toLowerCase()}.png 2x`}
+                    width={160}
+                    height={120}
+                    alt={post.destination_country}
+                    className="rounded-xl shadow-2xl object-cover"
+                  />
+                  <span className="text-white font-bold text-base">
+                    {destCountry?.name || post.destination_country}
+                  </span>
                 </div>
+              )}
+              {/* Status badge */}
+              <div className="absolute top-3 right-3">
                 {effectiveStatus === 'open' ? (
-                  <span className="ml-auto bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full">{t('open')}</span>
+                  <span className="bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full shadow">{t('open')}</span>
                 ) : effectiveStatus === 'ended' ? (
-                  <span className="ml-auto bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('ended')}</span>
+                  <span className="bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow">{t('ended')}</span>
                 ) : (
-                  <span className="ml-auto bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full">{t('closed')}</span>
+                  <span className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow">{t('closed')}</span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <span suppressHydrationWarning className="bg-white/20 px-3 py-1 rounded-full">{startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                <span className="bg-white/20 px-3 py-1 rounded-full">{nights}N {nights + 1}D</span>
-                <span className="bg-white/20 px-3 py-1 rounded-full">{post.max_people} people</span>
+              {/* Country + city overlay at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <CountryFlag code={post.destination_country} size="md" />
+                  <div>
+                    <h1 className="text-white font-bold text-base leading-tight">{destCountry?.name || post.destination_country}</h1>
+                    {post.destination_city && (
+                      <p className="text-white/80 text-xs truncate">{post.destination_city}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Trip meta info bar */}
+          <div className="bg-surface-sunken px-5 py-3 flex flex-wrap gap-2 border-b border-edge/50">
+            <span suppressHydrationWarning className="text-xs bg-surface text-body px-3 py-1 rounded-full border border-edge/60">
+              📅 {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
+            <span className="text-xs bg-surface text-body px-3 py-1 rounded-full border border-edge/60">
+              🌙 {nights}N {nights + 1}D
+            </span>
+            <span className="text-xs bg-surface text-body px-3 py-1 rounded-full border border-edge/60">
+              👥 {post.max_people} people
+            </span>
+          </div>
 
           <div className="p-6 space-y-5">
             {/* Title */}
@@ -396,43 +413,54 @@ export default async function CompanionDetailPage({
           )}
 
           {/* Host Profile */}
-          <div className="bg-surface rounded-2xl shadow-sm p-5">
-            <h3 className="font-bold text-heading mb-4 text-sm">{t('postedBy')}</h3>
-            <div className="flex items-start gap-3">
-              <Link href={`/${locale}/users/${profile?.id}`} className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity overflow-hidden">
-                {(profile?.avatar_url as string) ? (
-                  <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover" />
-                ) : <span className="text-hint text-lg">?</span>}
-              </Link>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link href={`/${locale}/users/${profile?.id}`} className="font-bold text-heading hover:text-brand text-sm">
-                    {(profile?.full_name as string) || tc('anonymous')}
-                  </Link>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
-                    {levelInfo.badge} Lv.{levelInfo.level}
-                  </span>
-                </div>
-                <div className="flex gap-1 mt-1 flex-wrap">
-                  {(profile?.email_verified as boolean) && <span className="text-xs bg-success-light text-success px-1.5 py-0.5 rounded-full">✓ Email</span>}
-                  {(profile?.phone_verified as boolean) && <span className="text-xs bg-brand-light text-brand px-1.5 py-0.5 rounded-full">✓ Phone</span>}
-                </div>
-                {(profile?.trust_score as number) > 0 && (
-                  <p className="text-xs text-subtle mt-1">★ {Number(profile.trust_score).toFixed(1)} ({profile?.review_count as number} reviews)</p>
-                )}
-                {(profile?.bio as string) && <p className="text-xs text-body mt-1.5 line-clamp-2">{profile.bio as string}</p>}
-                {user && !isOwner && (
-                  <div className="flex gap-2 mt-3">
-                    <Link href={`/${locale}/messages/${profile?.id}?postId=${post.id}`}>
-                      <Button size="sm" className="bg-brand hover:bg-brand-hover text-white rounded-full text-xs px-3">{t('message')}</Button>
+          <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-5">
+              <h3 className="font-bold text-heading mb-4 text-sm">{t('postedBy')}</h3>
+              <div className="flex items-start gap-3">
+                <Link href={`/${locale}/users/${profile?.id}`} className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity overflow-hidden">
+                  {(profile?.avatar_url as string) ? (
+                    <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover" />
+                  ) : <span className="text-hint text-lg">?</span>}
+                </Link>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link href={`/${locale}/users/${profile?.id}`} className="font-bold text-heading hover:text-brand text-sm">
+                      {(profile?.full_name as string) || tc('anonymous')}
                     </Link>
-                    <Link href={`/${locale}/reviews/write?userId=${profile?.id}`}>
-                      <Button size="sm" variant="outline" className="rounded-full text-xs border-yellow-300 text-warning hover:bg-warning-light">{t('review')}</Button>
-                    </Link>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
+                      {levelInfo.badge} Lv.{levelInfo.level}
+                    </span>
                   </div>
-                )}
+                  <div className="flex gap-1 mt-1 flex-wrap">
+                    {(profile?.email_verified as boolean) && <span className="text-xs bg-success-light text-success px-1.5 py-0.5 rounded-full">✓ Email</span>}
+                    {(profile?.phone_verified as boolean) && <span className="text-xs bg-brand-light text-brand px-1.5 py-0.5 rounded-full">✓ Phone</span>}
+                  </div>
+                  {(profile?.trust_score as number) > 0 && (
+                    <p className="text-xs text-subtle mt-1">★ {Number(profile.trust_score).toFixed(1)} ({profile?.review_count as number} reviews)</p>
+                  )}
+                  {(profile?.bio as string) && <p className="text-xs text-body mt-1.5 line-clamp-2">{profile.bio as string}</p>}
+                </div>
               </div>
             </div>
+
+            {/* Message CTA — 눈에 띄는 큰 버튼 */}
+            {user && !isOwner && (
+              <div className="px-5 pb-5 space-y-2">
+                <Link href={`/${locale}/messages/${profile?.id}?postId=${post.id}`} className="block">
+                  <Button className="w-full bg-brand hover:bg-brand-hover text-white rounded-xl py-5 text-base font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    {t('message')}
+                  </Button>
+                </Link>
+                <Link href={`/${locale}/reviews/write?userId=${profile?.id}`} className="block">
+                  <Button variant="outline" className="w-full rounded-xl py-3 text-sm border-yellow-300 text-warning hover:bg-warning-light font-medium">
+                    ★ {t('review')}
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* 동행자 멤버 */}

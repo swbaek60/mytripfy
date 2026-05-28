@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type PointerEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import CountryFlag from '@/components/CountryFlag'
@@ -9,13 +9,33 @@ import { updatePreferredLocale } from '@/app/[locale]/actions'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 import ModalPortalShell from '@/components/ui/ModalPortalShell'
 
-// locale → country code (국기 표시용)
+// locale → country code (국기 표시용) — English(en)은 특정 국가 국기 대신 Globe 아이콘 사용
 const LOCALE_TO_COUNTRY: Record<string, string> = {
   ko: 'KR', ja: 'JP', zh: 'CN', 'zh-TW': 'TW',
   th: 'TH', vi: 'VN', id: 'ID', ms: 'MY', hi: 'IN', bn: 'BD',
-  en: 'GB', fr: 'FR', de: 'DE', es: 'ES', it: 'IT', pt: 'PT', 'pt-BR': 'BR',
+  fr: 'FR', de: 'DE', es: 'ES', it: 'IT', pt: 'PT', 'pt-BR': 'BR',
   nl: 'NL', sv: 'SE', pl: 'PL', ru: 'RU', uk: 'UA', tr: 'TR',
   ar: 'SA', fa: 'IR',
+}
+
+// 글로벌 아이콘 (English 등 특정 국가에 귀속되지 않는 언어에 사용)
+function GlobeIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`shrink-0 text-blue-500 ${className}`}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+      <path d="M2 12h20" />
+    </svg>
+  )
 }
 
 // compact 모드에서 표시할 짧은 코드 (전부 언어 코드 ISO 639-1)
@@ -145,17 +165,26 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
   }, [open])
 
   const handleSelect = (locale: string) => {
+    if (locale === currentLocale) {
+      setOpen(false)
+      setSearch('')
+      return
+    }
     setOpen(false)
     setSearch('')
     const newPath = switchLocaleInPath(pathname, locale)
-    // locale 변경은 전체 페이지 리로드가 필요 (서버 컴포넌트 re-render)
     if (userId) {
-      updatePreferredLocale(locale)
-        .catch(() => {})
-        .finally(() => { window.location.href = newPath })
-    } else {
-      window.location.href = newPath
+      void updatePreferredLocale(locale).catch(() => {})
     }
+    window.location.assign(newPath)
+  }
+
+  const onLanguagePointerDown = (locale: string) => (e: PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return
+    // 프로필 드롭다운 mousedown/click 닫기보다 먼저 실행 (로그인 시 포털 모달 선택)
+    e.preventDefault()
+    e.stopPropagation()
+    handleSelect(locale)
   }
 
   const modal = open && mounted ? createPortal(
@@ -203,7 +232,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
                     <button
                       type="button"
                       key={lang.locale}
-                      onClick={() => handleSelect(lang.locale)}
+                      onPointerDown={onLanguagePointerDown(lang.locale)}
                       style={{ touchAction: 'manipulation' }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
                         isActive
@@ -214,7 +243,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
                       {LOCALE_TO_COUNTRY[lang.locale] ? (
                         <CountryFlag code={LOCALE_TO_COUNTRY[lang.locale]} size="md" className={isActive ? 'ring-1 ring-white/50' : ''} />
                       ) : (
-                        <span className="text-xl leading-none shrink-0">🌐</span>
+                        <GlobeIcon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-blue-500'}`} />
                       )}
                       <div className="min-w-0">
                         <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
@@ -272,7 +301,7 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
         {LOCALE_TO_COUNTRY[currentLang.locale] ? (
           <CountryFlag code={LOCALE_TO_COUNTRY[currentLang.locale]} size={iconOnly ? 'sm' : 'sm'} />
         ) : (
-          <span className="text-base leading-none">🌐</span>
+          <GlobeIcon className="w-5 h-5" />
         )}
         {!iconOnly && !compact && <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>}
         {!iconOnly && compact

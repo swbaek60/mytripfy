@@ -95,7 +95,7 @@ export default function TranslatedText({
           {mode === 'original' ? (
             <button
               type="button"
-              onClick={fetchTranslation}
+              onClick={e => { e.preventDefault(); e.stopPropagation(); fetchTranslation() }}
               disabled={loading}
               className="text-xs text-brand hover:text-brand-hover font-medium disabled:opacity-50"
             >
@@ -104,7 +104,7 @@ export default function TranslatedText({
           ) : (
             <button
               type="button"
-              onClick={() => setMode('original')}
+              onClick={e => { e.preventDefault(); e.stopPropagation(); setMode('original') }}
               className="text-xs text-hint hover:text-body font-medium"
             >
               {labels.original}

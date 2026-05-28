@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import BookmarkButton from '@/components/BookmarkButton'
 import { Bookmark } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
+import TranslatedText from '@/components/TranslatedText'
 
 export default async function BookmarksPage({
   params,
@@ -124,7 +125,7 @@ export default async function BookmarksPage({
                               <div suppressHydrationWarning className="text-xs text-hint">{nights}N {nights + 1}D · {start.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}</div>
                             </div>
                           </div>
-                          <p className="text-sm text-body line-clamp-2 leading-relaxed">{post.title}</p>
+                          <TranslatedText text={post.title as string} locale={locale} as="p" className="text-sm text-body line-clamp-2 leading-relaxed" />
                           <div className="flex items-center gap-1.5 mt-2">
                             <div className="w-5 h-5 rounded-full bg-brand-muted flex items-center justify-center text-xs overflow-hidden">
                               {(poster?.avatar_url as string) ? (

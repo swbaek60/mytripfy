@@ -4,7 +4,6 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
 import { getLevelInfo, getCountryByCode } from '@/data/countries'
-import BookmarkButton from '@/components/BookmarkButton'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -12,10 +11,12 @@ import { getLanguageByCode, getLevelInfo as getLangLevel, type LanguageSkill } f
 import type { GuideRegion } from '@/data/cities'
 import GuidesFilterBar from './GuidesFilterBar'
 import CountryFlag from '@/components/CountryFlag'
+import GuidePhotoCarousel from '@/components/GuidePhotoCarousel'
+import TranslatedText from '@/components/TranslatedText'
 
 /** 가이드 카드에 쓰는 컬럼만 조회 (대량 select * 방지) */
 const GUIDE_CARD_COLUMNS =
-  'id, full_name, avatar_url, travel_level, nationality, spoken_languages, guide_city_regions, guide_regions, trust_score, review_count, bio, guide_has_vehicle, guide_has_accommodation, email_verified, travel_count, guide_hourly_rate, rate_currency, created_at'
+  'id, full_name, avatar_url, profile_photos, travel_level, nationality, spoken_languages, guide_city_regions, guide_regions, trust_score, review_count, bio, guide_has_vehicle, guide_has_accommodation, email_verified, travel_count, guide_hourly_rate, rate_currency, created_at'
 
 /** 도시/언어는 클라이언트 필터 → 상한으로 페이로드 제한 */
 const CLIENT_FILTER_FETCH_CAP = 280
@@ -181,138 +182,110 @@ export default async function GuidesPage({
         {/* ── 가이드 그리드 ── */}
         {displayedGuides.length > 0 ? (
           <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {displayedGuides.map(guide => {
               const levelInfo = getLevelInfo(guide.travel_level || 1)
               const nationalityCountry = guide.nationality ? getCountryByCode(guide.nationality) : null
               const skills = (guide.spoken_languages as LanguageSkill[] | null) ?? []
               const regions = (guide.guide_city_regions as GuideRegion[] | null) ?? []
+              const primaryRegion = regions[0]
+              const primaryCountry = primaryRegion ? getCountryByCode(primaryRegion.country) : null
+              const extraPhotos = (guide.profile_photos as string[] | null) ?? []
 
               return (
-                <div key={guide.id} className="group relative bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-edge/60 hover:border-gold/40 flex flex-col">
+                <Link
+                  key={guide.id}
+                  href={`/${locale}/guides/${guide.id}`}
+                  className="group block h-full"
+                >
+                  <article className="bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-edge/60 hover:border-gold/40 h-full flex flex-col overflow-hidden">
 
-                  {/* 커버 + 아바타 */}
-                  <div className="h-16 bg-gradient-to-r from-[#D4A853] via-[#E8B960] to-[#F5C563] relative shrink-0 rounded-t-2xl overflow-hidden">
-                    {/* 레벨 배지 */}
-                    <div
-                      className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-white text-[10px] font-bold shadow-sm"
-                      style={{ backgroundColor: levelInfo.color }}
-                    >
-                      {levelInfo.badge} Lv.{guide.travel_level || 1}
-                    </div>
-                    {/* 북마크 */}
-                    {user && (
-                      <div className="absolute top-2 left-2">
-                        <BookmarkButton
-                          userId={user.id}
-                          type="guide"
-                          referenceId={guide.id}
-                          isBookmarked={bookmarkedIds.has(guide.id)}
+                    {/* 사진 캐러셀 — 직렬화 가능한 원시값만 전달 */}
+                    <GuidePhotoCarousel
+                      avatar={guide.avatar_url}
+                      photos={extraPhotos}
+                      name={guide.full_name || ''}
+                      levelLabel={`${levelInfo.badge} Lv.${guide.travel_level || 1}`}
+                      levelColor={levelInfo.color}
+                      userId={user?.id ?? null}
+                      guideId={guide.id}
+                      isBookmarked={bookmarkedIds.has(guide.id)}
+                      countryCode={primaryRegion?.country ?? null}
+                      countryName={primaryCountry?.name ?? null}
+                      city={primaryRegion?.cities[0] ?? null}
+                    />
+
+                    <div className="p-4 flex flex-col flex-1 min-w-0">
+                      <div className="mb-2">
+                        <h3 className="font-bold text-heading text-lg leading-tight truncate group-hover:text-gold transition-colors">
+                          {guide.full_name || t('anonymousGuide')}
+                        </h3>
+                        {nationalityCountry && (
+                          <p className="text-sm text-subtle mt-0.5 flex items-center gap-1.5">
+                            <CountryFlag code={nationalityCountry.code} size="xs" />
+                            {nationalityCountry.name}
+                          </p>
+                        )}
+                      </div>
+
+                      {guide.trust_score > 0 && (
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <span className="text-yellow-400 text-sm leading-none">
+                            {'★'.repeat(Math.round(guide.trust_score))}{'☆'.repeat(5 - Math.round(guide.trust_score))}
+                          </span>
+                          <span className="text-sm font-bold text-body">{Number(guide.trust_score).toFixed(1)}</span>
+                          <span className="text-xs text-hint">({guide.review_count})</span>
+                        </div>
+                      )}
+
+                      {guide.bio && (
+                        <TranslatedText text={guide.bio as string} locale={locale} as="p" className="text-sm text-subtle line-clamp-2 mb-3 leading-relaxed" />
+                      )}
+
+                      {skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {skills.slice(0, 2).map(skill => {
+                            const l = getLanguageByCode(skill.lang)
+                            const lvl = getLangLevel(skill.level)
+                            return l ? (
+                              <span
+                                key={skill.lang}
+                                className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full font-medium ${lvl.bgColor} ${lvl.textColor}`}
+                              >
+                                {l.emoji} {l.name}
+                              </span>
+                            ) : null
+                          })}
+                          {skills.length > 2 && (
+                            <span className="text-xs text-hint self-center">+{skills.length - 2}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {(guide.guide_has_vehicle || guide.guide_has_accommodation) && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {guide.guide_has_vehicle && (
+                            <span className="text-xs bg-brand-light text-brand px-2 py-0.5 rounded-full">🚗 {t('badgeVehicle')}</span>
+                          )}
+                          {guide.guide_has_accommodation && (
+                            <span className="text-xs bg-success-light text-success px-2 py-0.5 rounded-full">🏠 {t('badgeStay')}</span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-auto pt-3 border-t border-edge/60 flex items-center justify-between gap-2">
+                        <span className="text-xs text-hint truncate">
+                          🌍 {t('countriesCount', { count: guide.travel_count || 0 })}
+                        </span>
+                        <GuideRateDisplay
+                          rate={guide.guide_hourly_rate}
+                          rateCurrency={guide.rate_currency}
                           size="sm"
                         />
                       </div>
-                    )}
-                  </div>
-
-                  <Link href={`/${locale}/guides/${guide.id}`} className="flex flex-col flex-1 px-4 pb-4">
-                    {/* 아바타 */}
-                    <div className="-mt-7 mb-3 relative z-10">
-                      <div className="w-14 h-14 rounded-full bg-brand-muted flex items-center justify-center text-2xl shadow-md overflow-hidden ring-3 ring-white" style={{ boxShadow: '0 0 0 3px white, 0 2px 8px rgba(0,0,0,0.12)' }}>
-                        {guide.avatar_url
-                          ? <img src={guide.avatar_url} alt="" className="w-full h-full object-cover" />
-                          : '👤'}
-                      </div>
                     </div>
-
-                    {/* 이름 + 국적 */}
-                    <div className="mb-2">
-                      <div className="font-bold text-heading text-sm leading-tight truncate">
-                        {guide.full_name || t('anonymousGuide')}
-                      </div>
-                      {nationalityCountry && (
-                        <div className="text-xs text-subtle mt-0.5 flex items-center gap-1">
-                          <CountryFlag code={nationalityCountry.code} size="xs" />
-                          {nationalityCountry.name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 평점 */}
-                    {guide.trust_score > 0 && (
-                      <div className="flex items-center gap-1 mb-2">
-                        <span className="text-yellow-400 text-xs">
-                          {'★'.repeat(Math.round(guide.trust_score))}{'☆'.repeat(5 - Math.round(guide.trust_score))}
-                        </span>
-                        <span className="text-xs font-bold text-body">{Number(guide.trust_score).toFixed(1)}</span>
-                        <span className="text-xs text-hint">({guide.review_count})</span>
-                      </div>
-                    )}
-
-                    {/* Bio */}
-                    {guide.bio && (
-                      <p className="text-xs text-subtle line-clamp-2 mb-2 leading-relaxed">{guide.bio}</p>
-                    )}
-
-                    {/* 언어 */}
-                    {skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {skills.slice(0, 3).map(skill => {
-                          const l = getLanguageByCode(skill.lang)
-                          const lvl = getLangLevel(skill.level)
-                          return l ? (
-                            <span key={skill.lang}
-                              className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${lvl.bgColor} ${lvl.textColor}`}>
-                              {l.emoji} {l.name}
-                            </span>
-                          ) : null
-                        })}
-                        {skills.length > 3 && <span className="text-[10px] text-hint self-center">+{skills.length - 3}</span>}
-                      </div>
-                    )}
-
-                    {/* 활동 지역 */}
-                    {regions.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {regions.slice(0, 2).map(region => {
-                          const c = getCountryByCode(region.country)
-                          return (
-                            <div key={region.country} className="flex items-center gap-1 bg-gold-light border border-gold/20 rounded-lg px-1.5 py-0.5">
-                              <CountryFlag code={region.country} size="xs" />
-                              <span className="text-[10px] font-medium text-heading">{c?.name || region.country}</span>
-                              {region.cities.length > 0 && (
-                                <span className="text-[10px] text-gold truncate max-w-[60px]">
-                                  · {region.cities.slice(0, 1).join(', ')}{region.cities.length > 1 ? ` +${region.cities.length - 1}` : ''}
-                                </span>
-                              )}
-                            </div>
-                          )
-                        })}
-                        {regions.length > 2 && <span className="text-[10px] text-hint self-center">+{regions.length - 2}</span>}
-                      </div>
-                    )}
-
-                    {/* 서비스 배지 */}
-                    {(guide.guide_has_vehicle || guide.guide_has_accommodation || guide.email_verified) && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {guide.guide_has_vehicle && <span className="text-[10px] bg-brand-light text-brand px-1.5 py-0.5 rounded-full border border-edge-brand">🚗 {t('badgeVehicle')}</span>}
-                        {guide.guide_has_accommodation && <span className="text-[10px] bg-success-light text-success px-1.5 py-0.5 rounded-full border border-green-100">🏠 {t('badgeStay')}</span>}
-                        {guide.email_verified && <span className="text-[10px] bg-surface-sunken text-subtle px-1.5 py-0.5 rounded-full border border-edge">✅ {t('badgeVerified')}</span>}
-                      </div>
-                    )}
-
-                    {/* 하단: 방문 국가 수 + 요금 */}
-                    <div className="mt-auto pt-2 border-t border-edge/60 flex items-center justify-between">
-                      <span className="text-[10px] text-hint">
-                        🌍 {t('countriesCount', { count: guide.travel_count || 0 })}
-                      </span>
-                      <GuideRateDisplay
-                        rate={guide.guide_hourly_rate}
-                        rateCurrency={guide.rate_currency}
-                        size="sm"
-                      />
-                    </div>
-                  </Link>
-                </div>
+                  </article>
+                </Link>
               )
             })}
           </div>
@@ -372,7 +345,7 @@ export default async function GuidesPage({
                       <div className="flex items-start gap-2 mb-2">
                         <span className="text-lg shrink-0">{countryInfo?.emoji || '🌍'}</span>
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-heading text-sm line-clamp-2">{req.title}</div>
+                          <TranslatedText text={req.title as string} locale={locale} as="div" className="font-semibold text-heading text-sm line-clamp-2" />
                           <div className="text-xs text-subtle mt-0.5">
                             {countryInfo?.name || req.destination_country}
                             {req.destination_city ? ` · ${req.destination_city}` : ''}

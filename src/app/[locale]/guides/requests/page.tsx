@@ -8,6 +8,7 @@ import { getLanguageByCode } from '@/data/languages'
 import { MapPin, Calendar, Users, Plus, ChevronRight } from 'lucide-react'
 import CountrySearchSelect from './CountrySearchSelect'
 import CountryFlag from '@/components/CountryFlag'
+import TranslatedText from '@/components/TranslatedText'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
@@ -219,7 +220,7 @@ export default async function GuideRequestsPage({
                       </div>
 
                       {/* 제목 */}
-                      <h3 className="font-bold text-heading mb-2 line-clamp-2 leading-snug text-sm">{req.title}</h3>
+                      <TranslatedText text={req.title as string} locale={locale} as="h3" className="font-bold text-heading mb-2 line-clamp-2 leading-snug text-sm" />
 
                       {/* 언어 */}
                       {req.preferred_languages && (req.preferred_languages as string[]).length > 0 && (

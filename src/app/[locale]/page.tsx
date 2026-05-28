@@ -8,6 +8,7 @@ import { getCountryByCode, getLevelInfo } from '@/data/countries'
 import HomeSearch from '@/components/HomeSearch'
 import CountryFlag from '@/components/CountryFlag'
 import { Users, Plane, Compass, Globe, MessageSquare, ShieldCheck, Search, Star, UserCheck, Store, Trophy, Award, ClipboardList } from 'lucide-react'
+import TranslatedText from '@/components/TranslatedText'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -238,7 +239,7 @@ export default async function Home({
                           {nights}N {nights + 1}D
                         </span>
                       </div>
-                      <p className="text-sm font-semibold text-heading line-clamp-2 flex-1 mb-3">{post.title}</p>
+                      <TranslatedText text={post.title as string} locale={locale} as="p" className="text-sm font-semibold text-heading line-clamp-2 flex-1 mb-3" />
                         <div className="flex items-center justify-between text-xs text-hint border-t border-edge/40 pt-3">
                         <div className="flex items-center gap-1.5">
                           <div className="w-6 h-6 rounded-full bg-brand-muted flex items-center justify-center overflow-hidden">
@@ -325,7 +326,7 @@ export default async function Home({
                         </div>
                         <span className="shrink-0 text-xs bg-gold-light text-gold border border-gold/20 px-2 py-0.5 rounded-full font-medium">{s('openStatus')}</span>
                       </div>
-                      <p className="text-sm font-semibold text-heading line-clamp-2 flex-1 mb-3">{req.title}</p>
+                      <TranslatedText text={req.title as string} locale={locale} as="p" className="text-sm font-semibold text-heading line-clamp-2 flex-1 mb-3" />
                       <div className="flex items-center gap-2 text-xs text-hint border-t border-edge/40 pt-3">
                         <div className="w-5 h-5 rounded-full bg-gold-light flex items-center justify-center overflow-hidden shrink-0">
                           {(poster?.avatar_url as string) ? (

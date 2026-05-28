@@ -7,6 +7,7 @@ import { headers } from 'next/headers'
 import BookmarkButton from '@/components/BookmarkButton'
 import CountryFlag from '@/components/CountryFlag'
 import CompanionsCountryFilter from '@/app/[locale]/companions/CompanionsCountryFilter'
+import TranslatedText from '@/components/TranslatedText'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -306,7 +307,12 @@ export default async function CompanionsPage({
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-semibold text-heading text-sm mb-3 line-clamp-2 leading-snug">{post.title}</h3>
+                      <TranslatedText
+                        text={post.title}
+                        locale={locale}
+                        as="h3"
+                        className="font-semibold text-heading text-sm mb-3 line-clamp-2 leading-snug"
+                      />
 
                       {/* Badges */}
                       <div className="flex flex-wrap gap-1.5 mb-3">

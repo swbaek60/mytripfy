@@ -11,6 +11,7 @@ import type { Metadata } from 'next'
 import { getLanguageByCode, getLevelInfo as getLangLevel } from '@/data/languages'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import TranslatedText from '@/components/TranslatedText'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { locale, id } = await params
@@ -156,7 +157,12 @@ export default async function GuideRequestDetailPage({
           )}
 
           <div className="p-6 space-y-5">
-            <h2 className="text-xl font-bold text-heading">{request.title}</h2>
+            <TranslatedText
+              text={request.title as string}
+              locale={locale}
+              as="h2"
+              className="text-xl font-bold text-heading"
+            />
 
             {/* 선호 언어 */}
             {request.preferred_languages && (request.preferred_languages as string[]).length > 0 && (
@@ -180,7 +186,12 @@ export default async function GuideRequestDetailPage({
 
             {request.description && (
               <div className="bg-surface-sunken rounded-xl p-4 text-body text-sm leading-relaxed whitespace-pre-wrap">
-                {request.description}
+                <TranslatedText
+                  text={request.description as string}
+                  locale={locale}
+                  as="div"
+                  className="whitespace-pre-wrap"
+                />
               </div>
             )}
 

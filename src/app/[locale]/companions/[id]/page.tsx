@@ -13,6 +13,7 @@ import DeleteCompanionPostButton from './DeleteCompanionPostButton'
 import ItineraryEditor from '@/components/ItineraryEditor'
 import ItineraryView from '@/components/ItineraryView'
 import CompanionPosterCarousel from '@/components/CompanionPosterCarousel'
+import TranslatedText from '@/components/TranslatedText'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -278,7 +279,12 @@ export default async function CompanionDetailPage({
 
           <div className="p-6 space-y-5">
             {/* Title */}
-            <h2 className="text-xl font-bold text-heading">{post.title}</h2>
+            <TranslatedText
+              text={post.title}
+              locale={locale}
+              as="h2"
+              className="text-xl font-bold text-heading"
+            />
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2">
@@ -297,7 +303,12 @@ export default async function CompanionDetailPage({
             {/* Description */}
             {post.description && (
               <div className="bg-surface-sunken rounded-xl p-4 text-body text-sm leading-relaxed whitespace-pre-wrap">
-                {post.description}
+                <TranslatedText
+                  text={post.description}
+                  locale={locale}
+                  as="div"
+                  className="whitespace-pre-wrap"
+                />
               </div>
             )}
 
@@ -426,7 +437,14 @@ export default async function CompanionDetailPage({
                   {(profile?.trust_score as number) > 0 && (
                     <p className="text-xs text-subtle mt-1">★ {Number(profile.trust_score).toFixed(1)} ({profile?.review_count as number} reviews)</p>
                   )}
-                  {(profile?.bio as string) && <p className="text-xs text-body mt-1.5 line-clamp-2">{profile.bio as string}</p>}
+                  {(profile?.bio as string) && (
+                    <TranslatedText
+                      text={profile.bio as string}
+                      locale={locale}
+                      as="p"
+                      className="text-xs text-body mt-1.5 line-clamp-2"
+                    />
+                  )}
                 </div>
               </div>
             </div>

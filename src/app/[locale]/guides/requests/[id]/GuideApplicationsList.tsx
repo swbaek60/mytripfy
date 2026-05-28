@@ -8,6 +8,7 @@ import { getLevelInfo } from '@/data/countries'
 import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import TranslatedText from '@/components/TranslatedText'
 
 interface GuideApplication {
   id: string
@@ -161,9 +162,14 @@ function GuideAppCard({
             </span>
           </div>
           {app.message && (
-            <p className="text-sm text-body mt-1.5 line-clamp-2 bg-surface-sunken rounded-lg px-2 py-1.5 italic">
-              &quot;{app.message}&quot;
-            </p>
+            <div className="text-sm text-body mt-1.5 bg-surface-sunken rounded-lg px-2 py-1.5 italic">
+              <TranslatedText
+                text={`"${app.message}"`}
+                locale={locale}
+                as="p"
+                className="line-clamp-2"
+              />
+            </div>
           )}
           <p suppressHydrationWarning className="text-xs text-hint mt-1">
             {new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}

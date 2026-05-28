@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslations } from 'next-intl'
+import TranslatedText from '@/components/TranslatedText'
 
 interface QuestionItem {
   id: string
@@ -208,9 +209,12 @@ export default function QuestionsSection({
                       {new Date(q.question_created_at).toLocaleDateString('en-US')}
                     </span>
                   </div>
-                  <p className="text-body whitespace-pre-wrap">
-                    {q.question}
-                  </p>
+                  <TranslatedText
+                    text={q.question}
+                    locale={locale}
+                    as="p"
+                    className="text-body whitespace-pre-wrap"
+                  />
                 </div>
 
                 {/* Answer */}
@@ -229,9 +233,12 @@ export default function QuestionsSection({
                         </span>
                       )}
                     </div>
-                    <p className="text-body whitespace-pre-wrap">
-                      {q.answer}
-                    </p>
+                    <TranslatedText
+                      text={q.answer}
+                      locale={locale}
+                      as="p"
+                      className="text-body whitespace-pre-wrap"
+                    />
                   </div>
                 ) : currentUserId === hostId ? (
                   <div className="mt-1 pl-3 border-l-2 border-dashed border-edge-brand space-y-2">

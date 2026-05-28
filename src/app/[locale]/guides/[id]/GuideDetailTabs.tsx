@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Star, Globe, Trophy } from 'lucide-react'
+import TranslatedText from '@/components/TranslatedText'
 import { useTranslations } from 'next-intl'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
 import UserChallengeAchievements from '@/components/UserChallengeAchievements'
@@ -139,7 +140,12 @@ export default function GuideDetailTabs({
               {bio && (
                 <div>
                   <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-2">{tg('about')}</h3>
-                  <p className="text-body leading-relaxed">{bio}</p>
+                  <TranslatedText
+                    text={bio}
+                    locale={locale}
+                    as="p"
+                    className="text-body leading-relaxed"
+                  />
                 </div>
               )}
 
@@ -243,21 +249,6 @@ export default function GuideDetailTabs({
                         </div>
                       )
                     })}
-                  </div>
-                </div>
-              )}
-
-              {/* 프로필 사진 갤러리 */}
-              {profilePhotos.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('photos')}</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {profilePhotos.map((url, i) => (
-                      <button key={i} onClick={() => setPhotoIndex(i)}
-                        className="aspect-square rounded-xl overflow-hidden bg-surface-sunken hover:opacity-90 transition-opacity">
-                        <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
                   </div>
                 </div>
               )}
@@ -488,7 +479,12 @@ export default function GuideDetailTabs({
                               </div>
                             )}
                             {review.content && (
-                              <p className="text-sm text-body mt-2 leading-relaxed">{review.content}</p>
+                              <TranslatedText
+                                text={review.content}
+                                locale={locale}
+                                as="p"
+                                className="text-sm text-body mt-2 leading-relaxed"
+                              />
                             )}
                           </div>
                         </div>

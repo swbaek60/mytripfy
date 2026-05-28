@@ -13,6 +13,7 @@ import UserChallengeAchievements from '@/components/UserChallengeAchievements'
 import SponsorVisitList from '@/components/SponsorVisitList'
 import { getPersonalityDisplay } from '@/data/personalityTypes'
 import { getTranslations } from 'next-intl/server'
+import TranslatedText from '@/components/TranslatedText'
 
 export default async function UserProfilePage({
   params,
@@ -225,7 +226,12 @@ export default async function UserProfilePage({
 
               {/* Bio */}
               {profile.bio && (
-                <p className="text-body text-sm leading-relaxed">{profile.bio}</p>
+                <TranslatedText
+                  text={profile.bio as string}
+                  locale={locale}
+                  as="p"
+                  className="text-body text-sm leading-relaxed"
+                />
               )}
             </div>
 
@@ -534,7 +540,12 @@ export default async function UserProfilePage({
                     className="block border border-edge rounded-xl p-4 hover:border-edge-brand hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-heading text-sm line-clamp-2 flex-1">{post.title}</p>
+                      <TranslatedText
+                        text={post.title as string}
+                        locale={locale}
+                        as="p"
+                        className="font-semibold text-heading text-sm line-clamp-2 flex-1"
+                      />
                       <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${statusColor}`}>
                         {post.status}
                       </span>
@@ -662,7 +673,12 @@ export default async function UserProfilePage({
 
                         {/* Content */}
                         {review.content && (
-                          <p className="text-sm text-body mt-2 leading-relaxed">{review.content}</p>
+                          <TranslatedText
+                            text={review.content as string}
+                            locale={locale}
+                            as="p"
+                            className="text-sm text-body mt-2 leading-relaxed"
+                          />
                         )}
 
                         {/* 내가 쓴 리뷰: 수정/삭제 버튼 */}

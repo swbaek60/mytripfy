@@ -11,6 +11,7 @@ import SponsorDetailClient from './SponsorDetailClient'
 import SponsorMyVisitCard from './SponsorMyVisitCard'
 import SponsorVisitListSection from './SponsorVisitListSection'
 import CountryFlag from '@/components/CountryFlag'
+import TranslatedText from '@/components/TranslatedText'
 
 const BUSINESS_TYPE_KEYS: Record<string, string> = {
   restaurant: 'restaurant',
@@ -159,7 +160,12 @@ export default async function SponsorDetailPage({
         {displayDesc && (
           <div className="bg-surface rounded-2xl p-6 shadow-sm border border-edge mb-6">
             <h2 className="font-bold text-heading mb-2">About</h2>
-            <p className="text-body text-sm whitespace-pre-wrap">{displayDesc}</p>
+            <TranslatedText
+              text={displayDesc}
+              locale={locale}
+              as="p"
+              className="text-body text-sm whitespace-pre-wrap"
+            />
           </div>
         )}
 

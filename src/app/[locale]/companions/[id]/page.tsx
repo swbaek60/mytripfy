@@ -12,6 +12,7 @@ import QuestionsSection from './QuestionsSection'
 import DeleteCompanionPostButton from './DeleteCompanionPostButton'
 import ItineraryEditor from '@/components/ItineraryEditor'
 import ItineraryView from '@/components/ItineraryView'
+import CompanionPosterCarousel from '@/components/CompanionPosterCarousel'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -60,7 +61,7 @@ export default async function CompanionDetailPage({
 
   const { data: post } = await supabase
     .from('companion_posts')
-    .select(`*, group_chat_id, profiles (id, full_name, avatar_url, travel_level, trust_score, review_count, nationality, bio, is_guide, email_verified, phone_verified, sns_verified)`)
+    .select(`*, group_chat_id, profiles (id, full_name, avatar_url, profile_photos, travel_level, trust_score, review_count, nationality, bio, is_guide, email_verified, phone_verified, sns_verified)`)
     .eq('id', id)
     .single()
 
@@ -204,28 +205,15 @@ export default async function CompanionDetailPage({
         <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {/* Split Header: Left = Poster profile, Right = Cover photo or flag */}
           <div className="flex h-56 sm:h-64 overflow-hidden">
-            {/* Left — Poster profile photo */}
-            <div className="w-1/2 relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden border-r border-white/30 flex items-center justify-center">
-              {(profile?.avatar_url as string) ? (
-                <img
-                  src={profile.avatar_url as string}
-                  alt={(profile?.full_name as string) || ''}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-brand/20 to-brand/40 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-brand/30 border-2 border-brand/40 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-brand">
-                      {((profile?.full_name as string) || 'A').charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              )}
-              {/* Name + level overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-3">
-                <p className="text-white font-semibold text-sm truncate">{(profile?.full_name as string) || 'Anonymous'}</p>
-                <p className="text-white/70 text-xs">{levelInfo.badge} Lv.{levelInfo.level}</p>
-              </div>
+            {/* Left — Poster profile photo (carousel if multiple) */}
+            <div className="w-1/2 relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden border-r border-white/30">
+              <CompanionPosterCarousel
+                avatarUrl={(profile?.avatar_url as string) || null}
+                photos={(profile?.profile_photos as string[] | null) ?? []}
+                name={(profile?.full_name as string) || 'Anonymous'}
+                levelBadge={levelInfo.badge}
+                levelNum={levelInfo.level}
+              />
             </div>
 
             {/* Right — Trip cover image or flag */}
@@ -455,7 +443,7 @@ export default async function CompanionDetailPage({
                   </Button>
                 </Link>
                 <Link href={`/${locale}/reviews/write?userId=${profile?.id}`} className="block">
-                  <Button variant="outline" className="w-full rounded-xl py-3 text-sm border-yellow-300 text-warning hover:bg-warning-light font-medium">
+                  <Button variant="outline" className="w-full rounded-xl py-5 text-base border-yellow-300 text-warning hover:bg-warning-light font-bold">
                     ★ {t('review')}
                   </Button>
                 </Link>

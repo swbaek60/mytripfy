@@ -122,7 +122,7 @@ export default function ApplyButton({
   return (
     <Button
       onClick={() => setShowForm(true)}
-      className="w-full bg-brand hover:bg-brand-hover rounded-xl py-6 text-lg font-bold"
+      className="w-full bg-brand hover:bg-brand-hover rounded-xl py-5 text-base font-bold"
     >
       {t('applyJoin')}
     </Button>

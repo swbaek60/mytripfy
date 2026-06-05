@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/utils/supabase/server'
 import HeaderNav from '@/components/HeaderNav'
 import { currentUser } from '@clerk/nextjs/server'
-import type { MegaMenuGroup } from '@/components/explore/ExploreMegaMenu'
+import type { MegaMenuGroup, NavPrimaryLink } from '@/components/explore/ExploreMegaMenu'
 
 export default async function Header({
   locale,
@@ -34,15 +34,18 @@ export default async function Header({
     return `/login?returnTo=${encodeURIComponent(`/${locale}${path}`)}`
   }
 
+  const PRIMARY_NAV_LINKS: NavPrimaryLink[] = [
+    { href: '/companions', label: t('findCompanions') },
+    { href: '/guides', label: t('findGuides') },
+  ]
+
   const MEGA_MENU_GROUPS: MegaMenuGroup[] = [
     {
-      id: 'explore',
-      label: tm('navExplore'),
+      id: 'discover',
+      label: tm('navDiscover'),
       links: [
-        { href: '/companions', label: t('findCompanions'), description: tm('navExploreCompanionsDesc') },
-        { href: '/guides', label: t('findGuides'), description: tm('navExploreGuidesDesc') },
-        { href: '/sponsors', label: t('sponsors'), description: tm('navExploreSponsorsDesc') },
         { href: '/destinations', label: tm('navDestinations'), description: tm('navExploreDestinationsDesc') },
+        { href: '/sponsors', label: t('sponsors'), description: tm('navExploreSponsorsDesc') },
       ],
     },
     {
@@ -120,6 +123,7 @@ export default async function Header({
           userEmail={clerkUser?.emailAddresses?.[0]?.emailAddress}
           avatarUrl={profile?.avatar_url ?? clerkUser?.imageUrl}
           fullName={profile?.full_name ?? clerkUser?.fullName}
+          primaryNavLinks={PRIMARY_NAV_LINKS}
           megaMenuGroups={MEGA_MENU_GROUPS}
           unreadCount={unreadCount}
           unreadMessageCount={unreadMessageCount}

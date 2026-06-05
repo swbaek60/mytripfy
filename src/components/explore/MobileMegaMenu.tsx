@@ -4,24 +4,25 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { MegaMenuGroup } from '@/components/explore/ExploreMegaMenu'
+import type { MegaMenuGroup, NavPrimaryLink } from '@/components/explore/ExploreMegaMenu'
 
 const GROUP_ACCENT: Record<string, string> = {
-  explore: 'bg-brand',
+  discover: 'bg-brand',
   play: 'bg-challenge',
   community: 'bg-teal-500',
   host: 'bg-gold',
 }
 
 interface Props {
+  primaryLinks: NavPrimaryLink[]
   groups: MegaMenuGroup[]
   locale: string
   pathname: string
   onNavigate: () => void
 }
 
-export default function MobileMegaMenu({ groups, locale, pathname, onNavigate }: Props) {
-  const [openId, setOpenId] = useState<string | null>('explore')
+export default function MobileMegaMenu({ primaryLinks, groups, locale, pathname, onNavigate }: Props) {
+  const [openId, setOpenId] = useState<string | null>('discover')
 
   const isLinkActive = (href: string) => {
     const path = href.split('?')[0]
@@ -29,7 +30,33 @@ export default function MobileMegaMenu({ groups, locale, pathname, onNavigate }:
   }
 
   return (
-    <div className="px-3 py-3 space-y-1">
+    <div className="px-3 py-3 space-y-3">
+      <div className="grid grid-cols-1 gap-2 px-1">
+        {primaryLinks.map((link, i) => {
+          const active = isLinkActive(link.href)
+          return (
+            <Link
+              key={link.href}
+              href={`/${locale}${link.href}`}
+              onClick={onNavigate}
+              className={cn(
+                'flex items-center justify-center rounded-xl py-3.5 text-sm font-bold transition-colors',
+                i === 0
+                  ? active
+                    ? 'bg-brand-hover text-white shadow-sm'
+                    : 'bg-brand text-white hover:bg-brand-hover shadow-sm'
+                  : active
+                    ? 'bg-brand-light text-brand ring-2 ring-brand/30'
+                    : 'bg-surface border-2 border-brand/25 text-brand hover:bg-brand-light'
+              )}
+            >
+              {link.label}
+            </Link>
+          )
+        })}
+      </div>
+
+      <div className="space-y-1">
       {groups.map(group => {
         const expanded = openId === group.id
         const accent = GROUP_ACCENT[group.id] ?? 'bg-brand'
@@ -74,6 +101,7 @@ export default function MobileMegaMenu({ groups, locale, pathname, onNavigate }:
           </div>
         )
       })}
+      </div>
     </div>
   )
 }

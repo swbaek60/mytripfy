@@ -2,8 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+export interface NavPrimaryLink {
+  href: string
+  label: string
+}
 
 export interface MegaMenuGroup {
   id: string
@@ -12,13 +18,17 @@ export interface MegaMenuGroup {
 }
 
 interface Props {
+  primaryLinks: NavPrimaryLink[]
   groups: MegaMenuGroup[]
   locale: string
 }
 
-export default function ExploreMegaMenu({ groups, locale }: Props) {
+export default function ExploreMegaMenu({ primaryLinks, groups, locale }: Props) {
+  const pathname = usePathname()
   const [openId, setOpenId] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
+
+  const isLinkActive = (href: string) => pathname.includes(href.split('?')[0])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -30,6 +40,22 @@ export default function ExploreMegaMenu({ groups, locale }: Props) {
 
   return (
     <div ref={ref} className="hidden md:flex items-center gap-0.5">
+      {primaryLinks.map(link => {
+        const active = isLinkActive(link.href)
+        return (
+          <Link
+            key={link.href}
+            href={`/${locale}${link.href}`}
+            className={cn(
+              'px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap',
+              active ? 'text-brand bg-brand-light' : 'text-heading hover:bg-surface-hover'
+            )}
+          >
+            {link.label}
+          </Link>
+        )
+      })}
+      <span className="mx-1 h-5 w-px bg-edge/80 shrink-0" aria-hidden />
       {groups.map(group => (
         <div key={group.id} className="relative">
           <button

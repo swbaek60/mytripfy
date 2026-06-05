@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import ExploreMegaMenu, { type MegaMenuGroup } from '@/components/explore/ExploreMegaMenu'
+import ExploreMegaMenu, { type MegaMenuGroup, type NavPrimaryLink } from '@/components/explore/ExploreMegaMenu'
 import MobileMegaMenu from '@/components/explore/MobileMegaMenu'
 import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown } from 'lucide-react'
 import { useClerk } from '@clerk/nextjs'
@@ -21,6 +21,7 @@ interface Props {
   userEmail?: string
   avatarUrl?: string | null
   fullName?: string | null
+  primaryNavLinks: NavPrimaryLink[]
   megaMenuGroups: MegaMenuGroup[]
   unreadCount: number
   unreadMessageCount: number
@@ -41,6 +42,7 @@ export default function HeaderNav({
   logoSlot,
   locale, userId, profileId, userEmail,
   avatarUrl, fullName,
+  primaryNavLinks,
   megaMenuGroups,
   unreadCount, unreadMessageCount,
   tDashboard, tProfile, tLogout, tLogin, tBookmarks, tMessages, tNotifications,
@@ -123,7 +125,7 @@ export default function HeaderNav({
         <div className="hidden md:flex flex-1 w-full min-w-0">
       {/* ── 데스크탑 레이아웃: flex-1 으로 가운데 + 오른쪽 정렬 ── */}
       <div className="hidden md:flex flex-1 items-center justify-between">
-        <ExploreMegaMenu groups={megaMenuGroups} locale={locale} />
+        <ExploreMegaMenu primaryLinks={primaryNavLinks} groups={megaMenuGroups} locale={locale} />
 
         {/* 오른쪽 영역 */}
         <div className="flex items-center gap-1 shrink-0">
@@ -284,6 +286,7 @@ export default function HeaderNav({
               )}
 
               <MobileMegaMenu
+                primaryLinks={primaryNavLinks}
                 groups={megaMenuGroups}
                 locale={locale}
                 pathname={pathname}

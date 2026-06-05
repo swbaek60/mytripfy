@@ -5,7 +5,6 @@ import { createClient } from '@/utils/supabase/server'
 import { auth } from '@clerk/nextjs/server'
 import { getCountryByCode } from '@/data/countries'
 import HeroSearch from '@/components/marketing/HeroSearch'
-import SocialProofBar from '@/components/marketing/SocialProofBar'
 import SectionShell from '@/components/layout/SectionShell'
 import ValuePropGrid from '@/components/marketing/ValuePropGrid'
 import DestinationCarousel from '@/components/marketing/DestinationCarousel'
@@ -48,10 +47,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
 
   let isLoggedIn = false
-  let postCount = 0
-  let guideCount = 0
-  let certCount = 0
-  let countryCount = 0
   type PostRow = {
     id: string
     title: string
@@ -94,18 +89,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     const today = new Date().toISOString().split('T')[0]
 
     const [
-      { count: pc },
-      { count: gc },
-      { count: cc },
       { data: rp },
       { data: tg },
       { data: hf5 },
       { data: certs },
       { data: ccr },
     ] = await Promise.all([
-      supabase.from('companion_posts').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_guide', true),
-      supabase.from('challenge_certifications').select('*', { count: 'exact', head: true }).neq('dispute_status', 'invalidated'),
       supabase
         .from('companion_posts')
         .select('id, title, start_date, end_date, destination_country, destination_city, purpose, cover_image, status, profiles(id, full_name, avatar_url, trust_score)')
@@ -134,9 +123,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         .not('destination_country', 'is', null),
     ])
 
-    postCount = pc ?? 0
-    guideCount = gc ?? 0
-    certCount = cc ?? 0
     recentPosts = (rp as unknown as PostRow[]) ?? []
     topGuides = (tg as GuideRow[]) ?? []
     hallOfFameTop5 = (hf5 as LeaderboardRow[]) ?? []
@@ -147,7 +133,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       const code = (row as { destination_country: string }).destination_country
       if (code) countByCountry.set(code, (countByCountry.get(code) ?? 0) + 1)
     }
-    countryCount = countByCountry.size
     const sorted = [...countByCountry.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c)
     const used = new Set<string>()
     for (const code of sorted) {
@@ -227,19 +212,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <HeroSearch locale={locale} />
         </div>
       </section>
-
-      <SocialProofBar
-        postCount={postCount}
-        guideCount={guideCount}
-        certCount={certCount}
-        countryCount={countryCount || popularDestinations.length}
-        labels={{
-          companions: tm('socialCompanions'),
-          guides: tm('socialGuides'),
-          certs: tm('socialCerts'),
-          countries: tm('socialCountries'),
-        }}
-      />
 
       {/* Latest companions */}
       <SectionShell

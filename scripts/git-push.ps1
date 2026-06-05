@@ -2,7 +2,7 @@
 # .env.local의 GH_TOKEN을 읽어 프로젝트 전용 PAT로 git push
 # 전역 gh auth login 상태와 무관하게 동작
 
-$envFile = Join-Path $PSScriptRoot ".." ".env.local"
+$envFile = Join-Path (Join-Path $PSScriptRoot "..") ".env.local"
 if (-not (Test-Path $envFile)) {
     Write-Error ".env.local 파일을 찾을 수 없습니다: $envFile"
     exit 1

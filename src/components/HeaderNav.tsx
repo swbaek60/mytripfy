@@ -5,17 +5,13 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import ExploreMegaMenu, { type MegaMenuGroup } from '@/components/explore/ExploreMegaMenu'
-import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Trophy } from 'lucide-react'
+import MobileMegaMenu from '@/components/explore/MobileMegaMenu'
+import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown } from 'lucide-react'
 import { useClerk } from '@clerk/nextjs'
 import LanguageSelector, { LocaleTriggerButton } from '@/components/LanguageSelector'
 import CurrencySelector from '@/components/CurrencySelector'
 import NotificationsPanel from '@/components/NotificationsPanel'
 import MessagesPanel from '@/components/MessagesPanel'
-
-interface NavLink {
-  href: string
-  label: string
-}
 
 interface Props {
   logoSlot: React.ReactNode
@@ -26,7 +22,6 @@ interface Props {
   avatarUrl?: string | null
   fullName?: string | null
   megaMenuGroups: MegaMenuGroup[]
-  navLinks: NavLink[]
   unreadCount: number
   unreadMessageCount: number
   tDashboard: string
@@ -37,6 +32,7 @@ interface Props {
   tMessages: string
   tNotifications: string
   tMenu: string
+  tAccount: string
   tLanguage: string
   tCurrency: string
 }
@@ -46,10 +42,9 @@ export default function HeaderNav({
   locale, userId, profileId, userEmail,
   avatarUrl, fullName,
   megaMenuGroups,
-  navLinks,
   unreadCount, unreadMessageCount,
   tDashboard, tProfile, tLogout, tLogin, tBookmarks, tMessages, tNotifications,
-  tMenu, tLanguage, tCurrency,
+  tMenu, tAccount, tLanguage, tCurrency,
 }: Props) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -76,16 +71,6 @@ export default function HeaderNav({
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
 
-  const isActive = (href: string) => pathname.includes(href)
-
-  // 메인 메뉴 5개 아이콘 (모바일에서 햄버거 밖에 표시)
-  const navIcons: Record<string, ReactNode> = {
-    '/companions': <Users className="w-5 h-5" />,
-    '/guides': <Compass className="w-5 h-5" />,
-    '/challenges': <Trophy className="w-5 h-5" />,
-    '/bookmarks': <Bookmark className="w-5 h-5" />,
-  }
-
   // 아바타 이니셜 (fullName 또는 email 첫 글자)
   const initials = fullName
     ? fullName.slice(0, 1).toUpperCase()
@@ -96,62 +81,46 @@ export default function HeaderNav({
     setLanguageOpen(true)
   }
 
+  const closeMobile = () => setMobileOpen(false)
+
   const mobileRightIcons = (
     <div className="flex items-center gap-0.5 shrink-0">
-      {userId ? (
+      <LocaleTriggerButton
+        currentLocale={locale}
+        compact
+        iconOnly
+        open={languageOpen}
+        onClick={openLanguagePicker}
+      />
+      {userId && (
         <>
-          <LocaleTriggerButton
-            currentLocale={locale}
-            compact
-            iconOnly
-            open={languageOpen}
-            onClick={openLanguagePicker}
-          />
           <MessagesPanel locale={locale} unreadCount={unreadMessageCount} />
           <NotificationsPanel locale={locale} unreadCount={unreadCount} />
-          <button
-            suppressHydrationWarning
-            onClick={() => setMobileOpen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-body hover:bg-surface-hover transition-colors shrink-0"
-            aria-label={tMenu}
-          >
-            <Menu style={{ width: 20, height: 20 }} />
-          </button>
-        </>
-      ) : (
-        <>
-          <LocaleTriggerButton
-            currentLocale={locale}
-            compact
-            iconOnly
-            open={languageOpen}
-            onClick={openLanguagePicker}
-          />
-          <CurrencySelector compact iconOnly />
-          <Link href={`/${locale}/login`}>
-            <button
-              suppressHydrationWarning
-              className="bg-brand hover:bg-brand-hover text-white font-medium rounded-full transition-colors shrink-0 leading-tight text-[calc(0.875rem*0.7)] px-[calc(1rem*0.7)] py-[calc(0.5rem*0.7)]"
-            >
-              {tLogin}
-            </button>
-          </Link>
         </>
       )}
+      {!userId && <CurrencySelector compact iconOnly />}
+      <button
+        suppressHydrationWarning
+        type="button"
+        onClick={() => setMobileOpen(true)}
+        className="w-9 h-9 flex items-center justify-center rounded-full text-body hover:bg-surface-hover transition-colors shrink-0"
+        aria-label={tMenu}
+      >
+        <Menu style={{ width: 20, height: 20 }} />
+      </button>
     </div>
   )
 
   return (
     <>
-      {/* 모바일: 1열 = 로고(왼쪽) + 메시지/알림/햄버거(오른쪽) | 데스크탑: 로고만 */}
-      <div className="flex flex-col md:flex-row md:items-center md:min-h-14 md:h-14 md:gap-2 sm:md:gap-3 w-full min-w-0">
+      {/* 모바일: 로고 + 액션 | 데스크탑: 로고 + 네비 */}
+      <div className="flex items-center min-h-12 md:min-h-14 md:h-14 md:gap-2 sm:md:gap-3 w-full min-w-0">
         <div className="flex justify-between items-center w-full md:contents">
           {logoSlot}
           <div className="md:hidden shrink-0">{mobileRightIcons}</div>
         </div>
 
-        {/* 데스크탑: 가운데 네비 + 오른쪽 영역 | 모바일: 2열 5개 메뉴만 */}
-        <div className="flex md:flex-1 w-full min-w-0 flex-col md:flex-row">
+        <div className="hidden md:flex flex-1 w-full min-w-0">
       {/* ── 데스크탑 레이아웃: flex-1 으로 가운데 + 오른쪽 정렬 ── */}
       <div className="hidden md:flex flex-1 items-center justify-between">
         <ExploreMegaMenu groups={megaMenuGroups} locale={locale} />
@@ -259,32 +228,8 @@ export default function HeaderNav({
         )}
         </div>{/* end 오른쪽 영역 */}
       </div>{/* end 데스크탑 flex-1 wrapper */}
-
-      {/* ── 모바일 2열: 메인 메뉴 5개만, 가로 100%, 가운데 정렬 ── */}
-      <nav className="md:hidden flex w-full items-center justify-center gap-0.5 sm:gap-1 min-h-11 py-1 px-1">
-        {navLinks.map(link => (
-          <Link
-            key={link.href}
-            href={`/${locale}${link.href}`}
-            title={link.label}
-            className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 min-w-0 flex-1 max-w-[4.5rem] rounded-lg transition-colors ${
-              isActive(link.href)
-                ? 'text-brand'
-                : 'text-subtle hover:text-body'
-            }`}
-          >
-            <span className="shrink-0">{navIcons[link.href] ?? <span className="text-xs font-bold">?</span>}</span>
-            <span className="text-[10px] sm:text-[11px] font-medium leading-tight truncate w-full text-center">
-              {link.label}
-            </span>
-            {isActive(link.href) && (
-              <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-brand rounded-full" />
-            )}
-          </Link>
-        ))}
-      </nav>
-        </div>{/* end flex md:flex-1 wrapper */}
-      </div>{/* end outer flex flex-col */}
+        </div>
+      </div>{/* end outer flex */}
 
       {/* ── 모바일 메뉴 오버레이 (Portal로 body에 직접 마운트 → 부모 stacking context 영향 없음) ── */}
       {mobileOpen && typeof document !== 'undefined' && createPortal(
@@ -296,18 +241,18 @@ export default function HeaderNav({
           />
 
           {/* 메뉴 패널 */}
-          <div className="absolute right-0 top-0 h-dvh max-h-[100dvh] w-[min(100vw-3rem,20rem)] max-w-[20rem] bg-white shadow-2xl flex flex-col overflow-y-auto overscroll-y-contain pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
-            <div className="flex items-center justify-between px-5 py-5 border-b border-edge/60">
+          <div className="absolute right-0 top-0 h-dvh max-h-[100dvh] w-[min(100vw-1.5rem,24rem)] max-w-[24rem] bg-white shadow-2xl flex flex-col overflow-hidden pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-edge/60 shrink-0">
               {userId ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-brand/20">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-brand/20 shrink-0">
                     {avatarUrl
                       ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                       : initials}
                   </div>
-                  <div>
-                    <p className="font-semibold text-heading text-sm">{fullName || userEmail}</p>
-                    {fullName && <p className="text-xs text-hint mt-0.5">{userEmail}</p>}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-heading text-sm truncate">{fullName || userEmail}</p>
+                    {fullName && <p className="text-xs text-hint truncate mt-0.5">{userEmail}</p>}
                   </div>
                 </div>
               ) : (
@@ -315,38 +260,48 @@ export default function HeaderNav({
               )}
               <button
                 suppressHydrationWarning
-                onClick={() => setMobileOpen(false)}
-                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle transition-colors"
+                type="button"
+                onClick={closeMobile}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle transition-colors shrink-0"
               >
-                <X className="w-4.5 h-4.5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* 사용자 메뉴 (메인 5개는 헤더 아이콘으로 표시됨) */}
-            {userId ? (
-              <>
-                <div className="px-3 py-3 border-b border-edge">
-                  <MobileMenuLink href={`/${locale}/profile`} icon={<User className="w-4 h-4" />} label={tProfile} onClick={() => setMobileOpen(false)} />
-                  <MobileMenuLink href={`/${locale}/dashboard`} icon={<LayoutDashboard className="w-4 h-4" />} label={tDashboard} onClick={() => setMobileOpen(false)} />
-                  <MobileMenuLink href={`/${locale}/bookmarks`} icon={<Bookmark className="w-4 h-4" />} label={tBookmarks} onClick={() => setMobileOpen(false)} />
-                  <MobileMenuLink href={`/${locale}/messages`} icon={<MessageSquare className="w-4 h-4" />} label={tMessages} badge={unreadMessageCount} onClick={() => setMobileOpen(false)} />
+            <div className="flex-1 overflow-y-auto overscroll-y-contain">
+              {!userId && (
+                <div className="px-4 pt-4 pb-2">
+                  <Link href={`/${locale}/login`} onClick={closeMobile}>
+                    <button
+                      suppressHydrationWarning
+                      type="button"
+                      className="w-full bg-brand hover:bg-brand-hover text-white font-semibold rounded-xl py-3 text-sm transition-colors"
+                    >
+                      {tLogin}
+                    </button>
+                  </Link>
                 </div>
-              </>
-            ) : (
-              <div className="px-4 py-4 border-b border-edge">
-                <Link href={`/${locale}/login`} onClick={() => setMobileOpen(false)}>
-                  <button
-                    suppressHydrationWarning
-                    className="w-full bg-brand hover:bg-brand-hover text-white font-medium rounded-lg transition-colors text-[calc(0.875rem*0.7)] py-[calc(0.75rem*0.7)]"
-                  >
-                    {tLogin}
-                  </button>
-                </Link>
-              </div>
-            )}
+              )}
+
+              <MobileMegaMenu
+                groups={megaMenuGroups}
+                locale={locale}
+                pathname={pathname}
+                onNavigate={closeMobile}
+              />
+
+              {userId && (
+                <div className="px-3 py-2 border-t border-edge/60">
+                  <p className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-hint">{tAccount}</p>
+                  <MobileMenuLink href={`/${locale}/profile`} icon={<User className="w-4 h-4" />} label={tProfile} onClick={closeMobile} />
+                  <MobileMenuLink href={`/${locale}/dashboard`} icon={<LayoutDashboard className="w-4 h-4" />} label={tDashboard} onClick={closeMobile} />
+                  <MobileMenuLink href={`/${locale}/bookmarks`} icon={<Bookmark className="w-4 h-4" />} label={tBookmarks} onClick={closeMobile} />
+                  <MobileMenuLink href={`/${locale}/messages`} icon={<MessageSquare className="w-4 h-4" />} label={tMessages} badge={unreadMessageCount} onClick={closeMobile} />
+                </div>
+              )}
 
             {/* 설정 */}
-            <div className="px-3 py-2 border-b border-edge">
+            <div className="px-3 py-2 border-t border-edge/60">
               <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
                 <span className="flex items-center gap-3 text-sm font-medium text-body">
                   <span className="text-hint">🌐</span>
@@ -356,7 +311,7 @@ export default function HeaderNav({
                   currentLocale={locale}
                   compact
                   open={languageOpen}
-                  onClick={() => { setMobileOpen(false); openLanguagePicker() }}
+                  onClick={() => { closeMobile(); openLanguagePicker() }}
                 />
               </div>
               <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
@@ -367,13 +322,15 @@ export default function HeaderNav({
                 <CurrencySelector compact />
               </div>
             </div>
+            </div>
 
             {/* 로그아웃 */}
             {userId && (
-              <div className="px-4 py-3 mt-auto">
+              <div className="px-4 py-3 border-t border-edge/60 shrink-0">
                 <button
                   suppressHydrationWarning
-                  onClick={() => { setMobileOpen(false); signOut({ redirectUrl: `/${locale}` }) }}
+                  type="button"
+                  onClick={() => { closeMobile(); signOut({ redirectUrl: `/${locale}` }) }}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-danger border border-danger-light hover:bg-danger-light transition-colors"
                 >
                   <LogOut className="w-4 h-4" />

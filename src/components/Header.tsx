@@ -72,13 +72,6 @@ export default async function Header({
     },
   ]
 
-  const MOBILE_NAV_LINKS = [
-    { href: '/companions', label: t('findCompanions') },
-    { href: '/guides', label: t('findGuides') },
-    { href: '/challenges', label: t('challenges') },
-    { href: '/bookmarks', label: tm('navSaved') },
-  ]
-
   let unreadCount = 0
   let unreadMessageCount = 0
   let profile: { id: string; avatar_url: string | null; full_name: string | null } | null = null
@@ -128,7 +121,6 @@ export default async function Header({
           avatarUrl={profile?.avatar_url ?? clerkUser?.imageUrl}
           fullName={profile?.full_name ?? clerkUser?.fullName}
           megaMenuGroups={MEGA_MENU_GROUPS}
-          navLinks={MOBILE_NAV_LINKS}
           unreadCount={unreadCount}
           unreadMessageCount={unreadMessageCount}
           tDashboard={t('dashboard')}
@@ -139,6 +131,7 @@ export default async function Header({
           tMessages={t('messages')}
           tNotifications={t('notifications')}
           tMenu={t('menu')}
+          tAccount={tm('footerAccount')}
           tLanguage={t('language')}
           tCurrency={t('currency')}
         />

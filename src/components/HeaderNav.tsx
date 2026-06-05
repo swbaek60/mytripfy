@@ -34,6 +34,7 @@ interface Props {
   tNotifications: string
   tMenu: string
   tAccount: string
+  tMobileMore: string
   tLanguage: string
   tCurrency: string
 }
@@ -46,7 +47,7 @@ export default function HeaderNav({
   megaMenuGroups,
   unreadCount, unreadMessageCount,
   tDashboard, tProfile, tLogout, tLogin, tBookmarks, tMessages, tNotifications,
-  tMenu, tAccount, tLanguage, tCurrency,
+  tMenu, tAccount, tMobileMore, tLanguage, tCurrency,
 }: Props) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -271,26 +272,15 @@ export default function HeaderNav({
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-y-contain">
-              {!userId && (
-                <div className="px-4 pt-4 pb-2">
-                  <Link href={`/${locale}/login`} onClick={closeMobile}>
-                    <button
-                      suppressHydrationWarning
-                      type="button"
-                      className="w-full bg-brand hover:bg-brand-hover text-white font-semibold rounded-xl py-3 text-sm transition-colors"
-                    >
-                      {tLogin}
-                    </button>
-                  </Link>
-                </div>
-              )}
-
               <MobileMegaMenu
+                guestLogin={!userId ? { href: `/${locale}/login`, label: tLogin } : undefined}
                 primaryLinks={primaryNavLinks}
                 groups={megaMenuGroups}
                 locale={locale}
                 pathname={pathname}
                 onNavigate={closeMobile}
+                accountLabel={tAccount}
+                moreLabel={tMobileMore}
               />
 
               {userId && (

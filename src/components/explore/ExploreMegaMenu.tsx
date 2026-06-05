@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 export interface NavPrimaryLink {
   href: string
   label: string
+  description?: string
 }
 
 export interface MegaMenuGroup {

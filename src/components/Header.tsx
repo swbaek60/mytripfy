@@ -35,8 +35,8 @@ export default async function Header({
   }
 
   const PRIMARY_NAV_LINKS: NavPrimaryLink[] = [
-    { href: '/companions', label: t('findCompanions') },
-    { href: '/guides', label: t('findGuides') },
+    { href: '/companions', label: t('findCompanions'), description: tm('navExploreCompanionsDesc') },
+    { href: '/guides', label: t('findGuides'), description: tm('navExploreGuidesDesc') },
   ]
 
   const MEGA_MENU_GROUPS: MegaMenuGroup[] = [
@@ -136,6 +136,7 @@ export default async function Header({
           tNotifications={t('notifications')}
           tMenu={t('menu')}
           tAccount={tm('footerAccount')}
+          tMobileMore={tm('navMobileMore')}
           tLanguage={t('language')}
           tCurrency={t('currency')}
         />

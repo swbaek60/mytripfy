@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import Header from '@/components/Header'
 import { createClient } from '@/utils/supabase/server'
 import { auth } from '@clerk/nextjs/server'
-import { getCountryByCode } from '@/data/countries'
 import HeroSearch from '@/components/marketing/HeroSearch'
 import SectionShell from '@/components/layout/SectionShell'
 import ValuePropGrid from '@/components/marketing/ValuePropGrid'
@@ -15,7 +14,10 @@ import FaqAccordion from '@/components/marketing/FaqAccordion'
 import PromoBanner from '@/components/layout/PromoBanner'
 import CompanionStoryCard from '@/components/explore/CompanionStoryCard'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
+import GuidePhotoCarousel from '@/components/GuidePhotoCarousel'
 import CountryFlag from '@/components/CountryFlag'
+import { getLevelInfo, getCountryByCode } from '@/data/countries'
+import type { GuideRegion } from '@/data/cities'
 import { Users, ShieldCheck, Map as MapIcon, Trophy, UserCheck, Search, Star, Award } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
@@ -47,6 +49,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
 
   let isLoggedIn = false
+  let userId: string | null = null
   type PostRow = {
     id: string
     title: string
@@ -66,6 +69,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     trust_score?: number
     guide_hourly_rate?: number
     rate_currency?: string | null
+    travel_level?: number | null
+    profile_photos?: string[] | null
+    guide_city_regions?: GuideRegion[] | null
   }
   type LeaderboardRow = { id: string; full_name: string | null; avatar_url: string | null; total_points?: number }
   type CertRow = {
@@ -83,7 +89,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   let popularCodes: string[] = []
 
   try {
-    const { userId } = await auth()
+    const authResult = await auth()
+    userId = authResult.userId ?? null
     isLoggedIn = !!userId
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
@@ -104,7 +111,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         .limit(6),
       supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, nationality, trust_score, guide_hourly_rate, rate_currency')
+        .select('id, full_name, avatar_url, nationality, trust_score, guide_hourly_rate, rate_currency, travel_level, profile_photos, guide_city_regions')
         .eq('is_guide', true)
         .order('trust_score', { ascending: false })
         .limit(4),
@@ -278,32 +285,54 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </Link>
           }
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {topGuides.map(guide => (
-              <Link key={guide.id} href={`/guides/${guide.id}`} className="ds-card-interactive p-5 block">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-gold-light overflow-hidden shrink-0">
-                    {guide.avatar_url ? (
-                      <img src={guide.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="w-full h-full flex items-center justify-center text-gold font-bold">
-                        {(guide.full_name ?? 'G').charAt(0)}
-                      </span>
-                    )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {topGuides.map(guide => {
+              const levelInfo = getLevelInfo(guide.travel_level || 1)
+              const regions = guide.guide_city_regions ?? []
+              const primaryRegion = regions[0]
+              const primaryCountry = primaryRegion ? getCountryByCode(primaryRegion.country) : null
+              const nationalityCountry = guide.nationality ? getCountryByCode(guide.nationality) : null
+              const extraPhotos = guide.profile_photos ?? []
+              return (
+                <Link
+                  key={guide.id}
+                  href={`/guides/${guide.id}`}
+                  className="group block h-full rounded-2xl border border-edge/60 bg-surface overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-gold/40 transition-all duration-200"
+                >
+                  <GuidePhotoCarousel
+                    avatar={guide.avatar_url}
+                    photos={extraPhotos}
+                    name={guide.full_name || ''}
+                    levelLabel={`${levelInfo.badge} Lv.${guide.travel_level || 1}`}
+                    levelColor={levelInfo.color}
+                    userId={userId}
+                    guideId={guide.id}
+                    countryCode={primaryRegion?.country ?? guide.nationality ?? null}
+                    countryName={primaryCountry?.name ?? nationalityCountry?.name ?? null}
+                    city={primaryRegion?.cities[0] ?? null}
+                  />
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-heading truncate group-hover:text-gold transition-colors">
+                          {guide.full_name ?? tm('allGuides')}
+                        </p>
+                        {nationalityCountry && (
+                          <p className="text-xs text-subtle mt-0.5 flex items-center gap-1.5">
+                            <CountryFlag code={nationalityCountry.code} size="xs" />
+                            {nationalityCountry.name}
+                          </p>
+                        )}
+                      </div>
+                      {guide.trust_score != null && guide.trust_score > 0 && (
+                        <span className="shrink-0 text-xs font-semibold text-gold">★ {guide.trust_score.toFixed(1)}</span>
+                      )}
+                    </div>
+                    <GuideRateDisplay rate={guide.guide_hourly_rate ?? null} rateCurrency={guide.rate_currency} />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-heading truncate">{guide.full_name ?? tm('allGuides')}</p>
-                    {guide.nationality && (
-                      <CountryFlag code={guide.nationality} size="sm" />
-                    )}
-                  </div>
-                </div>
-                {guide.trust_score != null && guide.trust_score > 0 && (
-                  <p className="text-xs text-subtle mb-2">★ {guide.trust_score.toFixed(1)}</p>
-                )}
-                <GuideRateDisplay rate={guide.guide_hourly_rate ?? null} rateCurrency={guide.rate_currency} />
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         </SectionShell>
       )}
@@ -334,23 +363,31 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </Link>
           }
         >
-          <div className="flex flex-col gap-3 max-w-2xl mx-auto">
-            {hallOfFameTop5.map((row, idx) => (
-              <Link key={row.id} href={`/users/${row.id}`}>
-                <div className="flex items-center gap-4 bg-surface rounded-xl p-4 border border-edge/60 hover:border-gold/30 hover:shadow-md transition-all">
-                  <span className="w-8 h-8 rounded-full bg-gold-light text-gold font-bold flex items-center justify-center text-sm">{idx + 1}</span>
-                  <div className="w-10 h-10 rounded-full bg-surface-sunken overflow-hidden">
-                    {row.avatar_url ? (
-                      <img src={row.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Award className="w-5 h-5 text-hint m-auto mt-2.5" />
-                    )}
+          <div className="flex flex-col gap-3 max-w-3xl mx-auto">
+            {hallOfFameTop5.map((row, idx) => {
+              const avatarSize = idx === 0 ? 'w-20 h-20 sm:w-24 sm:h-24' : idx < 3 ? 'w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20' : 'w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem]'
+              const rankSize = idx < 3 ? 'w-10 h-10 text-base' : 'w-9 h-9 text-sm'
+              return (
+                <Link key={row.id} href={`/users/${row.id}`}>
+                  <div className="flex items-center gap-4 sm:gap-5 bg-surface rounded-2xl p-4 sm:p-5 border border-edge/60 hover:border-gold/30 hover:shadow-md transition-all">
+                    <span className={`${rankSize} rounded-full bg-gold-light text-gold font-bold flex items-center justify-center shrink-0`}>
+                      {idx + 1}
+                    </span>
+                    <div className={`${avatarSize} rounded-full bg-surface-sunken overflow-hidden shrink-0 ring-2 ${idx === 0 ? 'ring-gold/50' : 'ring-edge/80'}`}>
+                      {row.avatar_url ? (
+                        <img src={row.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Award className={`${idx < 3 ? 'w-8 h-8' : 'w-6 h-6'} text-hint`} />
+                        </div>
+                      )}
+                    </div>
+                    <span className="font-semibold text-heading flex-1 truncate text-base sm:text-lg">{row.full_name ?? 'Traveler'}</span>
+                    <span className="text-gold font-bold text-base sm:text-lg shrink-0">{row.total_points ?? 0} pts</span>
                   </div>
-                  <span className="font-semibold text-heading flex-1 truncate">{row.full_name ?? 'Traveler'}</span>
-                  <span className="text-gold font-bold">{row.total_points ?? 0} pts</span>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         </SectionShell>
       )}

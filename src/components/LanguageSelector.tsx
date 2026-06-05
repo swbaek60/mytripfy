@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef, type PointerEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import CountryFlag from '@/components/CountryFlag'
-import { routing } from '@/i18n/routing'
+import { usePathname, getPathname } from '@/i18n/routing'
 import { updatePreferredLocale } from '@/app/[locale]/actions'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 import ModalPortalShell from '@/components/ui/ModalPortalShell'
 
-// locale → country code (국기 표시용) — English(en)은 특정 국가 국기 대신 Globe 아이콘 사용
 const LOCALE_TO_COUNTRY: Record<string, string> = {
   ko: 'KR', ja: 'JP', zh: 'CN', 'zh-TW': 'TW',
   th: 'TH', vi: 'VN', id: 'ID', ms: 'MY', hi: 'IN', bn: 'BD',
@@ -18,7 +17,6 @@ const LOCALE_TO_COUNTRY: Record<string, string> = {
   ar: 'SA', fa: 'IR',
 }
 
-// 글로벌 아이콘 (English 등 특정 국가에 귀속되지 않는 언어에 사용)
 function GlobeIcon({ className = '' }: { className?: string }) {
   return (
     <svg
@@ -38,15 +36,13 @@ function GlobeIcon({ className = '' }: { className?: string }) {
   )
 }
 
-// compact 모드에서 표시할 짧은 코드 (전부 언어 코드 ISO 639-1)
 function getLocaleShortLabel(locale: string): string {
   return locale.split('-')[0].toUpperCase()
 }
 
-// 대륙별로 정렬 (trip.com은 지역별, 우리는 언어 사용 인구순 + 지역 그룹)
 const LANGUAGE_GROUPS = [
   {
-    region: '🌏 East Asia',
+    regionKey: 'regionEastAsia' as const,
     color: 'from-rose-500 to-pink-500',
     langs: [
       { locale: 'ko', native: '한국어', english: 'Korean' },
@@ -56,7 +52,7 @@ const LANGUAGE_GROUPS = [
     ],
   },
   {
-    region: '🌴 Southeast Asia & South Asia',
+    regionKey: 'regionSoutheastAsia' as const,
     color: 'from-orange-500 to-amber-500',
     langs: [
       { locale: 'th', native: 'ภาษาไทย', english: 'Thai' },
@@ -68,7 +64,7 @@ const LANGUAGE_GROUPS = [
     ],
   },
   {
-    region: '🌍 Europe (West)',
+    regionKey: 'regionEuropeWest' as const,
     color: 'from-blue-500 to-indigo-500',
     langs: [
       { locale: 'en', native: 'English', english: 'English' },
@@ -84,7 +80,7 @@ const LANGUAGE_GROUPS = [
     ],
   },
   {
-    region: '🏔️ Europe (East) & Central Asia',
+    regionKey: 'regionEuropeEast' as const,
     color: 'from-violet-500 to-purple-500',
     langs: [
       { locale: 'ru', native: 'Русский', english: 'Russian' },
@@ -93,7 +89,7 @@ const LANGUAGE_GROUPS = [
     ],
   },
   {
-    region: '🌙 Middle East',
+    regionKey: 'regionMiddleEast' as const,
     color: 'from-teal-500 to-emerald-500',
     langs: [
       { locale: 'ar', native: 'العربية', english: 'Arabic' },
@@ -102,36 +98,103 @@ const LANGUAGE_GROUPS = [
   },
 ]
 
-// 현재 pathname에서 locale 세그먼트만 교체 (25개 로케일 = routing.locales)
-function switchLocaleInPath(pathname: string, newLocale: string): string {
-  const segments = pathname.split('/')
-  if (segments.length > 1 && (routing.locales as readonly string[]).includes(segments[1])) {
-    segments[1] = newLocale
-    return segments.join('/')
-  }
-  return `/${newLocale}${pathname}`
-}
-
 interface Props {
   currentLocale: string
   compact?: boolean
-  /** 아이콘만 표시 (모바일 상단 등 공간 절약) */
   iconOnly?: boolean
-  /** 로그인한 사용자 ID. 있으면 언어 선택 시 프로필에 저장해 두었다가 다음 로그인 시 해당 언어로 표시 */
   userId?: string
-  /** 모달이 열릴 때 (햄버거·프로필 드롭다운 등 다른 오버레이 닫기) */
   onOverlayOpen?: () => void
+  /** Controlled modal open state (HeaderNav root mount) */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** Hide trigger button — use LocaleTriggerButton separately */
+  hideTrigger?: boolean
 }
 
-export default function LanguageSelector({ currentLocale, compact, iconOnly, userId, onOverlayOpen }: Props) {
-  const [open, setOpen] = useState(false)
+export function LocaleTriggerButton({
+  currentLocale,
+  compact,
+  iconOnly,
+  open,
+  onClick,
+}: {
+  currentLocale: string
+  compact?: boolean
+  iconOnly?: boolean
+  open?: boolean
+  onClick: () => void
+}) {
+  const t = useTranslations('Nav')
+  const allLangs = LANGUAGE_GROUPS.flatMap(g => g.langs)
+  const currentLang = allLangs.find(l => l.locale === currentLocale) || allLangs[0]
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        onClick()
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      className={iconOnly
+        ? 'w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0'
+        : compact
+          ? 'flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-surface-hover transition-colors text-sm font-medium text-body'
+          : 'flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-edge hover:border-blue-400 hover:bg-brand-light transition-all text-sm font-medium text-body group'
+      }
+      aria-label={t('language')}
+    >
+      {LOCALE_TO_COUNTRY[currentLang.locale] ? (
+        <CountryFlag code={LOCALE_TO_COUNTRY[currentLang.locale]} size="sm" />
+      ) : (
+        <GlobeIcon className="w-5 h-5" />
+      )}
+      {!iconOnly && !compact && (
+        <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>
+      )}
+      {!iconOnly && compact && (
+        <span className="text-xs uppercase font-semibold">{getLocaleShortLabel(currentLang.locale)}</span>
+      )}
+      {!iconOnly && !compact && (
+        <svg
+          className={`w-3 h-3 transition-transform duration-200 text-hint group-hover:text-brand ${open ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      )}
+    </button>
+  )
+}
+
+export default function LanguageSelector({
+  currentLocale,
+  compact,
+  iconOnly,
+  userId,
+  onOverlayOpen,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger,
+}: Props) {
+  const t = useTranslations('LanguagePicker')
+  const tc = useTranslations('Common')
+  const [internalOpen, setInternalOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [mounted, setMounted] = useState(false)
+  const [switching, setSwitching] = useState(false)
   const pathname = usePathname()
   const searchRef = useRef<HTMLInputElement>(null)
 
+  const isOpen = controlledOpen ?? internalOpen
+  const setOpen = (value: boolean) => {
+    onOpenChange?.(value)
+    if (controlledOpen === undefined) setInternalOpen(value)
+  }
+
   useEffect(() => { setMounted(true) }, [])
-  useBodyScrollLock(open && mounted)
+  useBodyScrollLock(isOpen && mounted)
 
   const allLangs = LANGUAGE_GROUPS.flatMap(g => g.langs)
   const currentLang = allLangs.find(l => l.locale === currentLocale) || allLangs[0]
@@ -156,45 +219,51 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
   }, [])
 
   useEffect(() => {
-    if (!open) return
+    if (!isOpen) return
     const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches
     if (!isMobile) {
-      const t = window.setTimeout(() => searchRef.current?.focus(), 50)
-      return () => window.clearTimeout(t)
+      const timer = window.setTimeout(() => searchRef.current?.focus(), 50)
+      return () => window.clearTimeout(timer)
     }
-  }, [open])
+  }, [isOpen])
 
-  const handleSelect = (locale: string) => {
-    if (locale === currentLocale) {
+  const handleSelect = async (locale: string) => {
+    if (switching || locale === currentLocale) {
       setOpen(false)
       setSearch('')
       return
     }
+    setSwitching(true)
     setOpen(false)
     setSearch('')
-    const newPath = switchLocaleInPath(pathname, locale)
+
     if (userId) {
-      void updatePreferredLocale(locale).catch(() => {})
+      try {
+        await updatePreferredLocale(locale)
+      } catch {
+        /* navigation still proceeds */
+      }
     }
-    window.location.assign(newPath)
+
+    const href = getPathname({ href: pathname, locale })
+    window.location.assign(href)
   }
 
-  const onLanguagePointerDown = (locale: string) => (e: PointerEvent<HTMLButtonElement>) => {
+  const onLanguageSelect = (locale: string) => (e: PointerEvent<HTMLButtonElement>) => {
     if (e.button !== 0) return
-    // 프로필 드롭다운 mousedown/click 닫기보다 먼저 실행 (로그인 시 포털 모달 선택)
     e.preventDefault()
     e.stopPropagation()
-    handleSelect(locale)
+    void handleSelect(locale)
   }
 
-  const modal = open && mounted ? createPortal(
+  const modal = isOpen && mounted ? createPortal(
     <ModalPortalShell onBackdropPointerDown={() => setOpen(false)}>
       <div className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[min(88dvh,calc(100dvh-1.5rem))] sm:h-auto sm:max-h-[min(85vh,92dvh)]">
         <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-heading">Select Language</h2>
-              <p className="text-xs text-hint mt-0.5">25 languages available</p>
+              <h2 className="text-lg font-bold text-heading">{t('selectTitle')}</h2>
+              <p className="text-xs text-hint mt-0.5">{t('selectSubtitle')}</p>
             </div>
             <button
               type="button"
@@ -211,18 +280,18 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search language..."
+              placeholder={t('searchPlaceholder')}
               className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
             />
           </div>
         </div>
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-y-contain px-6 py-4 touch-pan-y">
           {filtered.map(group => (
-            <div key={group.region}>
+            <div key={group.regionKey}>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`h-1 w-5 rounded-full bg-gradient-to-r ${group.color}`} />
                 <span className="text-xs font-semibold text-hint uppercase tracking-wide">
-                  {group.region}
+                  {t(group.regionKey)}
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -232,7 +301,12 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
                     <button
                       type="button"
                       key={lang.locale}
-                      onPointerDown={onLanguagePointerDown(lang.locale)}
+                      onPointerDown={onLanguageSelect(lang.locale)}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                      }}
+                      disabled={switching}
                       style={{ touchAction: 'manipulation' }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
                         isActive
@@ -265,55 +339,35 @@ export default function LanguageSelector({ currentLocale, compact, iconOnly, use
           {filtered.length === 0 && (
             <div className="text-center py-10 text-hint">
               <div className="text-3xl mb-2">🔍</div>
-              <p className="text-sm">No language found for &quot;{search}&quot;</p>
+              <p className="text-sm">{tc('noLanguageFound', { search })}</p>
             </div>
           )}
         </div>
         <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50 shrink-0">
-          <p className="text-xs text-hint text-center">
-            More languages coming soon · <span className="text-brand">Suggest a language</span>
-          </p>
+          <p className="text-xs text-hint text-center">{t('footerHint')}</p>
         </div>
       </div>
     </ModalPortalShell>,
     document.body
   ) : null
 
+  if (hideTrigger) {
+    return modal
+  }
+
   return (
     <div className="relative">
-      <button
-        type="button"
+      <LocaleTriggerButton
+        currentLocale={currentLocale}
+        compact={compact}
+        iconOnly={iconOnly}
+        open={isOpen}
         onClick={() => {
-          setOpen((v) => {
-            const next = !v
-            if (next) onOverlayOpen?.()
-            return next
-          })
+          const next = !isOpen
+          if (next) onOverlayOpen?.()
+          setOpen(next)
         }}
-        className={iconOnly
-          ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0"
-          : compact
-            ? "flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-surface-hover transition-colors text-sm font-medium text-body"
-            : "flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-edge hover:border-blue-400 hover:bg-brand-light transition-all text-sm font-medium text-body group"
-        }
-        aria-label="Select language"
-      >
-        {LOCALE_TO_COUNTRY[currentLang.locale] ? (
-          <CountryFlag code={LOCALE_TO_COUNTRY[currentLang.locale]} size={iconOnly ? 'sm' : 'sm'} />
-        ) : (
-          <GlobeIcon className="w-5 h-5" />
-        )}
-        {!iconOnly && !compact && <span className="hidden sm:inline text-xs">{currentLang.native.split(' ')[0]}</span>}
-        {!iconOnly && compact
-          ? <span className="text-xs uppercase font-semibold">{getLocaleShortLabel(currentLang.locale)}</span>
-          : !iconOnly && <svg
-              className={`w-3 h-3 transition-transform duration-200 text-hint group-hover:text-brand ${open ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-            </svg>
-        }
-      </button>
+      />
       {modal}
     </div>
   )

@@ -10,6 +10,8 @@ import { CurrencyProvider } from '@/context/CurrencyContext';
 import SiteJsonLd from '@/components/seo/SiteJsonLd';
 import { rootMetadataBase } from '@/lib/seo/build-metadata';
 import { ogLocaleFor, ogImageAbsoluteUrl } from '@/lib/seo/site';
+import NavigationProgress from '@/components/NavigationProgress';
+import SiteFooter from '@/components/layout/SiteFooter'
 
 const headingFont = Plus_Jakarta_Sans({
   variable: "--font-heading",
@@ -126,10 +128,14 @@ export default async function LocaleLayout({
       className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
       data-locale={locale}
     >
+      <NavigationProgress />
       <SiteJsonLd locale={locale} />
       <NextIntlClientProvider locale={locale} messages={messages}>
         <CurrencyProvider>
-          {children}
+          <div className="min-h-screen flex flex-col">
+            {children}
+            <SiteFooter locale={locale} />
+          </div>
         </CurrencyProvider>
       </NextIntlClientProvider>
     </div>

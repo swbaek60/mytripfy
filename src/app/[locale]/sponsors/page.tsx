@@ -82,13 +82,17 @@ export default async function SponsorsPage({
             <p className="text-subtle mt-1 text-sm">{t('subtitle')}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {user && (
-              <Link href={`/${locale}/sponsors/new`}>
-                <Button className="bg-teal hover:brightness-110 text-white rounded-full text-sm">
-                  + {t('addSponsor')}
-                </Button>
-              </Link>
-            )}
+            <Link
+              href={
+                user
+                  ? `/${locale}/sponsors/new`
+                  : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/sponsors/new`)}`
+              }
+            >
+              <Button className="bg-teal hover:brightness-110 text-white rounded-full text-sm">
+                + {t('addSponsor')}
+              </Button>
+            </Link>
             {user && (
               <Link href={`/${locale}/sponsors/mine`}>
                 <Button variant="outline" className="border-teal/40 text-teal hover:bg-teal-light rounded-full text-sm">

@@ -14,6 +14,8 @@ import ItineraryEditor from '@/components/ItineraryEditor'
 import ItineraryView from '@/components/ItineraryView'
 import CompanionPosterCarousel from '@/components/CompanionPosterCarousel'
 import TranslatedText from '@/components/TranslatedText'
+import TrackRecentCompanion from '@/components/explore/TrackRecentCompanion'
+import CompanionStickyCta from '@/components/explore/CompanionStickyCta'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -490,6 +492,17 @@ export default async function CompanionDetailPage({
         </div>{/* 오른쪽 끝 */}
         </div>{/* grid 끝 */}
       </main>
+
+      <TrackRecentCompanion id={post.id} title={post.title} country={post.destination_country} />
+      {!isOwner && effectiveStatus === 'open' && (
+        <CompanionStickyCta
+          locale={locale}
+          postId={post.id}
+          alreadyApplied={!!alreadyApplied}
+          isOwner={isOwner}
+          isLoggedIn={!!user}
+        />
+      )}
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default async function ProfileEditPage({
 
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-  if (!user) redirect(`/sign-in`)
+  if (!user) redirect(`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/profile/edit`)}`)
 
   const { data: profile } = await supabase
     .from('profiles')

@@ -140,7 +140,7 @@ export default async function CategoryChallengePage({
       {/* Header Banner */}
       <section className="bg-surface border-b border-edge">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <Link href={`/${locale}/challenges`} className="text-sm text-subtle hover:text-purple mb-4 inline-block">
+          <Link href={`/${locale}/challenges`} className="text-sm text-subtle hover:text-rose-600 mb-4 inline-block">
             ← Back to Challenges
           </Link>
           <div className="flex items-end justify-between flex-wrap gap-4">
@@ -154,10 +154,10 @@ export default async function CategoryChallengePage({
               <div className="w-full max-w-xs bg-surface-sunken p-4 rounded-2xl border border-edge">
                 <div className="flex justify-between text-sm font-bold text-body mb-2">
                   <span>{tc('myProgress')}</span>
-                  <span className="text-purple">{completedCount} / 100</span>
+                  <span className="text-rose-600">{completedCount} / 100</span>
                 </div>
                 <div className="w-full bg-edge-strong rounded-full h-2.5">
-                  <div className="bg-purple h-2.5 rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
+                  <div className="bg-rose-500 h-2.5 rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
                 </div>
               </div>
             ) : (

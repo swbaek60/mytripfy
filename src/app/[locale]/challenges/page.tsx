@@ -94,7 +94,7 @@ export default async function ChallengesPage({
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap">
             <Link href={`/${locale}/challenges/feed`}>
-              <button className="bg-purple text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-purple-700 transition-colors">
+              <button className="bg-rose-600 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-rose-700 transition-colors">
                 🌍 {t('communityFeed')}
               </button>
             </Link>
@@ -107,9 +107,9 @@ export default async function ChallengesPage({
         </div>
 
         {/* 히어로 */}
-        <div className="bg-gradient-to-r from-brand to-indigo rounded-2xl p-8 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-rose-900 to-rose-600 rounded-2xl p-8 text-white shadow-lg">
           <h1 className="text-3xl font-extrabold mb-2">{t('world100Title')}</h1>
-          <p className="text-blue-200/90 mb-6">
+          <p className="text-rose-100/90 mb-6">
             {t('subtitle')}
           </p>
 
@@ -136,7 +136,7 @@ export default async function ChallengesPage({
                 ].map(m => (
                   <span key={m.at}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      totalCertified >= m.at ? 'bg-surface text-purple' : 'bg-white/20 text-white/60'
+                      totalCertified >= m.at ? 'bg-surface text-rose-600' : 'bg-white/20 text-white/60'
                     }`}>
                     {m.emoji} {m.label}
                   </span>
@@ -145,7 +145,7 @@ export default async function ChallengesPage({
             </div>
           ) : (
             <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/challenges`)}`}>
-              <button className="bg-white text-brand font-bold px-6 py-2.5 rounded-full text-sm hover:bg-brand-light transition-colors">
+              <button className="bg-white text-rose-700 font-bold px-6 py-2.5 rounded-full text-sm hover:bg-rose-50 transition-colors">
                 {t('loginToTrack')}
               </button>
             </Link>
@@ -161,7 +161,7 @@ export default async function ChallengesPage({
               const pct = Math.round((done / 100) * 100)
               return (
                 <Link key={cat.key} href={`/${locale}/challenges/${cat.key}`}>
-                  <div className="bg-surface rounded-2xl p-4 border border-edge/60 hover:border-brand/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                  <div className="bg-surface rounded-2xl p-4 border border-edge/60 hover:border-rose-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                     <div className="text-3xl mb-2">{cat.emoji}</div>
                     <p className="font-bold text-heading text-sm leading-tight">{cat.title}</p>
                     <p className="text-xs text-hint mt-0.5 mb-3">{cat.desc}</p>
@@ -169,7 +169,7 @@ export default async function ChallengesPage({
                       <>
                         <div className="w-full bg-surface-sunken rounded-full h-1.5 mb-1">
                           <div
-                            className="bg-brand h-1.5 rounded-full"
+                            className="bg-rose-500 h-1.5 rounded-full"
                             style={{ width: `${pct}%` }}
                           />
                         </div>

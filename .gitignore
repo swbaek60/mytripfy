@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+secrets/openai.txt
+secrets/openai.key
+secrets/meta-token.txt
+secrets/instagram-*.txt
 vercel-env-paste.txt
 
 # vercel
@@ -44,5 +48,12 @@ next-env.d.ts
 # clerk configuration (can include secrets)
 /.clerk/
 
+# SNS 로컬 생성물 (배포 제외 — .vercelignore 와 동일)
+/scripts/out/
+
 # 로컬 배포용 GitHub PAT (절대 커밋 금지)
 /scripts/deploy.local.bat
+
+.vercel
+
+.vercel

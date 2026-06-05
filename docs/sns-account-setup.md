@@ -21,9 +21,9 @@
 
 1. **인스타그램 앱** 또는 [instagram.com](https://www.instagram.com) 접속
 2. **회원가입** → 새 이메일·비밀번호로 가입 (수아 전용 이메일)
-3. **사용자 이름** 예시: `sua.100countries` / `sua_mytripfy` / `travelwithsua` (원하는 이름으로)
+3. **사용자 이름 (확정):** `sua.100countries`
 4. **프로필 설정**
-   - **프로필 사진:** 수아 대표 이미지 (예: `sua_captivating_sexy.png`)
+   - **프로필 사진:** `assets/sns/sua-ref-front.png` (`node scripts/generate-sns-reference.mjs` 로 생성)
    - **이름:** `Sua | 100 Countries`
    - **소개문:** 아래 복사해서 사용
 
@@ -43,9 +43,9 @@
 ### 2-2. 이든 계정
 
 1. **또 다른 이메일**로 새 인스타그램 계정 가입 (이든 전용)
-2. **사용자 이름** 예시: `ethan.100countries` / `ethan_mytripfy` / `explorewithethan`
+2. **사용자 이름 (확정):** `ethan.100countries`
 3. **프로필 설정**
-   - **프로필 사진:** 이든 대표 이미지 (예: `ethan_late20s_model.png`)
+   - **프로필 사진:** `assets/sns/ethan-ref-front.png` (`node scripts/generate-sns-reference.mjs` 로 생성)
    - **이름:** `Ethan | 100 Countries`
    - **소개문:** 아래 복사해서 사용
 
@@ -146,4 +146,10 @@ Start your bucket list on mytripfy 👇
 - [ ] 프로필 사진·소개문·링크 입력
 - [ ] 오늘 Day 1 첫 게시 (수아·이든 각 **캐러셀 1개 = 이미지 4장 + 캡션 1개**)
 
-계정 만들고 연동까지 끝나면, 매일 `node scripts/generate-sns-daily.mjs`로 캡션·프롬프트를 생성한 뒤 이미지 4장 만들고 캐러셀 1포스트로 올리시면 됩니다.
+계정 만들고 연동까지 끝나면:
+
+1. **고정 게시:** `node scripts/generate-sns-pinned.mjs` → `scripts/out/pinned/` 캡션·프롬프트
+2. **매일:** `node scripts/sns-run-daily.mjs` 또는 `node scripts/generate-sns-daily.mjs`
+3. **자동 게시:** [sns-meta-api-setup.md](sns-meta-api-setup.md), [sns-daily-operations.md](sns-daily-operations.md)
+
+브랜드·AI 고지: [sns-brand-kit.md](sns-brand-kit.md)

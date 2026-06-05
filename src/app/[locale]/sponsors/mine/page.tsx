@@ -23,7 +23,7 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-  if (!user) redirect(`/sign-in`)
+  if (!user) redirect(`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/sponsors/mine`)}`)
 
   const { data: sponsors } = await supabase
     .from('sponsors')

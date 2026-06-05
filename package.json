@@ -25,7 +25,17 @@
     "icons": "node scripts/generate-favicon.mjs",
     "cap:prep": "node scripts/ensure-capacitor-web-dir.mjs && npx cap sync android",
     "android:bundle": "node scripts/run-android-bundle.mjs",
-    "android:setup-keystore": "node scripts/setup-play-upload-keystore.mjs"
+    "android:setup-keystore": "node scripts/setup-play-upload-keystore.mjs",
+    "deploy:prod": "powershell -ExecutionPolicy Bypass -File scripts/deploy-prod.ps1",
+    "git:push": "powershell -ExecutionPolicy Bypass -File scripts/git-push.ps1",
+    "sns:setup": "node --env-file=.env.local scripts/setup-sns-from-local.mjs",
+    "sns:secrets": "powershell -ExecutionPolicy Bypass -File scripts/prompt-sns-secrets.ps1",
+    "sns:auto": "node --env-file=.env.local scripts/sns-auto-daily.mjs",
+    "sns:text": "node --env-file=.env.local scripts/generate-sns-daily.mjs --no-images",
+    "sns:auto:publish": "node --env-file=.env.local scripts/sns-auto-daily.mjs --publish",
+    "sns:generate": "node --env-file=.env.local scripts/generate-sns-daily.mjs",
+    "sns:refs": "node --env-file=.env.local scripts/generate-sns-reference.mjs",
+    "sns:install-task": "powershell -ExecutionPolicy Bypass -File scripts/install-sns-windows-task.ps1"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1000.0",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslations } from 'next-intl'
 import { useCurrency } from '@/context/CurrencyContext'
 import { CURRENCIES } from '@/utils/currency'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
@@ -10,19 +11,19 @@ import ModalPortalShell from '@/components/ui/ModalPortalShell'
 // 통화 그룹
 const CURRENCY_GROUPS = [
   {
-    region: '🌏 Asia Pacific',
+    regionKey: 'regionAsiaPacific' as const,
     currencies: ['USD','JPY','CNY','KRW','HKD','SGD','TWD','AUD','NZD','INR','IDR','MYR','PHP','THB','VND','BDT','PKR'],
   },
   {
-    region: '🌍 Europe',
+    regionKey: 'regionEurope' as const,
     currencies: ['EUR','GBP','CHF','SEK','NOK','DKK','PLN','CZK','HUF','RON','BGN','HRK','RUB','UAH','TRY'],
   },
   {
-    region: '🌎 Americas',
+    regionKey: 'regionAmericas' as const,
     currencies: ['CAD','MXN','BRL','ARS','CLP','COP','PEN'],
   },
   {
-    region: '🌐 Middle East & Africa',
+    regionKey: 'regionMiddleEastAfrica' as const,
     currencies: ['AED','SAR','QAR','KWD','BHD','OMR','JOD','ILS','EGP','ZAR','NGN','KES','GHS','MAD'],
   },
 ]
@@ -36,6 +37,8 @@ export default function CurrencySelector({
   iconOnly?: boolean
   onOverlayOpen?: () => void
 } = {}) {
+  const t = useTranslations('CurrencyPicker')
+  const tc = useTranslations('Common')
   const { selectedCurrency, setSelectedCurrency } = useCurrency()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -89,9 +92,9 @@ export default function CurrencySelector({
         <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-heading">Select Currency</h2>
+              <h2 className="text-lg font-bold text-heading">{t('selectTitle')}</h2>
               <p className="text-xs text-hint mt-0.5">
-                Currently: <span className="font-semibold text-brand">{current.symbol} {current.code} — {current.name}</span>
+                {t('currently')} <span className="font-semibold text-brand">{current.symbol} {current.code} — {current.name}</span>
               </p>
             </div>
             <button
@@ -109,18 +112,18 @@ export default function CurrencySelector({
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search currency (e.g. USD, Euro, ¥...)"
+              placeholder={t('searchPlaceholder')}
               className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
             />
           </div>
         </div>
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-y-contain px-6 py-4 touch-pan-y">
           {filtered.map(group => (
-            <div key={group.region}>
+            <div key={group.regionKey}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="h-1 w-5 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500" />
                 <span className="text-xs font-semibold text-hint uppercase tracking-wide">
-                  {group.region}
+                  {t(group.regionKey)}
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -164,7 +167,7 @@ export default function CurrencySelector({
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="h-1 w-5 rounded-full bg-gradient-to-r from-gray-300 to-gray-400" />
-                    <span className="text-xs font-semibold text-hint uppercase tracking-wide">Other</span>
+                    <span className="text-xs font-semibold text-hint uppercase tracking-wide">{t('other')}</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {others.map(c => {
@@ -197,14 +200,12 @@ export default function CurrencySelector({
           {filtered.length === 0 && (
             <div className="text-center py-10 text-hint">
               <div className="text-3xl mb-2">🔍</div>
-              <p className="text-sm">No currency found for &quot;{search}&quot;</p>
+              <p className="text-sm">{tc('noCurrencyFound', { search })}</p>
             </div>
           )}
         </div>
         <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50 shrink-0">
-          <p className="text-xs text-hint text-center">
-            Prices are shown in the selected currency
-          </p>
+          <p className="text-xs text-hint text-center">{t('footerHint')}</p>
         </div>
       </div>
     </ModalPortalShell>,
@@ -225,7 +226,7 @@ export default function CurrencySelector({
             ? `flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-sm font-medium ${justChanged ? 'text-success bg-success-light' : 'hover:bg-surface-hover text-body'}`
             : `flex items-center gap-1 text-sm font-medium px-2 py-1.5 rounded-lg transition-colors ${justChanged ? 'text-success bg-success-light' : 'text-subtle hover:text-heading hover:bg-surface-hover'}`
         }
-        aria-label="Select currency"
+        aria-label={t('ariaLabel')}
       >
         <span className="font-semibold">{justChanged ? '✓' : current.symbol}</span>
         {!iconOnly && <span className="text-xs">{current.code}</span>}

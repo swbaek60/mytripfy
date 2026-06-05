@@ -10,6 +10,7 @@ import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import { getLanguageByCode, getLevelInfo as getLangLevel, type LanguageSkill } from '@/data/languages'
 import type { GuideRegion } from '@/data/cities'
 import GuidesFilterBar from './GuidesFilterBar'
+import GuidesTabBar from '@/components/explore/GuidesTabBar'
 import CountryFlag from '@/components/CountryFlag'
 import GuidePhotoCarousel from '@/components/GuidePhotoCarousel'
 import TranslatedText from '@/components/TranslatedText'
@@ -50,6 +51,7 @@ export default async function GuidesPage({
 }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Guides' })
+  const tm = await getTranslations({ locale, namespace: 'Marketing' })
   const { country, city, vehicle, accommodation, free, lang, sort = 'rating', q, allGuides } = await searchParams
   const showAllGuides = allGuides === '1'
   const supabase = await createClient()
@@ -142,38 +144,43 @@ export default async function GuidesPage({
     .limit(8)
 
   return (
-    <div className="min-h-screen bg-surface-sunken">
+    <div className="min-h-screen bg-surface-warm">
       <Header user={user} locale={locale} currentPath="/guides" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* ── 헤더 ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-extrabold text-heading">{t('title')}</h1>
-            <p className="text-subtle mt-1 text-sm">
-              {totalCount > 0
-                ? (hasMoreGuides ? t('subtitleCountOf', { displayed: displayedGuides.length, total: totalCount }) : t('subtitleGuidesFound', { total: totalCount }))
-                : t('discoverWorldwide')}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
+      <section className="relative bg-midnight text-white py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">{tm('guidesHeroTitle')}</h1>
+          <p className="text-white/70 mb-6 max-w-xl">{tm('guidesHeroSubtitle')}</p>
+          <div className="flex flex-wrap gap-2">
             <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
-              <Button className="bg-gold hover:brightness-110 text-white rounded-full text-sm">
-                {t('guideRequestsBtn')}
-              </Button>
+              <Button className="bg-gold hover:brightness-110 text-white rounded-full text-sm">{t('guideRequestsBtn')}</Button>
             </Link>
             {user && (
               <Link href={`/${locale}/profile/edit`}>
-                <Button variant="outline" className="border-gold/40 text-gold hover:bg-gold-light rounded-full text-sm">
+                <Button variant="outline" className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white rounded-full text-sm">
                   + {t('registerAsGuide')}
                 </Button>
               </Link>
             )}
           </div>
         </div>
+      </section>
 
-        {/* ── 필터 바 ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <GuidesTabBar
+          locale={locale}
+          tabs={[
+            { href: '/guides', label: tm('guidesTabGuides') },
+            { href: '/guides/requests', label: tm('guidesTabRequests') },
+          ]}
+        />
+
+        <p className="text-subtle text-sm mb-4">
+          {totalCount > 0
+            ? (hasMoreGuides ? t('subtitleCountOf', { displayed: displayedGuides.length, total: totalCount }) : t('subtitleGuidesFound', { total: totalCount }))
+            : t('discoverWorldwide')}
+        </p>
+
         <GuidesFilterBar
           locale={locale}
           currentFilters={{ country, city, lang, vehicle, accommodation, free, sort, q }}

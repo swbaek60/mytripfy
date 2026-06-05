@@ -116,7 +116,7 @@ export default function CertFeedClient({
           placeholder={tc('searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 min-w-[160px] border border-edge rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple/40 bg-surface"
+          className="flex-1 min-w-[160px] border border-edge rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/40 bg-surface"
         />
         {[
           { key: 'all',       label: tc('filterAll') },
@@ -129,8 +129,8 @@ export default function CertFeedClient({
             onClick={() => setFilterStatus(f.key)}
             className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${
               filterStatus === f.key
-                ? 'bg-purple text-white border-purple'
-                : 'bg-surface text-body border-edge hover:border-purple/40'
+                ? 'bg-rose-600 text-white border-rose-600'
+                : 'bg-surface text-body border-edge hover:border-rose-300'
             }`}
           >
             {f.label}
@@ -172,7 +172,7 @@ export default function CertFeedClient({
                 className={`bg-surface rounded-2xl overflow-hidden border-2 transition-all ${
                   cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
                   cert.dispute_status === 'flagged'   ? 'border-gold/20' :
-                  'border-edge hover:border-purple/30'
+                  'border-edge hover:border-rose-300'
                 }`}
               >
                 {/* 인증 사진 */}
@@ -225,7 +225,7 @@ export default function CertFeedClient({
                     {cert.avatar_url ? (
                       <img src={cert.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple to-indigo flex items-center justify-center text-white text-xs font-bold">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-600 to-rose-400 flex items-center justify-center text-white text-xs font-bold">
                         {cert.full_name[0]?.toUpperCase() ?? '?'}
                       </div>
                     )}
@@ -243,7 +243,7 @@ export default function CertFeedClient({
                     {cert.dispute_status === 'reviewing' && (
                       <Link
                         href={`/${locale}/challenges/disputes/${cert.user_id}/${cert.challenge_id}`}
-                        className="flex-1 text-center bg-brand-light border border-edge-brand text-brand-hover text-xs font-bold py-2 rounded-xl hover:bg-brand-light transition-colors"
+                        className="flex-1 text-center bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold py-2 rounded-xl hover:bg-rose-100 transition-colors"
                       >
                         {L.jury.title.split(' ').slice(0, 2).join(' ')}
                       </Link>

@@ -1,7 +1,7 @@
 'use server'
 
-import { auth, currentUser } from '@clerk/nextjs/server'
-import { createClient } from '@/utils/supabase/server'
+import { auth } from '@clerk/nextjs/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { routing } from '@/i18n/routing'
 
@@ -12,10 +12,13 @@ export async function updatePreferredLocale(locale: string) {
   const validLocales = routing.locales as readonly string[]
   if (!validLocales.includes(locale)) return
 
-  const supabase = await createClient()
-  await supabase
+  const supabase = createAdminClient()
+  const { error } = await supabase
     .from('profiles')
     .update({ preferred_locale: locale, updated_at: new Date().toISOString() })
     .eq('clerk_id', userId)
+  if (error) {
+    console.error('[updatePreferredLocale]', error.message)
+  }
   revalidatePath('/', 'layout')
 }

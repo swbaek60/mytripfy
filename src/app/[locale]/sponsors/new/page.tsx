@@ -11,7 +11,7 @@ export default async function NewSponsorPage({
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-  if (!user) redirect(`/sign-in`)
+  if (!user) redirect(`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/sponsors/new`)}`)
 
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
 

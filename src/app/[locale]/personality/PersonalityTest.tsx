@@ -101,7 +101,7 @@ function calculatePersonality(answers: Record<string, string>): string {
   return 'social_nomad'
 }
 
-export default function PersonalityTest({ userId, locale }: { userId: string; locale: string }) {
+export default function PersonalityTest({ userId, locale }: { userId: string | null; locale: string }) {
   const router = useRouter()
   const t = useTranslations('Personality')
   const [currentQ, setCurrentQ] = useState(0)
@@ -122,6 +122,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
   }
 
   const saveResult = async (personality: string, ans: Record<string, string>) => {
+    if (!userId) return
     setSaving(true)
     const supabase = createClient()
     await supabase.from('travel_personalities').upsert({
@@ -158,11 +159,20 @@ export default function PersonalityTest({ userId, locale }: { userId: string; lo
 
           <div className="flex flex-col gap-3">
             <Button
-              onClick={() => router.push(`/${locale}/companions`)}
+              onClick={() => router.push(`/${locale}/companions?vibe=${result}`)}
               className="w-full bg-brand hover:bg-brand-hover rounded-full py-5"
             >
               ✈️ {t('findCompanions')}
             </Button>
+            {!userId && (
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/personality`)}`)}
+                className="w-full rounded-full border-brand/30 text-brand"
+              >
+                {t('loginToSave')}
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => { setCurrentQ(0); setAnswers({}); setResult(null) }}

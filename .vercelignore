@@ -1,0 +1,3 @@
+# Vercel 업로드 제외 (배포 번들 크기·로컬 SNS 산출물)
+scripts/out/
+scripts/out/**

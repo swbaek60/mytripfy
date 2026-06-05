@@ -21,10 +21,8 @@ const isProtectedRoute = createRouteMatcher([
   '/:locale/guides/requests/:id/edit(.*)',
   '/:locale/reviews/mine(.*)',
   '/:locale/reviews/write(.*)',
-  '/:locale/sponsors/new(.*)',
   '/:locale/sponsors/:id/edit(.*)',
   '/:locale/sponsors/mine(.*)',
-  '/:locale/personality(.*)',
 ])
 
 // Clerk 전용 경로 (i18n 처리 불필요)

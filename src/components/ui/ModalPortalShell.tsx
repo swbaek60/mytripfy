@@ -14,6 +14,7 @@ type Props = {
 export default function ModalPortalShell({ children, onBackdropPointerDown }: Props) {
   return (
     <div
+      data-header-overlay-portal
       className="fixed inset-0 z-[10050] flex flex-col overflow-hidden sm:items-center sm:justify-center"
       style={{
         paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',

@@ -1,0 +1,50 @@
+name: SNS Daily Campaign
+
+on:
+  schedule:
+    # 06:00 KST = 21:00 UTC (전날)
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'YYYY-MM-DD (empty = today)'
+        required: false
+      publish:
+        description: 'Publish to Instagram after generate'
+        type: boolean
+        default: false
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate daily content (auto)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SNS_CAMPAIGN_START: ${{ secrets.SNS_CAMPAIGN_START }}
+          SNS_AUTO_PUBLISH: ${{ github.event.inputs.publish && 'true' || 'false' }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_SUA_USER_ID: ${{ secrets.INSTAGRAM_SUA_USER_ID }}
+          INSTAGRAM_ETHAN_USER_ID: ${{ secrets.INSTAGRAM_ETHAN_USER_ID }}
+          SNS_IMAGE_BASE_URL: ${{ secrets.SNS_IMAGE_BASE_URL }}
+          SNS_PUBLISH_DRY_RUN: ${{ github.event.inputs.publish && 'false' || 'true' }}
+        run: node scripts/sns-auto-daily.mjs ${{ github.event.inputs.publish && '--publish' || '' }}
+
+      - name: Publish to Instagram (optional)
+        if: github.event.inputs.publish == 'true'
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_SUA_USER_ID: ${{ secrets.INSTAGRAM_SUA_USER_ID }}
+          INSTAGRAM_ETHAN_USER_ID: ${{ secrets.INSTAGRAM_ETHAN_USER_ID }}
+          SNS_IMAGE_BASE_URL: ${{ secrets.SNS_IMAGE_BASE_URL }}
+          SNS_PUBLISH_DRY_RUN: 'false'
+        run: |
+          DATE="${{ github.event.inputs.date }}"
+          if [ -z "$DATE" ]; then DATE=$(date -u +%Y-%m-%d); fi
+          node scripts/publish-sns-daily.mjs --date="$DATE"

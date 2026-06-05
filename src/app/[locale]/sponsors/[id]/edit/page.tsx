@@ -9,7 +9,7 @@ export default async function EditSponsorPage({
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-  if (!user) redirect(`/sign-in`)
+  if (!user) redirect(`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/sponsors/${id}/edit`)}`)
 
   const { data: sponsor } = await supabase
     .from('sponsors')

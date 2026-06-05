@@ -108,19 +108,30 @@ body {
   --color-footer-text: var(--footer-text);
   --color-footer-heading: var(--footer-heading);
   --color-footer-border: var(--footer-border);
+
+  /* ── v2 marketing tokens ── */
+  --color-brand-deep: var(--brand-deep);
+  --color-sunset: var(--sunset);
+  --color-sunset-light: var(--sunset-light);
+  --color-challenge: var(--challenge);
+  --color-challenge-light: var(--challenge-light);
+  --color-midnight: var(--midnight);
+  --color-surface-warm: var(--surface-warm);
+  --color-teal-trust: var(--teal-trust);
+  --color-teal-trust-light: var(--teal-trust-light);
 }
 
 :root {
   --radius: 0.75rem;
 
   /* ── shadcn primitives ── */
-  --background: #FAFAF9;
+  --background: #FAFAF8;
   --foreground: #0F172A;
   --card: #FFFFFF;
   --card-foreground: #0F172A;
   --popover: #FFFFFF;
   --popover-foreground: #0F172A;
-  --primary: #1D4ED8;
+  --primary: #2563EB;
   --primary-foreground: #FFFFFF;
   --secondary: #F1F5F9;
   --secondary-foreground: #1E293B;
@@ -131,27 +142,38 @@ body {
   --destructive: #DC2626;
   --border: #E2E8F0;
   --input: #E2E8F0;
-  --ring: #1D4ED8;
-  --chart-1: #1D4ED8;
+  --ring: #2563EB;
+  --chart-1: #2563EB;
   --chart-2: #0D9488;
   --chart-3: #D4A853;
   --chart-4: #7C3AED;
   --chart-5: #F97316;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #0F172A;
-  --sidebar-primary: #1D4ED8;
+  --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #F1F5F9;
   --sidebar-accent-foreground: #1E293B;
   --sidebar-border: #E2E8F0;
-  --sidebar-ring: #1D4ED8;
+  --sidebar-ring: #2563EB;
 
-  /* ── 브랜드: Royal Blue ── */
-  --brand: #1D4ED8;
-  --brand-hover: #1E40AF;
+  /* ── 브랜드 v2: Ocean Blue ── */
+  --brand: #2563EB;
+  --brand-hover: #1D4ED8;
+  --brand-deep: #1E3A8A;
   --brand-light: #EFF6FF;
   --brand-muted: #DBEAFE;
   --brand-foreground: #FFFFFF;
+
+  /* ── v2 accents ── */
+  --sunset: #F97316;
+  --sunset-light: #FFF7ED;
+  --challenge: #7C3AED;
+  --challenge-light: #F5F3FF;
+  --midnight: #0B1220;
+  --surface-warm: #FAFAF8;
+  --teal-trust: #0D9488;
+  --teal-trust-light: #F0FDFA;
 
   /* ── 프리미엄 골드 악센트 ── */
   --gold: #D4A853;
@@ -184,7 +206,7 @@ body {
   --warning-light: #FFFBEB;
   --danger: #DC2626;
   --danger-light: #FEF2F2;
-  --info: #1D4ED8;
+  --info: #2563EB;
   --info-light: #EFF6FF;
 
   /* ── 역할색 ── */
@@ -198,7 +220,7 @@ body {
   --indigo-accent-light: #EEF2FF;
 
   /* ── 푸터 ── */
-  --footer-bg: #0F172A;
+  --footer-bg: #0B1220;
   --footer-text: #94A3B8;
   --footer-heading: #F8FAFC;
   --footer-border: #1E293B;
@@ -330,6 +352,40 @@ body {
   /* 헤더(max-w-7xl)와 동일 너비로 전 페이지 통일 */
   .ds-page {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
+  }
+
+  .ds-section-v2 {
+    @apply py-16 md:py-24;
+  }
+
+  .ds-section-dark {
+    @apply bg-midnight text-white;
+  }
+
+  .ds-section-warm {
+    @apply bg-surface-warm;
+  }
+
+  .ds-hero-display {
+    font-family: var(--font-heading), var(--font-body), sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-size: clamp(2.25rem, 5vw, 4.5rem);
+  }
+
+  .ds-story-card {
+    @apply relative overflow-hidden rounded-2xl bg-surface border border-edge/60
+      shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+  }
+
+  .ds-carousel-track {
+    @apply flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2;
+    scrollbar-width: thin;
+  }
+
+  .ds-carousel-track > * {
+    @apply snap-start shrink-0;
   }
 }
 

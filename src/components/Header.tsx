@@ -5,6 +5,8 @@ import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/utils/supabase/server'
 import HeaderNav from '@/components/HeaderNav'
 import { currentUser } from '@clerk/nextjs/server'
+import type { MegaMenuGroup } from '@/components/explore/ExploreMegaMenu'
+
 export default async function Header({
   locale,
   currentPath = '',
@@ -16,14 +18,7 @@ export default async function Header({
   user?: { id?: string; email?: string } | null | any
 }) {
   const t = await getTranslations({ locale, namespace: 'Nav' })
-
-  const NAV_LINKS = [
-    { href: '/companions',   label: t('findCompanions') },
-    { href: '/guides',       label: t('findGuides') },
-    { href: '/sponsors',     label: t('sponsors') },
-    { href: '/challenges',   label: t('challenges') },
-    { href: '/hall-of-fame', label: t('hallOfFame') },
-  ]
+  const tm = await getTranslations({ locale, namespace: 'Marketing' })
 
   // Clerk 현재 사용자 (오류 시 null 처리)
   let clerkUser: Awaited<ReturnType<typeof currentUser>> = null
@@ -32,6 +27,57 @@ export default async function Header({
   } catch {
     // Keyless Mode 초기화 중이거나 인증 컨텍스트 없음 → 비로그인 상태로 처리
   }
+
+  const isLoggedIn = !!clerkUser
+  const authHref = (path: string) => {
+    if (isLoggedIn) return path
+    return `/login?returnTo=${encodeURIComponent(`/${locale}${path}`)}`
+  }
+
+  const MEGA_MENU_GROUPS: MegaMenuGroup[] = [
+    {
+      id: 'explore',
+      label: tm('navExplore'),
+      links: [
+        { href: '/companions', label: t('findCompanions'), description: tm('navExploreCompanionsDesc') },
+        { href: '/guides', label: t('findGuides'), description: tm('navExploreGuidesDesc') },
+        { href: '/sponsors', label: t('sponsors'), description: tm('navExploreSponsorsDesc') },
+        { href: '/destinations', label: tm('navDestinations'), description: tm('navExploreDestinationsDesc') },
+      ],
+    },
+    {
+      id: 'play',
+      label: tm('navPlay'),
+      links: [
+        { href: '/challenges', label: t('challenges'), description: tm('navPlayChallengesDesc') },
+        { href: '/challenges/feed', label: tm('navCertFeed'), description: tm('navPlayFeedDesc') },
+        { href: '/hall-of-fame', label: t('hallOfFame'), description: tm('navPlayHallDesc') },
+      ],
+    },
+    {
+      id: 'community',
+      label: tm('navCommunity'),
+      links: [
+        { href: '/how-it-works', label: tm('navHowItWorks'), description: tm('navCommunityHowDesc') },
+        { href: '/personality', label: tm('navTripMatcher'), description: tm('navCommunityQuizDesc') },
+      ],
+    },
+    {
+      id: 'host',
+      label: tm('navHost'),
+      links: [
+        { href: authHref('/profile/edit'), label: tm('navBecomeGuide'), description: tm('navHostGuideDesc') },
+        { href: authHref('/sponsors/new'), label: tm('navListBusiness'), description: tm('navHostBusinessDesc') },
+      ],
+    },
+  ]
+
+  const MOBILE_NAV_LINKS = [
+    { href: '/companions', label: t('findCompanions') },
+    { href: '/guides', label: t('findGuides') },
+    { href: '/challenges', label: t('challenges') },
+    { href: '/bookmarks', label: tm('navSaved') },
+  ]
 
   let unreadCount = 0
   let unreadMessageCount = 0
@@ -71,23 +117,25 @@ export default async function Header({
   )
 
   return (
-    <header className="w-full bg-white/80 backdrop-blur-lg border-b border-edge/60 sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
+    <header className="w-full sticky top-0 z-50 pt-[env(safe-area-inset-top)] bg-white border-b border-edge/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <HeaderNav
           logoSlot={logoSlot}
           locale={locale}
-          userId={profile?.id ?? clerkUser?.id}
+          userId={clerkUser?.id}
+          profileId={profile?.id}
           userEmail={clerkUser?.emailAddresses?.[0]?.emailAddress}
           avatarUrl={profile?.avatar_url ?? clerkUser?.imageUrl}
           fullName={profile?.full_name ?? clerkUser?.fullName}
-          navLinks={NAV_LINKS}
+          megaMenuGroups={MEGA_MENU_GROUPS}
+          navLinks={MOBILE_NAV_LINKS}
           unreadCount={unreadCount}
           unreadMessageCount={unreadMessageCount}
           tDashboard={t('dashboard')}
           tProfile={t('profile')}
           tLogout={t('logout')}
           tLogin={t('login')}
-          tBookmarks={t('bookmarks')}
+          tBookmarks={tm('navSaved')}
           tMessages={t('messages')}
           tNotifications={t('notifications')}
           tMenu={t('menu')}

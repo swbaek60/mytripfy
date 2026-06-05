@@ -239,16 +239,16 @@ export default function ChallengeClient({
           placeholder="Search..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple/50 bg-surface"
+          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 bg-surface"
           suppressHydrationWarning
         />
         <div className="flex items-center gap-3 text-sm text-subtle shrink-0">
           <span>
-            <span className="font-bold text-purple">{completedCount}</span>
+            <span className="font-bold text-rose-600">{completedCount}</span>
             <span className="text-hint"> / {challenges.length} completed</span>
           </span>
           {completedCount > 0 && (
-            <span className="bg-purple-light text-purple font-bold px-2.5 py-1 rounded-full text-xs">
+            <span className="bg-rose-50 text-rose-600 font-bold px-2.5 py-1 rounded-full text-xs">
               {Math.round((completedCount / challenges.length) * 100)}%
             </span>
           )}
@@ -279,8 +279,8 @@ export default function ChallengeClient({
               key={challenge.id}
               className={`group bg-surface rounded-2xl overflow-hidden border-2 transition-all duration-200 flex flex-col
                 ${isCompleted
-                  ? 'border-purple/40 shadow-md shadow-purple/20'
-                  : 'border-edge hover:border-purple/30 hover:shadow-md'}`}
+                  ? 'border-rose-400/40 shadow-md shadow-rose-400/20'
+                  : 'border-edge hover:border-rose-300 hover:shadow-md'}`}
             >
               {/* ── Photo area ── */}
               <div className="relative">
@@ -385,7 +385,7 @@ export default function ChallengeClient({
                         if (!userId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
                         setSelectedChallenge(challenge)
                       }}
-                      className="w-full py-2 rounded-xl border-2 border-dashed border-purple/30 text-purple text-xs font-bold hover:bg-purple-light hover:border-purple transition-colors"
+                      className="w-full py-2 rounded-xl border-2 border-dashed border-rose-300/60 text-rose-600 text-xs font-bold hover:bg-rose-50 hover:border-rose-400 transition-colors"
                     >
                       {t(getVerifyKey(challenge.category))}
                     </button>
@@ -461,7 +461,7 @@ export default function ChallengeClient({
                     cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
                     cert.dispute_status === 'flagged' ? 'border-gold/20' :
                     cert.dispute_status === 'invalidated' ? 'border-red-200 opacity-60' :
-                    'border-edge hover:border-purple/30'
+                    'border-edge hover:border-rose-300'
                   }`}
                 >
                   {/* 사진 영역 */}
@@ -534,10 +534,10 @@ export default function ChallengeClient({
 
                     {/* 유저 정보 */}
                     <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-light flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-rose-50 flex items-center justify-center">
                         {cert.avatar_url
                           ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
-                          : <span className="text-[9px] font-bold text-purple">{cert.full_name[0]?.toUpperCase()}</span>
+                          : <span className="text-[9px] font-bold text-rose-600">{cert.full_name[0]?.toUpperCase()}</span>
                         }
                       </div>
                       <p className="text-white text-[10px] font-semibold truncate">{cert.full_name}</p>
@@ -575,7 +575,7 @@ export default function ChallengeClient({
             <div className="overflow-y-auto p-6">
               {certViewLoading ? (
                 <div className="text-center py-12 text-hint">
-                  <div className="w-8 h-8 border-2 border-purple/60 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <div className="w-8 h-8 border-2 border-rose-500/60 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                   {tc('loading')}
                 </div>
               ) : certViewData.length === 0 ? (
@@ -588,7 +588,7 @@ export default function ChallengeClient({
                   {certViewData.map(cert => {
                     const canFlag = cert.user_id !== userId && !cert.already_disputed && cert.dispute_status !== 'reviewing' && cert.dispute_status !== 'invalidated'
                     return (
-                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-purple/30 shadow-sm hover:shadow-md transition-all">
+                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-rose-300 shadow-sm hover:shadow-md transition-all">
                         <div className="relative h-36 cursor-zoom-in" onClick={() => setExpandedImg(cert.image_url)}>
                           <img src={cert.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -646,10 +646,10 @@ export default function ChallengeClient({
                             </Link>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-purple-light flex items-center justify-center">
+                            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-rose-50 flex items-center justify-center">
                               {cert.avatar_url
                                 ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
-                                : <span className="text-[9px] font-bold text-purple">{cert.full_name[0]?.toUpperCase()}</span>
+                                : <span className="text-[9px] font-bold text-rose-600">{cert.full_name[0]?.toUpperCase()}</span>
                               }
                             </div>
                             <p className="text-white text-[10px] font-semibold truncate">{cert.full_name}</p>
@@ -734,7 +734,7 @@ export default function ChallengeClient({
                 <div className="py-6 animate-in zoom-in duration-300">
                   <div className="text-6xl mb-3">🎊</div>
                   <h3 className="text-2xl font-bold text-heading mb-1">{tc('challengeComplete')}</h3>
-                  <p className="text-purple font-bold text-lg">+{selectedChallenge.points} Points Earned</p>
+                  <p className="text-rose-600 font-bold text-lg">+{selectedChallenge.points} Points Earned</p>
                 </div>
               ) : (
                 <>
@@ -748,9 +748,9 @@ export default function ChallengeClient({
                     <div className="text-danger text-sm mb-4 bg-danger-light p-3 rounded-xl">{error}</div>
                   )}
 
-                  <div className="border-2 border-dashed border-purple/30 rounded-2xl p-8 hover:bg-purple-light transition-colors relative cursor-pointer group">
+                  <div className="border-2 border-dashed border-rose-300/60 rounded-2xl p-8 hover:bg-rose-50 transition-colors relative cursor-pointer group">
                     <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
-                    <div className="text-sm font-bold text-purple">{tc('uploadPhoto')}</div>
+                    <div className="text-sm font-bold text-rose-600">{tc('uploadPhoto')}</div>
                     <div className="text-xs text-hint mt-1">{t(getVerifyHintKey(selectedChallenge.category))}</div>
                     <input
                       type="file"
@@ -763,8 +763,8 @@ export default function ChallengeClient({
                   </div>
 
                   {uploading && (
-                    <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-purple">
-                      <div className="w-4 h-4 border-2 border-purple border-t-transparent rounded-full animate-spin" />
+                    <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-rose-600">
+                      <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
                       Uploading and verifying...
                     </div>
                   )}

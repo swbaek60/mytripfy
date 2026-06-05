@@ -9,6 +9,7 @@ import { MapPin, Calendar, Users, Plus, ChevronRight } from 'lucide-react'
 import CountrySearchSelect from './CountrySearchSelect'
 import CountryFlag from '@/components/CountryFlag'
 import TranslatedText from '@/components/TranslatedText'
+import GuidesTabBar from '@/components/explore/GuidesTabBar'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
@@ -39,6 +40,9 @@ export default async function GuideRequestsPage({
 }) {
   const { locale } = await params
   const { country, my } = await searchParams
+  const tm = await getTranslations({ locale, namespace: 'Marketing' })
+  const th = await getTranslations({ locale, namespace: 'HomeSection' })
+  const tc = await getTranslations({ locale, namespace: 'Companions' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -73,23 +77,32 @@ export default async function GuideRequestsPage({
   const totalCount = requests?.length ?? 0
 
   return (
-    <div className="min-h-screen bg-surface-sunken">
+    <div className="min-h-screen bg-surface-warm">
       <Header user={user} locale={locale} currentPath="/guides" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className="relative bg-midnight text-white py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">{tm('guidesTabRequests')}</h1>
+          <p className="text-white/70 max-w-xl">{th('guideRequestsSubtitle')}</p>
+        </div>
+      </section>
 
-        {/* ── 헤더 ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <GuidesTabBar
+          locale={locale}
+          tabs={[
+            { href: '/guides', label: tm('guidesTabGuides') },
+            { href: '/guides/requests', label: tm('guidesTabRequests') },
+          ]}
+        />
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-extrabold text-heading">📋 Guide Requests</h1>
-            <p className="text-subtle mt-1 text-sm">
-              Travelers looking for local guides
-              {totalCount > 0 && <span className="ml-1 text-gold font-semibold">· {totalCount} open requests</span>}
-            </p>
-          </div>
+          <p className="text-subtle text-sm">
+            {totalCount > 0 && <span className="text-gold font-semibold">{th('openRequestsCount', { count: totalCount })}</span>}
+          </p>
           <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests`)}`}>
             <Button className="bg-gold hover:brightness-95 rounded-full px-5 shrink-0 text-white flex items-center gap-1.5">
-              <Plus className="w-4 h-4" /> Post a Request
+              <Plus className="w-4 h-4" /> {th('postRequest')}
             </Button>
           </Link>
         </div>
@@ -101,9 +114,9 @@ export default async function GuideRequestsPage({
           {user && (
             <div className="flex border-b border-edge rounded-t-2xl overflow-hidden">
               {[
-                { label: 'All Requests', value: undefined },
-                { label: 'My Requests', value: 'posted' },
-                { label: 'My Applications', value: 'applied' },
+                { label: th('allRequests'), value: undefined },
+                { label: th('myRequests'), value: 'posted' },
+                { label: th('myApplications'), value: 'applied' },
               ].map(tab => {
                 const active = my === tab.value
                 const href = tab.value
@@ -123,18 +136,18 @@ export default async function GuideRequestsPage({
           <div className="p-4">
             <div className="flex items-center gap-1.5 mb-2">
               <MapPin className="w-3.5 h-3.5 text-hint" />
-              <span className="text-xs font-semibold text-hint uppercase tracking-wide">Destination</span>
+              <span className="text-xs font-semibold text-hint uppercase tracking-wide">{th('destination')}</span>
               {selectedCountry && (
                 <Link href={my ? `/${locale}/guides/requests?my=${my}` : `/${locale}/guides/requests`}
-                  className="ml-auto text-xs text-red-400 hover:text-danger">✕ Clear</Link>
+                  className="ml-auto text-xs text-red-400 hover:text-danger">✕ {th('clearFilter')}</Link>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5 items-center">
               {!country ? (
-                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gold text-white">🌍 All</span>
+                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gold text-white">🌍 {th('allCountriesFilter')}</span>
               ) : (
                 <Link href={my ? `/${locale}/guides/requests?my=${my}` : `/${locale}/guides/requests`}>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-surface-sunken text-body hover:bg-surface-hover">🌍 All</span>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-surface-sunken text-body hover:bg-surface-hover">🌍 {th('allCountriesFilter')}</span>
                 </Link>
               )}
               {popularCountries.map(c => {
@@ -159,7 +172,7 @@ export default async function GuideRequestsPage({
               <div className="mt-2 flex items-center gap-2 text-xs text-gold bg-gold-light border border-gold/30 rounded-lg px-3 py-1.5 w-fit">
                 <CountryFlag code={selectedCountry.code} size="xs" />
                 <span className="font-semibold">{selectedCountry.name}</span>
-                <span className="text-gold">· active filter</span>
+                <span className="text-gold">· {th('activeFilter')}</span>
               </div>
             )}
           </div>
@@ -210,12 +223,12 @@ export default async function GuideRequestsPage({
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 ml-auto">
-                          {isOwn && <span className="text-[10px] bg-brand-muted text-brand px-1.5 py-0.5 rounded-full font-medium">Mine</span>}
+                          {isOwn && <span className="text-[10px] bg-brand-muted text-brand px-1.5 py-0.5 rounded-full font-medium">{th('mineBadge')}</span>}
                           {isExpired
-                            ? <span className="text-[10px] bg-surface-sunken text-subtle px-1.5 py-0.5 rounded-full font-medium">Expired</span>
-                            : <span className="text-[10px] bg-success-light text-success px-1.5 py-0.5 rounded-full font-medium">Open</span>
+                            ? <span className="text-[10px] bg-surface-sunken text-subtle px-1.5 py-0.5 rounded-full font-medium">{th('expiredBadge')}</span>
+                            : <span className="text-[10px] bg-success-light text-success px-1.5 py-0.5 rounded-full font-medium">{th('openStatus')}</span>
                           }
-                          <span className="text-[10px] bg-gold-light text-gold border border-gold/25 px-1.5 py-0.5 rounded-full font-medium">{nights}N {nights + 1}D</span>
+                          <span className="text-[10px] bg-gold-light text-gold border border-gold/25 px-1.5 py-0.5 rounded-full font-medium">{tc('nightsDays', { nights, days: nights + 1 })}</span>
                         </div>
                       </div>
 
@@ -240,7 +253,7 @@ export default async function GuideRequestsPage({
                       <div className="flex items-center gap-1 text-xs text-subtle mb-3">
                         <Calendar className="w-3 h-3" />
                         <span suppressHydrationWarning>
-                          {startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
 
@@ -253,15 +266,15 @@ export default async function GuideRequestsPage({
                               : <span className="text-[10px] text-gold font-bold">?</span>}
                           </div>
                           <span className="text-xs text-body font-medium truncate max-w-[100px]">
-                            {(profile?.full_name as string) || 'Traveler'}
+                            {(profile?.full_name as string) || th('traveler')}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs">
                           <Users className="w-3 h-3 text-hint" />
                           {appCount > 0 ? (
-                            <span className="text-gold font-semibold">{appCount} applied</span>
+                            <span className="text-gold font-semibold">{th('appliedCount', { count: appCount })}</span>
                           ) : (
-                            <span className="text-hint">Be first!</span>
+                            <span className="text-hint">{th('beFirst')}</span>
                           )}
                           <ChevronRight className="w-3 h-3 text-hint" />
                         </div>
@@ -276,15 +289,15 @@ export default async function GuideRequestsPage({
           <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
             <div className="text-5xl mb-4">📋</div>
             <h3 className="text-xl font-bold text-body mb-2">
-              {my === 'posted' ? 'No requests posted yet' : my === 'applied' ? 'No applications yet' : 'No guide requests yet'}
+              {my === 'posted' ? th('noMyRequestsYet') : my === 'applied' ? th('noApplicationsYet') : th('noRequestsYet')}
             </h3>
             <p className="text-subtle mb-6">
-              {my === 'posted' ? "You haven't posted any guide requests." : my === 'applied' ? "You haven't applied to any requests." : 'Be the first to post a guide request!'}
+              {my === 'posted' ? th('noMyRequestsYet') : my === 'applied' ? th('noApplicationsYet') : th('noRequestsHint')}
             </p>
             {!my && (
               <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests`)}`}>
                 <Button className="bg-gold hover:brightness-95 text-white rounded-full px-8">
-                  Post a Guide Request
+                  {th('postGuideRequestBtn')}
                 </Button>
               </Link>
             )}

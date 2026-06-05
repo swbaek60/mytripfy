@@ -4,9 +4,10 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Store, Trophy, Award } from 'lucide-react'
+import ExploreMegaMenu, { type MegaMenuGroup } from '@/components/explore/ExploreMegaMenu'
+import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown, Users, Compass, Trophy } from 'lucide-react'
 import { useClerk } from '@clerk/nextjs'
-import LanguageSelector from '@/components/LanguageSelector'
+import LanguageSelector, { LocaleTriggerButton } from '@/components/LanguageSelector'
 import CurrencySelector from '@/components/CurrencySelector'
 import NotificationsPanel from '@/components/NotificationsPanel'
 import MessagesPanel from '@/components/MessagesPanel'
@@ -20,9 +21,11 @@ interface Props {
   logoSlot: React.ReactNode
   locale: string
   userId?: string
+  profileId?: string
   userEmail?: string
   avatarUrl?: string | null
   fullName?: string | null
+  megaMenuGroups: MegaMenuGroup[]
   navLinks: NavLink[]
   unreadCount: number
   unreadMessageCount: number
@@ -40,8 +43,9 @@ interface Props {
 
 export default function HeaderNav({
   logoSlot,
-  locale, userId, userEmail,
+  locale, userId, profileId, userEmail,
   avatarUrl, fullName,
+  megaMenuGroups,
   navLinks,
   unreadCount, unreadMessageCount,
   tDashboard, tProfile, tLogout, tLogin, tBookmarks, tMessages, tNotifications,
@@ -50,18 +54,20 @@ export default function HeaderNav({
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [languageOpen, setLanguageOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
   const { signOut } = useClerk()
 
-  // 프로필 드롭다운 외부 클릭 닫기
+  // 프로필 드롭다운 외부 클릭 닫기 (mousedown 사용 시 언어·화폐 포털 모달 클릭이 선행되어 컴포넌트가 언마운트됨)
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setProfileOpen(false)
-      }
+      const target = e.target as Node
+      if (!profileRef.current || profileRef.current.contains(target)) return
+      if (target instanceof Element && target.closest('[data-header-overlay-portal]')) return
+      setProfileOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
   }, [])
 
   // 모바일 메뉴 열릴 때 스크롤 잠금
@@ -76,9 +82,8 @@ export default function HeaderNav({
   const navIcons: Record<string, ReactNode> = {
     '/companions': <Users className="w-5 h-5" />,
     '/guides': <Compass className="w-5 h-5" />,
-    '/sponsors': <Store className="w-5 h-5" />,
     '/challenges': <Trophy className="w-5 h-5" />,
-    '/hall-of-fame': <Award className="w-5 h-5" />,
+    '/bookmarks': <Bookmark className="w-5 h-5" />,
   }
 
   // 아바타 이니셜 (fullName 또는 email 첫 글자)
@@ -86,10 +91,22 @@ export default function HeaderNav({
     ? fullName.slice(0, 1).toUpperCase()
     : userEmail?.slice(0, 1).toUpperCase() ?? '?'
 
+  const openLanguagePicker = () => {
+    setProfileOpen(false)
+    setLanguageOpen(true)
+  }
+
   const mobileRightIcons = (
     <div className="flex items-center gap-0.5 shrink-0">
       {userId ? (
         <>
+          <LocaleTriggerButton
+            currentLocale={locale}
+            compact
+            iconOnly
+            open={languageOpen}
+            onClick={openLanguagePicker}
+          />
           <MessagesPanel locale={locale} unreadCount={unreadMessageCount} />
           <NotificationsPanel locale={locale} unreadCount={unreadCount} />
           <button
@@ -103,7 +120,13 @@ export default function HeaderNav({
         </>
       ) : (
         <>
-          <LanguageSelector currentLocale={locale} compact iconOnly userId={userId} />
+          <LocaleTriggerButton
+            currentLocale={locale}
+            compact
+            iconOnly
+            open={languageOpen}
+            onClick={openLanguagePicker}
+          />
           <CurrencySelector compact iconOnly />
           <Link href={`/${locale}/login`}>
             <button
@@ -131,28 +154,17 @@ export default function HeaderNav({
         <div className="flex md:flex-1 w-full min-w-0 flex-col md:flex-row">
       {/* ── 데스크탑 레이아웃: flex-1 으로 가운데 + 오른쪽 정렬 ── */}
       <div className="hidden md:flex flex-1 items-center justify-between">
-        {/* 가운데 네비게이션 */}
-        <nav className="flex items-center gap-1 mx-auto">
-          {navLinks.map(link => (
-            <Link
-              key={link.href}
-              href={`/${locale}${link.href}`}
-              className={`relative px-4 py-2 text-sm font-medium transition-colors ${
-                isActive(link.href)
-                  ? 'text-brand font-semibold'
-                  : 'text-body hover:text-heading'
-              }`}
-            >
-              {link.label}
-              {isActive(link.href) && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-brand rounded-full" />
-              )}
-            </Link>
-          ))}
-        </nav>
+        <ExploreMegaMenu groups={megaMenuGroups} locale={locale} />
 
         {/* 오른쪽 영역 */}
         <div className="flex items-center gap-1 shrink-0">
+        <Link
+          href={`/${locale}/bookmarks`}
+          className="w-9 h-9 flex items-center justify-center rounded-full text-body hover:bg-surface-hover transition-colors"
+          title={tBookmarks}
+        >
+          <Bookmark className="w-5 h-5" />
+        </Link>
 
         {userId ? (
           <>
@@ -194,18 +206,19 @@ export default function HeaderNav({
                     <div className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover transition-colors rounded-lg mx-1">
                       <span className="flex items-center gap-3 text-sm text-body">
                         <span className="text-hint">🌐</span>
-                        Language
+                        {tLanguage}
                       </span>
-                      <LanguageSelector
+                      <LocaleTriggerButton
                         currentLocale={locale}
                         compact
-                        userId={userId}
+                        open={languageOpen}
+                        onClick={openLanguagePicker}
                       />
                     </div>
                     <div className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover transition-colors rounded-lg mx-1">
                       <span className="flex items-center gap-3 text-sm text-body">
                         <span className="text-hint">💱</span>
-                        Currency
+                        {tCurrency}
                       </span>
                       <CurrencySelector compact />
                     </div>
@@ -229,7 +242,12 @@ export default function HeaderNav({
           <>
             {/* 로그인 전: 언어·화폐 선택 (로그인 버튼 왼쪽) */}
             <div className="flex items-center gap-0.5 mr-1">
-              <LanguageSelector currentLocale={locale} compact userId={userId} />
+              <LocaleTriggerButton
+                currentLocale={locale}
+                compact
+                open={languageOpen}
+                onClick={openLanguagePicker}
+              />
               <CurrencySelector compact />
             </div>
             <Link href={`/${locale}/login`}>
@@ -334,10 +352,11 @@ export default function HeaderNav({
                   <span className="text-hint">🌐</span>
                   {tLanguage}
                 </span>
-                <LanguageSelector
+                <LocaleTriggerButton
                   currentLocale={locale}
                   compact
-                  userId={userId}
+                  open={languageOpen}
+                  onClick={() => { setMobileOpen(false); openLanguagePicker() }}
                 />
               </div>
               <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-surface-hover transition-colors">
@@ -366,6 +385,18 @@ export default function HeaderNav({
         </div>,
         document.body
       )}
+
+      <LanguageSelector
+        currentLocale={locale}
+        userId={userId}
+        open={languageOpen}
+        onOpenChange={setLanguageOpen}
+        hideTrigger
+        onOverlayOpen={() => {
+          setProfileOpen(false)
+          setMobileOpen(false)
+        }}
+      />
     </>
   )
 }

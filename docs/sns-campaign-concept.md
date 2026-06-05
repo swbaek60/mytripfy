@@ -17,7 +17,7 @@
 
 | 항목 | 내용 |
 |------|------|
-| **이미지** | `assets/sua_captivating_sexy.png` (예쁘고 매력적·섹시한 톤) |
+| **이미지** | `assets/sns/sua-ref-front.png` (`node scripts/generate-sns-reference.mjs`) |
 | **성격** | 밝고 사교적, 트렌드에 민감, 쇼핑·맛집·패션을 사랑하는 도시형 여행자 |
 | **콘텐츠 톤** | 매력적·귀엽고 섹시한 스타일, 매일 다른 예쁜 옷, 맛집·카페·쇼핑 중심 |
 | **해시태그 예시** | `#OOTD` `#맛집` `#여행패션` `#mytripfy` `#100CountriesChallenge` |
@@ -32,7 +32,7 @@
 
 | 항목 | 내용 |
 |------|------|
-| **이미지** | `assets/ethan_late20s_model.png` (멋진 패션 모델 느낌) |
+| **이미지** | `assets/sns/ethan-ref-front.png` (`node scripts/generate-sns-reference.mjs`) |
 | **성격** | 활동적·탐험 좋아함, 전 세계 사람들과 친구 되기, 어드벤처·스포츠 |
 | **콘텐츠 톤** | 멋지고 활동적, 여행지에서 만난 현지인·동료 여행자와의 인연 강조 |
 | **해시태그 예시** | `#Adventure` `#GlobalFriends` `#mytripfy` `#100CountriesChallenge` |

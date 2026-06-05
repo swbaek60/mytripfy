@@ -12,6 +12,7 @@ import type { GuideRegion } from '@/data/cities'
 import GuideContactModal from './GuideContactModal'
 import GuideDetailTabs from './GuideDetailTabs'
 import type { CertificationItem } from './GuideDetailTabs'
+import GuideHeroGallery from '@/components/GuideHeroGallery'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { locale, id } = await params
@@ -168,35 +169,24 @@ export default async function GuideDetailPage({
           ← Back to guides
         </Link>
 
-        {/* Guide Profile Card */}
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
-          {/* Cover */}
-          <div className="h-28 bg-gradient-to-r from-[#D4A853] via-[#E8B960] to-[#F5C563] relative">
-            {/* 레벨 배지 (커버 우상단) */}
-            <div
-              className="absolute top-3 right-3 px-3 py-1 rounded-full text-white text-xs font-bold shadow-md"
-              style={{ backgroundColor: levelInfo.color }}
-            >
-              {levelInfo.badge} {levelInfo.titleKo}
-            </div>
-          </div>
+        {/* ── 히어로 갤러리 ── */}
+        <GuideHeroGallery
+          avatar={guide.avatar_url as string | null}
+          photos={(guide.profile_photos as string[] | null) ?? []}
+          name={guide.full_name || 'Guide'}
+        />
 
-          <div className="px-5 pb-5">
-            {/* 아바타 + 액션 버튼 */}
-            <div className="flex items-end justify-between -mt-10 mb-3">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-white bg-brand-muted flex items-center justify-center text-3xl shadow-md overflow-hidden">
-                  {guide.avatar_url
-                    ? <img src={guide.avatar_url} alt="" className="w-full h-full object-cover" />
-                    : '👤'}
-                </div>
-                <div
-                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-extrabold shadow border-2 border-white"
-                  style={{ backgroundColor: levelInfo.color }}
-                >
-                  {guide.travel_level || 1}
-                </div>
-              </div>
+        {/* ── 프로필 카드 ── */}
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-5 py-5">
+            {/* 레벨 + 편집 버튼 행 */}
+            <div className="flex items-center justify-between mb-3">
+              <span
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-white text-xs font-bold shadow-sm"
+                style={{ backgroundColor: levelInfo.color }}
+              >
+                {levelInfo.badge} {levelInfo.titleKo}
+              </span>
               {isOwn && (
                 <Link href={`/${locale}/profile/edit`}>
                   <Button variant="outline" size="sm" className="rounded-full text-sm">✏️ Edit Profile</Button>
@@ -207,7 +197,7 @@ export default async function GuideDetailPage({
             {/* 이름 */}
             <h1 className="text-2xl font-bold text-heading mb-1">{guide.full_name || 'Anonymous Guide'}</h1>
 
-            {/* 국적: 플래그 이미지 + 국가명만 (2자리 코드 텍스트는 노출하지 않음) */}
+            {/* 국적 */}
             {nationalityCode.length === 2 && (
               <p className="text-subtle text-sm mb-2 flex items-center gap-2">
                 <CountryFlag code={nationalityCode} size="sm" className="shrink-0" />

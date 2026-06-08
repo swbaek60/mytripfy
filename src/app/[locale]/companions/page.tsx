@@ -3,8 +3,10 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
 import { getCountryByCode, getCountryCodesMatchingQuery } from '@/data/countries'
+import { resolveAliasToEnglish } from '@/data/city-aliases'
 import { headers } from 'next/headers'
 import CompanionsCountryFilter from '@/app/[locale]/companions/CompanionsCountryFilter'
+import CompanionsDateFilter from '@/app/[locale]/companions/CompanionsDateFilter'
 import HeroSearch from '@/components/marketing/HeroSearch'
 import CompanionStoryCard from '@/components/explore/CompanionStoryCard'
 import RecentCompanionsBar from '@/components/explore/RecentCompanionsBar'
@@ -108,7 +110,9 @@ export default async function CompanionsPage({
     query = query.eq('destination_country', country)
   } else if (searchQuery?.trim()) {
     const q = searchQuery.trim()
-    const escaped = q.replace(/[%_\\]/g, '\\$&').replace(/"/g, '""')
+    // 도시 alias 변환 (한국어·일본어 등 → 영어 canonical)
+    const resolvedQ = resolveAliasToEnglish(q)
+    const escaped = resolvedQ.replace(/[%_\\]/g, '\\$&').replace(/"/g, '""')
     const matchingCodes = getCountryCodesMatchingQuery(q)
     if (matchingCodes.length > 0) {
       const cityPattern = `%${escaped}%`
@@ -171,7 +175,11 @@ export default async function CompanionsPage({
         <RecentCompanionsBar locale={locale} title={tm('recentTitle')} />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <p className="text-subtle text-sm">{t('tripsCount', { count: posts?.length ?? 0 })}</p>
+          <p className="text-subtle text-sm">
+            {posts && posts.length > 0
+              ? t('tripsCount', { count: posts.length })
+              : t('allPurposes')}
+          </p>
           {user ? (
             <Link href={`/${locale}/companions/new`}>
               <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0">+ {t('post')}</Button>
@@ -192,6 +200,18 @@ export default async function CompanionsPage({
           labelFilter={t('filterByCountry')}
           labelAll={t('allCountries')}
           labelViewAll={t('viewAllCountries')}
+        />
+
+        {/* Date filter */}
+        <CompanionsDateFilter
+          locale={locale}
+          currentFrom={from}
+          currentCountry={country}
+          currentPurpose={purpose}
+          currentMood={effectiveMood}
+          currentQuery={searchQuery}
+          labelFrom={t('dateFilterFrom')}
+          labelClear={t('dateFilterClear')}
         />
 
         {/* Mood filter */}

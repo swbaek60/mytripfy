@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { getCountryCodesMatchingQuery } from '@/data/countries'
+import { resolveAliasToEnglish } from '@/data/city-aliases'
 
 interface Props {
   locale: string
@@ -22,10 +23,10 @@ export default function HomeSearch({ locale }: Props) {
     const matchingCodes = getCountryCodesMatchingQuery(trimmed)
     if (matchingCodes.length === 1) {
       router.push(`/${locale}/companions?country=${matchingCodes[0]}`)
-    } else if (matchingCodes.length > 1) {
-      router.push(`/${locale}/companions?q=${encodeURIComponent(trimmed)}`)
     } else {
-      router.push(`/${locale}/companions?q=${encodeURIComponent(trimmed)}`)
+      // 도시 alias 변환 후 검색
+      const resolved = resolveAliasToEnglish(trimmed)
+      router.push(`/${locale}/companions?q=${encodeURIComponent(resolved)}`)
     }
   }
 

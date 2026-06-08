@@ -1,3 +1,5 @@
+import { COUNTRY_ALIASES } from './country-aliases'
+
 export interface Country {
   code: string   // ISO 3166-1 alpha-2
   name: string   // English name
@@ -227,10 +229,20 @@ export function getCountryByCode(code: string) {
   return COUNTRIES.find(c => c.code === code)
 }
 
-/** 검색어에 매칭되는 국가 코드 목록 반환 (국가명·코드 부분 일치, 대소문자 무시) */
+/** 검색어에 매칭되는 국가 코드 목록 반환 (국가명·코드·다국어 alias 부분 일치, 대소문자 무시) */
 export function getCountryCodesMatchingQuery(searchQuery: string): string[] {
   const q = searchQuery.trim().toLowerCase()
   if (!q) return []
+
+  // 1. 다국어 alias 정확 매칭 (원문 그대로도, lowercase도)
+  const aliasCode =
+    COUNTRY_ALIASES[searchQuery.trim()] ??
+    COUNTRY_ALIASES[q] ??
+    Object.entries(COUNTRY_ALIASES).find(([alias]) => alias.toLowerCase() === q)?.[1]
+
+  if (aliasCode) return [aliasCode.toUpperCase()]
+
+  // 2. 영어 국가명 / ISO 코드 매칭
   return COUNTRIES.filter(
     c =>
       c.name.toLowerCase().includes(q) ||

@@ -91,7 +91,6 @@ export default function HeaderNav({
       <LocaleTriggerButton
         currentLocale={locale}
         compact
-        iconOnly
         open={languageOpen}
         onClick={openLanguagePicker}
       />
@@ -101,7 +100,7 @@ export default function HeaderNav({
           <NotificationsPanel locale={locale} unreadCount={unreadCount} />
         </>
       )}
-      {!userId && <CurrencySelector compact iconOnly />}
+      {!userId && <CurrencySelector compact />}
       <button
         suppressHydrationWarning
         type="button"

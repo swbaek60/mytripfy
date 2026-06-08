@@ -178,6 +178,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     { name: tm('testimonial1Name'), age: 28, quote: tm('testimonial1Quote'), location: tm('testimonial1Location') },
     { name: tm('testimonial2Name'), age: 34, quote: tm('testimonial2Quote'), location: tm('testimonial2Location') },
     { name: tm('testimonial3Name'), age: 26, quote: tm('testimonial3Quote'), location: tm('testimonial3Location') },
+    { name: tm('testimonial4Name'), age: 31, quote: tm('testimonial4Quote'), location: tm('testimonial4Location') },
+    { name: tm('testimonial5Name'), age: 24, quote: tm('testimonial5Quote'), location: tm('testimonial5Location') },
   ]
 
   const faqItems = [
@@ -186,6 +188,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     { question: tm('faq3Q'), answer: tm('faq3A') },
     { question: tm('faq4Q'), answer: tm('faq4A') },
     { question: tm('faq5Q'), answer: tm('faq5A') },
+    { question: tm('faq6Q'), answer: tm('faq6A') },
+    { question: tm('faq7Q'), answer: tm('faq7A') },
+    { question: tm('faq8Q'), answer: tm('faq8A') },
+    { question: tm('faq9Q'), answer: tm('faq9A') },
+    { question: tm('faq10Q'), answer: tm('faq10A') },
   ]
 
   const certSpotlight = spotlightCerts.map(c => ({
@@ -203,7 +210,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <Header locale={locale} currentPath="/" />
 
       {/* Hero */}
-      <section className="relative overflow-hidden min-h-[480px] sm:min-h-[560px] flex items-center">
+      <section className="relative overflow-hidden min-h-[400px] sm:min-h-[520px] flex items-center">
         <div className="absolute inset-0">
           <img src="/hero-travel-together.jpg" alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-midnight/70 via-midnight/50 to-midnight/80" />
@@ -219,6 +226,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <HeroSearch locale={locale} />
         </div>
       </section>
+
 
       {/* Latest companions */}
       <SectionShell
@@ -365,15 +373,25 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         >
           <div className="flex flex-col gap-3 max-w-3xl mx-auto">
             {hallOfFameTop5.map((row, idx) => {
+              const medals = ['🥇', '🥈', '🥉']
+              const medal = medals[idx]
               const avatarSize = idx === 0 ? 'w-20 h-20 sm:w-24 sm:h-24' : idx < 3 ? 'w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20' : 'w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem]'
-              const rankSize = idx < 3 ? 'w-10 h-10 text-base' : 'w-9 h-9 text-sm'
+              const cardBg = idx === 0
+                ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border-gold/50 hover:border-gold/70 hover:shadow-gold/20'
+                : idx === 1
+                  ? 'bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200/80 hover:border-slate-300'
+                  : idx === 2
+                    ? 'bg-gradient-to-r from-orange-50 to-amber-50/50 border-orange-200/60 hover:border-orange-300/60'
+                    : 'bg-surface border-edge/60 hover:border-gold/30'
+              const ringStyle = idx === 0 ? 'ring-4 ring-gold/50' : idx === 1 ? 'ring-2 ring-slate-300/70' : idx === 2 ? 'ring-2 ring-orange-300/60' : 'ring-2 ring-edge/80'
               return (
                 <Link key={row.id} href={`/users/${row.id}`}>
-                  <div className="flex items-center gap-4 sm:gap-5 bg-surface rounded-2xl p-4 sm:p-5 border border-edge/60 hover:border-gold/30 hover:shadow-md transition-all">
-                    <span className={`${rankSize} rounded-full bg-gold-light text-gold font-bold flex items-center justify-center shrink-0`}>
-                      {idx + 1}
+                  <div className={`flex items-center gap-4 sm:gap-5 rounded-2xl p-4 sm:p-5 border transition-all hover:shadow-md ${cardBg}`}>
+                    <span className={`text-xl sm:text-2xl shrink-0 ${idx >= 3 ? 'text-subtle text-base font-bold px-1' : ''}`}>
+                      {medal ?? <span className="w-8 h-8 rounded-full bg-gold-light text-gold font-bold flex items-center justify-center text-sm">{idx + 1}</span>}
+                      {!medal && <span className="w-8 h-8 rounded-full bg-gold-light text-gold font-bold flex items-center justify-center text-sm">{idx + 1}</span>}
                     </span>
-                    <div className={`${avatarSize} rounded-full bg-surface-sunken overflow-hidden shrink-0 ring-2 ${idx === 0 ? 'ring-gold/50' : 'ring-edge/80'}`}>
+                    <div className={`${avatarSize} rounded-full bg-surface-sunken overflow-hidden shrink-0 ${ringStyle}`}>
                       {row.avatar_url ? (
                         <img src={row.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -383,7 +401,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       )}
                     </div>
                     <span className="font-semibold text-heading flex-1 truncate text-base sm:text-lg">{row.full_name ?? 'Traveler'}</span>
-                    <span className="text-gold font-bold text-base sm:text-lg shrink-0">{row.total_points ?? 0} pts</span>
+                    <span className={`font-bold text-base sm:text-lg shrink-0 ${idx === 0 ? 'text-gold text-xl sm:text-2xl' : 'text-gold'}`}>{row.total_points ?? 0} pts</span>
                   </div>
                 </Link>
               )

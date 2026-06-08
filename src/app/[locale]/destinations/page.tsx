@@ -73,7 +73,7 @@ export default async function DestinationsPage({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {sorted.map(({ code, count }) => {
+          {sorted.map(({ code, count }, idx) => {
             const country = getCountryByCode(code)
             const name = country?.name ?? code
             return (
@@ -86,8 +86,10 @@ export default async function DestinationsPage({
                   src={getDestinationCover(code)}
                   alt={name}
                   fill
+                  priority={idx < 8}
+                  loading={idx < 8 ? 'eager' : 'lazy'}
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  sizes="(max-width: 640px) 100vw, 25vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">

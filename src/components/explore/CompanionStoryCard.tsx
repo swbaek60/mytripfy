@@ -119,9 +119,12 @@ export default function CompanionStoryCard({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-heading truncate">{fullName}</p>
-            {profile.trust_score != null && profile.trust_score > 0 && (
-              <p className="text-[10px] text-hint">★ {profile.trust_score.toFixed(1)}</p>
-            )}
+            <p className="text-[10px] text-hint">
+              {profile.trust_score != null && profile.trust_score > 0
+                ? `★ ${profile.trust_score.toFixed(1)} · `
+                : ''}
+              {start.toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+            </p>
           </div>
         </div>
         <ApplicantPreview count={appCount} label={tm('applicantsLabel')} />

@@ -281,9 +281,11 @@ export default async function GuidesPage({
                       )}
 
                       <div className="mt-auto pt-3 border-t border-edge/60 flex items-center justify-between gap-2">
-                        <span className="text-xs text-hint truncate">
-                          🌍 {t('countriesCount', { count: guide.travel_count || 0 })}
-                        </span>
+                        {(guide.travel_count ?? 0) > 0 && (
+                          <span className="text-xs text-hint truncate">
+                            🌍 {t('countriesCount', { count: guide.travel_count })}
+                          </span>
+                        )}
                         <GuideRateDisplay
                           rate={guide.guide_hourly_rate}
                           rateCurrency={guide.rate_currency}
@@ -368,10 +370,12 @@ export default async function GuidesPage({
               })}
             </div>
           ) : (
-            <div className="bg-surface rounded-2xl shadow-sm py-8 px-4 text-center">
-              <p className="text-subtle text-sm mb-3">{t('noOpenGuideRequests')}</p>
+            <div className="bg-surface rounded-2xl shadow-sm py-10 px-6 text-center border border-dashed border-edge/60">
+              <div className="text-4xl mb-3">🗺️</div>
+              <h3 className="font-bold text-heading mb-1">{t('noOpenGuideRequestsTitle')}</h3>
+              <p className="text-subtle text-sm mb-4 max-w-sm mx-auto">{t('noOpenGuideRequests')}</p>
               <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
-                <Button size="sm" variant="outline" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
+                <Button size="sm" className="rounded-full bg-gold hover:brightness-110 text-white px-6">
                   {t('postRequest')}
                 </Button>
               </Link>

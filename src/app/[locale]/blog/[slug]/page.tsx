@@ -7,13 +7,14 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import { BLOG_SLUGS, BLOG_PUBLISHED_AT, isBlogSlug } from '@/data/blog-articles'
+import { BLOG_TRANSLATED_LOCALES } from '@/data/blog-locales'
 import { blogKey } from '@/lib/blog-i18n'
 import JsonLdScript from '@/components/seo/JsonLdScript'
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from '@/lib/seo/json-ld'
 
 export function generateStaticParams() {
   return BLOG_SLUGS.flatMap((slug) =>
-    ['en', 'ko'].map((locale) => ({ locale, slug }))
+    BLOG_TRANSLATED_LOCALES.map((locale) => ({ locale, slug }))
   )
 }
 

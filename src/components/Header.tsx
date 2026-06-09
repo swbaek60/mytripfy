@@ -62,6 +62,7 @@ export default async function Header({
       label: tm('navCommunity'),
       links: [
         { href: '/how-it-works', label: tm('navHowItWorks'), description: tm('navCommunityHowDesc') },
+        { href: '/blog', label: tm('navBlog'), description: tm('navCommunityBlogDesc') },
         { href: '/personality', label: tm('navTripMatcher'), description: tm('navCommunityQuizDesc') },
       ],
     },

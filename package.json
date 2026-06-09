@@ -21,6 +21,7 @@
     "lint": "eslint",
     "seed:translations": "node --env-file=.env.local scripts/seed-challenge-translations.mjs",
     "seed:translations:builtin": "node --env-file=.env.local scripts/seed-challenge-translations-builtin.mjs",
+    "blog:merge-translations": "node scripts/merge-blog-translations.mjs",
     "fetch:food-images": "node scripts/fetch-food-images.mjs",
     "delete-user": "node --env-file=.env.local scripts/delete-user-by-email.mjs",
     "icons": "node scripts/generate-favicon.mjs",

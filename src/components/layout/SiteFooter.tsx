@@ -44,6 +44,7 @@ export default async function SiteFooter({ locale, isLoggedIn }: Props) {
               <div className="text-footer-heading font-semibold mb-3">{t('footerCommunity')}</div>
               <div className="space-y-2.5">
                 <div><Link href={`/${locale}/how-it-works`} className="hover:text-footer-heading transition-colors">{t('footerHowItWorks')}</Link></div>
+                <div><Link href={`/${locale}/blog`} className="hover:text-footer-heading transition-colors">{t('footerBlog')}</Link></div>
                 <div><Link href={`/${locale}/personality`} className="hover:text-footer-heading transition-colors">{t('footerTripMatcher')}</Link></div>
                 <div><Link href={`/${locale}/challenges/feed`} className="hover:text-footer-heading transition-colors">{t('footerCertFeed')}</Link></div>
                 <div><Link href={`/${locale}/hall-of-fame`} className="hover:text-footer-heading transition-colors">{t('footerHallOfFame')}</Link></div>

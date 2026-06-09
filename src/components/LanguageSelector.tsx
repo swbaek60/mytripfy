@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, type PointerEvent } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import CountryFlag from '@/components/CountryFlag'
@@ -249,15 +249,12 @@ export default function LanguageSelector({
     window.location.assign(href)
   }
 
-  const onLanguageSelect = (locale: string) => (e: PointerEvent<HTMLButtonElement>) => {
-    if (e.button !== 0) return
-    e.preventDefault()
-    e.stopPropagation()
+  const onLanguageSelect = (locale: string) => () => {
     void handleSelect(locale)
   }
 
   const modal = isOpen && mounted ? createPortal(
-    <ModalPortalShell onBackdropPointerDown={() => setOpen(false)}>
+    <ModalPortalShell onBackdropClick={() => setOpen(false)}>
       <div className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[min(88dvh,calc(100dvh-1.5rem))] sm:h-auto sm:max-h-[min(85vh,92dvh)]">
         <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
           <div className="flex items-center justify-between mb-4">
@@ -301,11 +298,7 @@ export default function LanguageSelector({
                     <button
                       type="button"
                       key={lang.locale}
-                      onPointerDown={onLanguageSelect(lang.locale)}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                      }}
+                      onClick={onLanguageSelect(lang.locale)}
                       disabled={switching}
                       style={{ touchAction: 'manipulation' }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${

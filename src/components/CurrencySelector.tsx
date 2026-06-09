@@ -87,7 +87,7 @@ export default function CurrencySelector({
   const others = CURRENCIES.filter(c => !groupedCodes.has(c.code))
 
   const modal = open && mounted ? createPortal(
-    <ModalPortalShell onBackdropPointerDown={() => setOpen(false)}>
+    <ModalPortalShell onBackdropClick={() => setOpen(false)}>
       <div className="mx-auto flex h-full min-h-0 w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[min(88dvh,calc(100dvh-1.5rem))] sm:h-auto sm:max-h-[min(85vh,92dvh)]">
         <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
           <div className="flex items-center justify-between mb-4">

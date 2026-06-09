@@ -4,14 +4,17 @@ import type { ReactNode } from 'react'
 
 type Props = {
   children: ReactNode
-  onBackdropPointerDown: () => void
+  /** @deprecated use onBackdropClick – kept for backward compat */
+  onBackdropPointerDown?: () => void
+  onBackdropClick?: () => void
 }
 
 /**
  * 모바일: 상단·세이프에어리어 기준 (중앙 정렬 시 헤더가 뷰 밖으로 나가는 현상 방지)
  * sm+: 세로·가로 중앙
  */
-export default function ModalPortalShell({ children, onBackdropPointerDown }: Props) {
+export default function ModalPortalShell({ children, onBackdropPointerDown, onBackdropClick }: Props) {
+  const handleClose = onBackdropClick ?? onBackdropPointerDown
   return (
     <div
       data-header-overlay-portal
@@ -27,8 +30,8 @@ export default function ModalPortalShell({ children, onBackdropPointerDown }: Pr
         role="presentation"
         className="absolute inset-0 bg-black/40 backdrop-blur-sm touch-none"
         style={{ overscrollBehavior: 'none' }}
-        onPointerDown={(e) => {
-          if (e.target === e.currentTarget) onBackdropPointerDown()
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleClose?.()
         }}
       />
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col justify-start sm:flex-none sm:justify-center">

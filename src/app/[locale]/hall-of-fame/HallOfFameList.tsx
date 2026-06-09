@@ -67,6 +67,85 @@ export default function HallOfFameList({
   const [localDisputedKeys, setLocalDisputedKeys] = useState<Set<string>>(new Set(initialDisputedKeys))
   const router = useRouter()
 
+  const getRankPresentation = (rank: number) => {
+    if (rank === 1) {
+      return {
+        rowClass: 'bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50/80 border-l-4 border-gold shadow-sm',
+        paddingClass: 'px-6 py-6 sm:py-7',
+        rankClass: 'w-12 h-12 sm:w-14 sm:h-14 text-lg sm:text-xl',
+        rankBg: '#d97706',
+        rankLabel: '🥇',
+        avatarClass: 'w-20 h-20 sm:w-24 sm:h-24 ring-4 ring-gold/60 shadow-md',
+        nameClass: 'text-lg sm:text-xl',
+        pointsClass: 'text-2xl sm:text-3xl text-gold',
+        isTopFive: true,
+      }
+    }
+    if (rank === 2) {
+      return {
+        rowClass: 'bg-gradient-to-r from-slate-50 to-gray-50 border-l-4 border-slate-400',
+        paddingClass: 'px-6 py-5 sm:py-6',
+        rankClass: 'w-11 h-11 sm:w-12 sm:h-12 text-base sm:text-lg',
+        rankBg: '#64748b',
+        rankLabel: '🥈',
+        avatarClass: 'w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 ring-2 ring-slate-300/80 shadow-md',
+        nameClass: 'text-base sm:text-lg',
+        pointsClass: 'text-xl sm:text-2xl text-slate-600',
+        isTopFive: true,
+      }
+    }
+    if (rank === 3) {
+      return {
+        rowClass: 'bg-gradient-to-r from-orange-50/90 to-amber-50/50 border-l-4 border-orange-400',
+        paddingClass: 'px-6 py-5 sm:py-6',
+        rankClass: 'w-11 h-11 sm:w-12 sm:h-12 text-base sm:text-lg',
+        rankBg: '#b45309',
+        rankLabel: '🥉',
+        avatarClass: 'w-[4rem] h-[4rem] sm:w-[4.5rem] sm:h-[4.5rem] ring-2 ring-orange-300/80 shadow-md',
+        nameClass: 'text-base sm:text-lg',
+        pointsClass: 'text-xl sm:text-2xl text-orange-700',
+        isTopFive: true,
+      }
+    }
+    if (rank === 4) {
+      return {
+        rowClass: 'bg-gold-light/40 border-l-4 border-gold/40',
+        paddingClass: 'px-6 py-4 sm:py-5',
+        rankClass: 'w-10 h-10 text-sm font-black',
+        rankBg: '#9333ea',
+        rankLabel: '4',
+        avatarClass: 'w-16 h-16 sm:w-[4.25rem] sm:h-[4.25rem] ring-2 ring-purple-200 shadow-sm',
+        nameClass: 'text-base font-bold',
+        pointsClass: 'text-lg sm:text-xl text-purple-700',
+        isTopFive: true,
+      }
+    }
+    if (rank === 5) {
+      return {
+        rowClass: 'bg-brand-light/30 border-l-4 border-brand/30',
+        paddingClass: 'px-6 py-4 sm:py-5',
+        rankClass: 'w-10 h-10 text-sm font-black',
+        rankBg: '#2563eb',
+        rankLabel: '5',
+        avatarClass: 'w-16 h-16 sm:w-[4.25rem] sm:h-[4.25rem] ring-2 ring-brand/25 shadow-sm',
+        nameClass: 'text-base font-bold',
+        pointsClass: 'text-lg sm:text-xl text-brand',
+        isTopFive: true,
+      }
+    }
+    return {
+      rowClass: '',
+      paddingClass: 'px-6 py-4',
+      rankClass: 'w-9 h-9 text-sm',
+      rankBg: '#94a3b8',
+      rankLabel: String(rank),
+      avatarClass: 'w-12 h-12 sm:w-14 sm:h-14',
+      nameClass: '',
+      pointsClass: 'text-lg',
+      isTopFive: false,
+    }
+  }
+
   const openCerts = async (profile: LeaderRow, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -133,30 +212,31 @@ export default function HallOfFameList({
           const country = profile.nationality ? getCountryByCode(profile.nationality) : null
           const isExpanded = expandedUserId === profile.id
           const canDispute = !!currentUserId && currentUserId !== profile.id && myCertCount >= 3
+          const rankStyle = getRankPresentation(rank)
 
           return (
             <li key={profile.id}>
-              <div className="flex items-center gap-4 px-6 py-4 hover:bg-gold-light/50 transition-colors">
+              <div className={`flex items-center gap-4 sm:gap-5 hover:bg-gold-light/50 transition-colors ${rankStyle.rowClass} ${rankStyle.paddingClass}`}>
                 {/* 순위 */}
                 <span
-                  className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                  style={{ backgroundColor: rank === 1 ? '#d97706' : rank === 2 ? '#6b7280' : rank === 3 ? '#b45309' : '#94a3b8' }}
+                  className={`flex-shrink-0 rounded-full flex items-center justify-center font-bold text-white ${rankStyle.rankClass}`}
+                  style={{ backgroundColor: rankStyle.rankBg }}
                 >
-                  {rank}
+                  {rankStyle.rankLabel}
                 </span>
 
                 {/* 아바타 */}
                 <Link href={`/${locale}/users/${profile.id}`} className="shrink-0">
-                  <div className="w-11 h-11 rounded-full overflow-hidden bg-surface-sunken flex items-center justify-center text-xl hover:opacity-80 transition-opacity">
+                  <div className={`rounded-full overflow-hidden bg-surface-sunken flex items-center justify-center hover:opacity-90 transition-opacity ${rankStyle.avatarClass}`}>
                     {profile.avatar_url
                       ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                      : '👤'}
+                      : <span className={rankStyle.isTopFive ? 'text-3xl sm:text-4xl' : 'text-2xl'}>👤</span>}
                   </div>
                 </Link>
 
                 {/* 이름/정보 */}
                 <Link href={`/${locale}/users/${profile.id}`} className="flex-1 min-w-0">
-                  <p className="font-semibold text-heading truncate">{displayName}</p>
+                  <p className={`font-semibold text-heading truncate ${rankStyle.nameClass}`}>{displayName}</p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                     {country && <span className="text-xs text-subtle">{country.emoji} {country.name}</span>}
                     <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: levelInfo.color }}>
@@ -170,7 +250,7 @@ export default function HallOfFameList({
 
                 {/* 포인트 */}
                 <div className="flex-shrink-0 text-right mr-2">
-                  <p className="text-lg font-bold text-amber">{points}</p>
+                  <p className={`font-bold text-amber ${rankStyle.pointsClass}`}>{points}</p>
                   <p className="text-xs text-subtle">{pointsLabel}</p>
                 </div>
 

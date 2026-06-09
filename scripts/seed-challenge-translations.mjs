@@ -17,7 +17,11 @@ const BATCH_SIZE = 50
 // ko, zh, ja 우선 권장. zh-TW(번체), es, fr 등 추가 가능
 const ALL_TARGET_LANGS = ['ko', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de', 'pt', 'it']
 
-async function translateBatch(apiKey, texts, targetLang, sourceLang = 'en') {
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
+async function translateBatch(apiKey, texts, targetLang, sourceLang = 'en', attempt = 0) {
   if (texts.length === 0) return []
   // Google API: zh → zh-CN, zh-TW → zh-TW, 나머지 그대로
   const apiTarget = targetLang === 'zh' ? 'zh-CN' : targetLang
@@ -35,6 +39,13 @@ async function translateBatch(apiKey, texts, targetLang, sourceLang = 'en') {
   )
   if (!res.ok) {
     const err = await res.text()
+    const retryable = res.status === 403 || res.status === 429
+    if (retryable && attempt < 5) {
+      const waitMs = Math.min(60_000, 2000 * 2 ** attempt)
+      console.warn(`\n  Translate API ${res.status} — ${waitMs / 1000}s 후 재시도 (${attempt + 1}/5)`)
+      await sleep(waitMs)
+      return translateBatch(apiKey, texts, targetLang, sourceLang, attempt + 1)
+    }
     throw new Error(`Translate API ${res.status}: ${err}`)
   }
   const data = await res.json()
@@ -206,6 +217,7 @@ async function main() {
         })
       }
       process.stdout.write(`  ${Math.min(i + BATCH_SIZE, needTranslation.length)}/${needTranslation.length}\r`)
+      await sleep(parseEnvInt('BATCH_DELAY_MS', 1500))
     }
 
     const { error: insertErr } = await supabase

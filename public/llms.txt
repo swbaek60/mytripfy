@@ -18,6 +18,7 @@ mytripfy helps travelers connect for shared trips, hire verified-style local gui
 - Hall of Fame: `/{locale}/hall-of-fame` — top challenge scorers
 - Trips (public itineraries): `/{locale}/trips`
 - Privacy policy: `/{locale}/privacy`
+- Travel guides (blog): `/{locale}/blog` — companion tips, 100 Countries Challenge, local guide setup
 
 ## Authentication
 Sign-in is handled by Clerk at `/sign-in` (not locale-prefixed). OAuth providers may include Google, Apple, and Facebook depending on configuration.

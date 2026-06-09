@@ -20,6 +20,7 @@
     "test:e2e:no-server": "cross-env CI=1 PLAYWRIGHT_BASE_URL=http://localhost:3000 playwright test",
     "lint": "eslint",
     "seed:translations": "node --env-file=.env.local scripts/seed-challenge-translations.mjs",
+    "seed:translations:builtin": "node --env-file=.env.local scripts/seed-challenge-translations-builtin.mjs",
     "fetch:food-images": "node scripts/fetch-food-images.mjs",
     "delete-user": "node --env-file=.env.local scripts/delete-user-by-email.mjs",
     "icons": "node scripts/generate-favicon.mjs",

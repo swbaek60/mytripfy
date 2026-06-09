@@ -5,11 +5,12 @@ import { SITE_URL, absoluteLocaleUrl, ogImageAbsoluteUrl } from '@/lib/seo/site'
 type Props = { locale: string }
 
 /**
- * Organization + WebSite(JSON-LD) — Google 검색결과·AI 요약·지식 패널 신호 강화
+ * Organization + WebSite + WebApplication(JSON-LD) — Google·AI 검색 신호
  */
 export default function SiteJsonLd({ locale }: Props) {
   const inLanguage = [...routing.locales]
   const searchTarget = `${absoluteLocaleUrl(locale, '/companions')}?q={search_term_string}`
+  const homeUrl = absoluteLocaleUrl(locale, '')
 
   const graph: Record<string, unknown>[] = [
     {
@@ -21,13 +22,24 @@ export default function SiteJsonLd({ locale }: Props) {
         '@type': 'ImageObject',
         url: `${SITE_URL}${LOGO_SVG_PRIMARY}`,
       },
-      sameAs: ['https://twitter.com/mytripfy'],
+      description:
+        'Free global travel community platform for finding companions, local guides, and completing travel challenges.',
+      sameAs: [
+        'https://twitter.com/mytripfy',
+        'https://www.instagram.com/mytripfy',
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        email: 'support@mytripfy.com',
+        availableLanguage: inLanguage,
+      },
     },
     {
       '@type': 'WebSite',
       '@id': `${SITE_URL}/#website`,
       name: 'mytripfy',
-      url: absoluteLocaleUrl(locale, ''),
+      url: homeUrl,
       inLanguage,
       publisher: { '@id': `${SITE_URL}/#organization` },
       potentialAction: {
@@ -40,7 +52,7 @@ export default function SiteJsonLd({ locale }: Props) {
       '@type': 'WebApplication',
       '@id': `${SITE_URL}/#webapp`,
       name: 'mytripfy',
-      url: absoluteLocaleUrl(locale, ''),
+      url: homeUrl,
       applicationCategory: 'TravelApplication',
       operatingSystem: 'Any',
       browserRequirements: 'Requires JavaScript. Requires HTML5.',
@@ -50,8 +62,25 @@ export default function SiteJsonLd({ locale }: Props) {
         priceCurrency: 'USD',
       },
       description:
-        'Find travel companions and local guides worldwide. Free community travel platform.',
+        'Find travel companions and local guides worldwide. Free community travel platform with 1,600+ travel challenges.',
+      featureList: [
+        'Travel companion matching',
+        'Local guide marketplace',
+        '100 Countries Challenge',
+        'Hall of Fame leaderboard',
+        'Mutual reviews and trust scores',
+      ],
       image: ogImageAbsoluteUrl(),
+    },
+    {
+      '@type': 'TravelAgency',
+      '@id': `${SITE_URL}/#travel-service`,
+      name: 'mytripfy',
+      url: homeUrl,
+      description: 'Community-driven travel companion and local guide platform — not a traditional booking agency.',
+      areaServed: { '@type': 'Place', name: 'Worldwide' },
+      priceRange: 'Free',
+      parentOrganization: { '@id': `${SITE_URL}/#organization` },
     },
   ]
 

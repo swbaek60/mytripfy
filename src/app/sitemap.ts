@@ -14,6 +14,11 @@ const STATIC_PATHS = [
   '/challenges/guide',
   '/hall-of-fame',
   '/trips',
+  '/how-it-works',
+  '/blog',
+  '/blog/100-countries-challenge',
+  '/blog/find-travel-companion',
+  '/blog/become-local-guide',
   '/privacy',
   '/account-data-deletion',
 ] as const

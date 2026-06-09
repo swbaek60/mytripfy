@@ -8,6 +8,7 @@ import SectionShell from '@/components/layout/SectionShell'
 import ValuePropGrid from '@/components/marketing/ValuePropGrid'
 import DestinationCarousel from '@/components/marketing/DestinationCarousel'
 import ChallengeSpotlight from '@/components/marketing/ChallengeSpotlight'
+import ChallengeCategoriesGrid from '@/components/marketing/ChallengeCategoriesGrid'
 import TrustStack, { TRUST_ICONS } from '@/components/marketing/TrustStack'
 import TestimonialTabs from '@/components/marketing/TestimonialTabs'
 import FaqAccordion from '@/components/marketing/FaqAccordion'
@@ -22,6 +23,8 @@ import { Users, ShieldCheck, Map as MapIcon, Trophy, UserCheck, Search, Star, Aw
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildFaqPageJsonLd } from '@/lib/seo/json-ld'
 
 export async function generateMetadata({
   params,
@@ -204,8 +207,30 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     points: c.challenges?.points ?? 0,
   }))
 
+  const challengeCategoryLabels = {
+    catCountries: tm('catCountries'),
+    catCountriesDesc: tm('catCountriesDesc'),
+    catAttractions: tm('catAttractions'),
+    catAttractionsDesc: tm('catAttractionsDesc'),
+    catFoods: tm('catFoods'),
+    catFoodsDesc: tm('catFoodsDesc'),
+    catRestaurants: tm('catRestaurants'),
+    catRestaurantsDesc: tm('catRestaurantsDesc'),
+    catNature: tm('catNature'),
+    catNatureDesc: tm('catNatureDesc'),
+    catIslands: tm('catIslands'),
+    catIslandsDesc: tm('catIslandsDesc'),
+    catMuseums: tm('catMuseums'),
+    catMuseumsDesc: tm('catMuseumsDesc'),
+    catScuba: tm('catScuba'),
+    catScubaDesc: tm('catScubaDesc'),
+  }
+
+  const faqJsonLd = buildFaqPageJsonLd(faqItems)
+
   return (
     <div className="flex min-h-screen flex-col bg-surface-warm">
+      <JsonLdScript data={faqJsonLd} />
       <PromoBanner locale={locale} message={tm('promoMessage')} ctaLabel={tm('promoCta')} ctaHref="/companions" />
       <Header locale={locale} currentPath="/" />
 
@@ -256,11 +281,33 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-surface rounded-2xl border border-edge">
-            <p className="text-subtle font-medium mb-4">{tm('allTrips')}</p>
-            <Link href={isLoggedIn ? '/companions/new' : '/login'}>
-              <Button className="bg-brand hover:bg-brand-hover rounded-full">{tm('browseTrips')}</Button>
-            </Link>
+          <div className="rounded-2xl border border-edge bg-surface overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              <div className="p-8 sm:p-10 flex flex-col justify-center">
+                <p className="text-xs font-bold text-brand uppercase tracking-wider mb-2">{tm('emptyTripsBadge')}</p>
+                <h3 className="text-xl font-bold text-heading mb-3">{tm('emptyTripsTitle')}</h3>
+                <p className="text-subtle text-sm leading-relaxed mb-6">{tm('emptyTripsDesc')}</p>
+                <div className="flex flex-wrap gap-3">
+                  <Link href={isLoggedIn ? '/companions/new' : '/login'}>
+                    <Button className="bg-brand hover:bg-brand-hover rounded-full">{tm('postTrip')}</Button>
+                  </Link>
+                  <Link href="/blog/find-travel-companion">
+                    <Button variant="outline" className="rounded-full border-brand/30 text-brand">{tm('emptyTripsGuide')}</Button>
+                  </Link>
+                </div>
+              </div>
+              <div className="bg-surface-sunken p-8 sm:p-10 border-t lg:border-t-0 lg:border-l border-edge">
+                <p className="text-sm font-semibold text-heading mb-4">{tm('emptyTripsWhileTitle')}</p>
+                <ul className="space-y-3 text-sm text-subtle">
+                  <li className="flex gap-2"><span className="text-challenge">🏆</span>{tm('emptyTripsWhile1')}</li>
+                  <li className="flex gap-2"><span className="text-gold">🗺️</span>{tm('emptyTripsWhile2')}</li>
+                  <li className="flex gap-2"><span className="text-brand">✈️</span>{tm('emptyTripsWhile3')}</li>
+                </ul>
+                <Link href="/challenges/countries" className="inline-block mt-6 text-sm font-semibold text-challenge hover:underline">
+                  {tm('startChallenge')} →
+                </Link>
+              </div>
+            </div>
           </div>
         )}
       </SectionShell>
@@ -280,19 +327,19 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       </SectionShell>
 
       {/* Top guides */}
-      {topGuides.length > 0 && (
-        <SectionShell
-          variant="light"
-          title={tm('guidesTitle')}
-          subtitle={tm('guidesSubtitle')}
-          action={
-            <Link href="/guides">
-              <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
-                {tm('allGuides')} →
-              </Button>
-            </Link>
-          }
-        >
+      <SectionShell
+        variant="light"
+        title={tm('guidesTitle')}
+        subtitle={topGuides.length > 0 ? tm('guidesSubtitle') : tm('emptyGuidesSubtitle')}
+        action={
+          <Link href="/guides">
+            <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
+              {tm('allGuides')} →
+            </Button>
+          </Link>
+        }
+      >
+        {topGuides.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {topGuides.map(guide => {
               const levelInfo = getLevelInfo(guide.travel_level || 1)
@@ -342,12 +389,24 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               )
             })}
           </div>
-        </SectionShell>
-      )}
+        ) : (
+          <div className="max-w-2xl mx-auto text-center py-10 px-6 rounded-2xl border border-edge bg-surface-sunken">
+            <p className="text-subtle text-sm leading-relaxed mb-6">{tm('emptyGuidesDesc')}</p>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Link href={isLoggedIn ? '/profile/edit' : '/login'}>
+                <Button className="rounded-full bg-gold hover:bg-gold/90 text-white">{tm('becomeGuide')}</Button>
+              </Link>
+              <Link href="/blog/become-local-guide">
+                <Button variant="outline" className="rounded-full border-gold/40 text-gold">{tm('emptyGuidesLearn')}</Button>
+              </Link>
+            </div>
+          </div>
+        )}
+      </SectionShell>
 
-      {/* Challenge spotlight */}
-      {certSpotlight.length > 0 && (
-        <SectionShell variant="warm">
+      {/* Challenge spotlight or categories fallback */}
+      <SectionShell variant="warm">
+        {certSpotlight.length > 0 ? (
           <ChallengeSpotlight
             certs={certSpotlight}
             locale={locale}
@@ -355,22 +414,32 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             subtitle={tm('challengeSubtitle')}
             viewAllLabel={tm('viewCertFeed')}
           />
-        </SectionShell>
-      )}
+        ) : (
+          <ChallengeCategoriesGrid
+            locale={locale}
+            title={tm('challengeEmptyTitle')}
+            subtitle={tm('challengeEmptySubtitle')}
+            viewAllLabel={tm('viewAllChallenges')}
+            startLabel={tm('startChallenge')}
+            labels={challengeCategoryLabels}
+          />
+        )}
+      </SectionShell>
 
       {/* Hall of Fame */}
-      {hallOfFameTop5.length > 0 && (
-        <SectionShell
-          variant="light"
-          title={tm('hallOfFameTitle')}
-          action={
-            <Link href="/hall-of-fame">
-              <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
-                {tm('viewRanking')} →
-              </Button>
-            </Link>
-          }
-        >
+      <SectionShell
+        variant="light"
+        title={tm('hallOfFameTitle')}
+        subtitle={hallOfFameTop5.length > 0 ? undefined : tm('hallOfFameEmptySubtitle')}
+        action={
+          <Link href="/hall-of-fame">
+            <Button variant="outline" size="sm" className="rounded-full border-gold/40 text-gold hover:bg-gold-light">
+              {tm('viewRanking')} →
+            </Button>
+          </Link>
+        }
+      >
+        {hallOfFameTop5.length > 0 ? (
           <div className="flex flex-col gap-3 max-w-3xl mx-auto">
             {hallOfFameTop5.map((row, idx) => {
               const medals = ['🥇', '🥈', '🥉']
@@ -407,8 +476,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               )
             })}
           </div>
-        </SectionShell>
-      )}
+        ) : (
+          <div className="max-w-xl mx-auto text-center py-8">
+            <p className="text-subtle text-sm mb-6">{tm('hallOfFameEmptyDesc')}</p>
+            <Link href="/challenges/countries">
+              <Button className="rounded-full bg-challenge hover:opacity-90">{tm('startChallenge')}</Button>
+            </Link>
+          </div>
+        )}
+      </SectionShell>
 
       {/* Testimonials */}
       <SectionShell variant="sunken">

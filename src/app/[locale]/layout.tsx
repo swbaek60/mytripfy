@@ -5,7 +5,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
-import {getFallbackMessages} from '@/i18n/request';
+import {getFallbackMessages, type Messages} from '@/i18n/request';
 import { CurrencyProvider } from '@/context/CurrencyContext';
 import SiteJsonLd from '@/components/seo/SiteJsonLd';
 import { rootMetadataBase } from '@/lib/seo/build-metadata';
@@ -110,10 +110,10 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  let messages: Record<string, Record<string, string>>;
+  let messages: Messages;
   try {
     const m = await getMessages();
-    messages = (m ?? {}) as Record<string, Record<string, string>>;
+    messages = (m ?? {}) as Messages;
   } catch (e) {
     console.error('[locale] layout getMessages error:', e);
     try {

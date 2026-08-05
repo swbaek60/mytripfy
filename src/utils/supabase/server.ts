@@ -174,13 +174,9 @@ export async function getAuthUser(): Promise<{
  * 매 호출마다 Clerk auth()로 직접 인증 확인 (React.cache 사용 안 함).
  */
 export async function createClient() {
-  // anon 키는 RLS 잠금 이후 아무 것도 읽을 수 없다. 조용히 폴백하면
-  // 원인 파악이 어려운 빈 화면이 되므로 여기서 바로 실패시킨다.
-  if (!supabaseServiceKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required')
-  const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
-
+  // auth() 를 먼저 호출해 정적 생성 중이면 DYNAMIC_SERVER_USAGE 를 띄운다.
+  // 서비스 키 검사를 앞에 두면 CI(시크릿 없음)에서 대시보드 등이
+  // 프리렌더 도중 바로 죽어 버린다.
   let clerkUserId: string | null = null
   try {
     const result = await auth()
@@ -189,6 +185,13 @@ export async function createClient() {
     if (isNextControlFlowError(e)) throw e
     clerkUserId = null
   }
+
+  // anon 키는 RLS 잠금 이후 아무 것도 읽을 수 없다. 조용히 폴백하면
+  // 원인 파악이 어려운 빈 화면이 되므로 여기서 바로 실패시킨다.
+  if (!supabaseServiceKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required')
+  const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
 
   let mappedUser: Partial<User> | null = null
   if (clerkUserId) {

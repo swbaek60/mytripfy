@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { createAdminClient } from '@/utils/supabase/server'
+import { getAdminClientSafe } from '@/utils/supabase/server'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import HomeAuthLink from '@/components/marketing/HomeAuthLink'
 import { notFound } from 'next/navigation'
@@ -54,29 +54,32 @@ export default async function BeachheadCityPage({
   const country = getCountryByCode(city.countryCode)
   // 공개 모집글만 읽는다. auth() 를 타면 ISR 이 깨지므로 로그인 여부는
   // 클라이언트 컴포넌트(HomeAuthLink / CompanionStoryCard)에서 판별한다.
-  const supabase = createAdminClient()
+  // CI 처럼 서비스 키가 없으면 빈 목록으로 골격만 생성한다.
+  const supabase = getAdminClientSafe()
   const today = new Date().toISOString().split('T')[0]
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
   const t = await getTranslations({ locale, namespace: 'Companions' })
 
-  const { data: postsRaw } = await supabase
-    .from('companion_posts')
-    .select(`
+  const { data: postsRaw } = supabase
+    ? await supabase
+        .from('companion_posts')
+        .select(`
       *,
       profiles ( id, full_name, avatar_url, trust_score )
     `)
-    .eq('status', 'open')
-    .eq('destination_country', city.countryCode)
-    .gte('end_date', today)
-    .order('created_at', { ascending: false })
-    .limit(40)
+        .eq('status', 'open')
+        .eq('destination_country', city.countryCode)
+        .gte('end_date', today)
+        .order('created_at', { ascending: false })
+        .limit(40)
+    : { data: null }
 
   const posts = (postsRaw ?? []).filter((p) =>
     matchesBeachheadCity(city, p.destination_country, p.destination_city)
   )
 
   const appCountMap: Record<string, number> = {}
-  if (posts.length > 0) {
+  if (supabase && posts.length > 0) {
     const { data: counts } = await supabase
       .from('companion_post_application_counts')
       .select('post_id, count')

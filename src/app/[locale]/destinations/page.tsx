@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
-import { createAdminClient } from '@/utils/supabase/server'
+import { getAdminClientSafe } from '@/utils/supabase/server'
 import { getCountryByCode } from '@/data/countries'
 import { getDestinationCover } from '@/data/destination-covers'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
@@ -38,20 +38,23 @@ export default async function DestinationsPage({
   setRequestLocale(locale)
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
   // 공개 집계만 읽으므로 auth() 를 타지 않는 클라이언트를 써서 ISR 을 유지한다.
-  const supabase = createAdminClient()
+  // CI 처럼 서비스 키가 없는 환경에서는 빈 집계로 페이지 골격만 생성한다.
+  const supabase = getAdminClientSafe()
   const today = new Date().toISOString().split('T')[0]
 
-  const { data: rows } = await supabase
-    .from('companion_posts')
-    .select('destination_country')
-    .eq('status', 'open')
-    .gte('end_date', today)
-    .not('destination_country', 'is', null)
-
   const countByCountry = new Map<string, number>()
-  for (const row of rows ?? []) {
-    const code = (row as { destination_country: string }).destination_country
-    if (code?.trim()) countByCountry.set(code, (countByCountry.get(code) ?? 0) + 1)
+  if (supabase) {
+    const { data: rows } = await supabase
+      .from('companion_posts')
+      .select('destination_country')
+      .eq('status', 'open')
+      .gte('end_date', today)
+      .not('destination_country', 'is', null)
+
+    for (const row of rows ?? []) {
+      const code = (row as { destination_country: string }).destination_country
+      if (code?.trim()) countByCountry.set(code, (countByCountry.get(code) ?? 0) + 1)
+    }
   }
 
   const sorted = [...countByCountry.entries()]

@@ -401,6 +401,7 @@
     "remove": "삭제",
     "confirm": "확인",
     "close": "닫기",
+    "photosCount": "사진 {count}장",
     "noResults": "검색 결과 없음",
     "noResultsFor": "\"{search}\"에 대한 결과 없음",
     "error": "오류가 발생했습니다. 다시 시도해 주세요.",

@@ -421,6 +421,7 @@
     "remove": "Remove",
     "confirm": "Confirm",
     "close": "Close",
+    "photosCount": "{count} photos",
     "noResults": "No results",
     "noResultsFor": "No results for \"{search}\"",
     "error": "Something went wrong. Please try again.",

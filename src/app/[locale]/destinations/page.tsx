@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { getCountryByCode } from '@/data/countries'
 import { getDestinationCover } from '@/data/destination-covers'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import { BEACHHEAD_CITIES } from '@/lib/admin/beachhead-cities'
 
 const FALLBACK_CODES = ['JP', 'TH', 'KR', 'IT', 'FR', 'US', 'ES', 'VN', 'AU', 'GB', 'DE', 'PT']
 
@@ -26,7 +27,7 @@ export async function generateMetadata({
   })
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export default async function DestinationsPage({
   params,
@@ -34,8 +35,10 @@ export default async function DestinationsPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  setRequestLocale(locale)
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
-  const supabase = await createClient()
+  // 공개 집계만 읽으므로 auth() 를 타지 않는 클라이언트를 써서 ISR 을 유지한다.
+  const supabase = createAdminClient()
   const today = new Date().toISOString().split('T')[0]
 
   const { data: rows } = await supabase
@@ -62,16 +65,33 @@ export default async function DestinationsPage({
 
   return (
     <div className="min-h-screen bg-surface-warm">
-      <Header locale={locale} currentPath="/destinations" />
+      <Header locale={locale} />
 
-      <section className="bg-midnight text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">{tm('destinationsPageTitle')}</h1>
-          <p className="text-white/70 max-w-xl">{tm('destinationsPageSubtitle')}</p>
+      <section className="relative bg-midnight text-white py-12 sm:py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight via-midnight to-brand-deep/30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{tm('destinationsPageTitle')}</h1>
+          <p className="text-white/70 max-w-xl leading-relaxed">{tm('destinationsPageSubtitle')}</p>
         </div>
       </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <h2 className="text-xl sm:text-2xl font-bold text-heading mb-4">{tm('beachheadHeading')}</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-12">
+          {BEACHHEAD_CITIES.map((c) => (
+            <Link
+              key={c.id}
+              href={`/${locale}/destinations/${c.id}`}
+              className="rounded-2xl border border-edge/60 bg-surface px-4 py-3.5 hover:border-brand/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <p className="text-xs text-subtle uppercase tracking-wide">{c.countryCode}</p>
+              <p className="font-bold text-heading mt-0.5">{locale === 'ko' ? c.label : c.labelEn}</p>
+              <p className="text-xs text-brand mt-1.5 font-medium">{tm('beachheadViewTrips')}</p>
+            </Link>
+          ))}
+        </div>
+
+        <h2 className="text-xl sm:text-2xl font-bold text-heading mb-4">{tm('byCountryHeading')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {sorted.map(({ code, count }, idx) => {
             const country = getCountryByCode(code)
@@ -109,7 +129,7 @@ export default async function DestinationsPage({
         <div className="text-center mt-12">
           <Link
             href={`/${locale}/companions`}
-            className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-brand text-white font-semibold hover:bg-brand-hover transition-colors"
+            className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-brand text-white font-semibold hover:bg-brand-hover transition-colors shadow-md shadow-brand/20"
           >
             {tm('viewAllDestinations')} →
           </Link>

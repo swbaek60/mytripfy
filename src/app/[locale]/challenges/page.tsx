@@ -6,6 +6,10 @@ import { getTranslations } from 'next-intl/server'
 import { Siren } from 'lucide-react'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import { relationOne } from '@/lib/db/relation'
+import { TOTAL_CHALLENGES } from '@/data/challengeTotals'
+import { CHALLENGE_CATEGORY_KEYS, CHALLENGE_CATEGORY_META } from '@/data/challenge-category-meta'
+import { Button } from '@/components/ui/button'
 
 export async function generateMetadata({
   params,
@@ -23,25 +27,6 @@ export async function generateMetadata({
   })
 }
 
-const CATEGORIES = [
-  { key: 'countries',     title: '100 Countries',      emoji: '🌍', desc: 'Nations to explore' },
-  { key: 'restaurants',   title: '100 Restaurants',   emoji: '🍽️', desc: 'World\'s best dining' },
-  { key: 'foods',         title: '100 Foods',          emoji: '🍜', desc: 'Must-eat dishes' },
-  { key: 'drinks',        title: '100 Drinks',         emoji: '🍶', desc: 'Legendary beverages' },
-  { key: 'attractions',   title: '100 Attractions',    emoji: '🏛️', desc: 'Iconic landmarks' },
-  { key: 'museums',       title: '100 Museums',        emoji: '🏺', desc: 'Cultural treasures' },
-  { key: 'art_galleries', title: '100 Art Galleries',  emoji: '🖼️', desc: 'Greatest galleries' },
-  { key: 'nature',        title: '100 Nature Spots',   emoji: '🏔️', desc: 'Natural wonders' },
-  { key: 'islands',       title: '100 Islands',        emoji: '🏝️', desc: 'Paradise islands' },
-  { key: 'animals',       title: '100 Animals',        emoji: '🦁', desc: 'Wildlife encounters' },
-  { key: 'festivals',     title: '100 Festivals',      emoji: '🎭', desc: 'Epic celebrations' },
-  { key: 'golf',          title: '100 Golf Courses',   emoji: '⛳', desc: 'World\'s finest greens' },
-  { key: 'fishing',       title: '100 Fishing Spots',  emoji: '🎣', desc: 'Legendary waters' },
-  { key: 'surfing',       title: '100 Surf Spots',     emoji: '🏄', desc: 'Best waves' },
-  { key: 'skiing',        title: '100 Ski Resorts',    emoji: '⛷️', desc: 'Greatest slopes' },
-  { key: 'scuba',         title: '100 Dive Sites',     emoji: '🤿', desc: 'Underwater wonders' },
-]
-
 export default async function ChallengesPage({
   params,
 }: {
@@ -50,12 +35,13 @@ export default async function ChallengesPage({
   const { locale } = await params
   const L = getDisputeLabels(locale)
   const t = await getTranslations({ locale, namespace: 'ChallengesPage' })
+  const tc = await getTranslations({ locale, namespace: 'Challenges' })
+  const tm = await getTranslations({ locale, namespace: 'Marketing' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
-  // 카테고리별 내 완료 수 조회
-  let certCountByCategory: Record<string, number> = {}
+  const certCountByCategory: Record<string, number> = {}
   let totalCertified = 0
 
   if (user) {
@@ -67,49 +53,47 @@ export default async function ChallengesPage({
     if (certs) {
       totalCertified = certs.length
       for (const cert of certs) {
-        const cat = (cert.challenges as any)?.category
+        const cat = relationOne<{ category: string }>(cert.challenges)?.category
         if (cat) certCountByCategory[cat] = (certCountByCategory[cat] || 0) + 1
       }
     }
   }
 
-  const totalChallenges = CATEGORIES.length * 100  // 16 × 100 = 1600
+  const totalChallenges = TOTAL_CHALLENGES
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/challenges" />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
-        {/* 딴지걸기 시스템 배너 */}
-        <div className="bg-amber-light border border-amber-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="bg-warning-light border border-warning-border rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap shadow-sm">
           <div className="flex items-center gap-3">
-            <Siren className="w-7 h-7 text-amber-600 shrink-0" />
+            <Siren className="w-7 h-7 text-warning shrink-0" />
             <div>
-              <p className="font-bold text-amber-900 text-sm">{L.systemName} — {L.tagline}</p>
-              <p className="text-xs text-amber-700 mt-0.5">
+              <p className="font-bold text-warning-strong text-sm">{L.systemName} — {L.tagline}</p>
+              <p className="text-xs text-warning-strong mt-0.5">
                 {t('spotsLeft')}
               </p>
             </div>
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap">
             <Link href={`/${locale}/challenges/feed`}>
-              <button className="bg-rose-600 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-rose-700 transition-colors">
+              <Button size="sm" className="rounded-full bg-challenge hover:bg-challenge-strong text-white text-xs font-bold">
                 🌍 {t('communityFeed')}
-              </button>
+              </Button>
             </Link>
             <Link href={`/${locale}/challenges/guide`}>
-              <button className="border border-amber-300 bg-surface text-amber-700 text-xs font-bold px-4 py-2 rounded-full hover:bg-amber-light transition-colors">
+              <Button size="sm" variant="outline" className="rounded-full border-warning-border bg-surface text-warning-strong text-xs font-bold hover:bg-warning-light">
                 📖 {L.systemName}
-              </button>
+              </Button>
             </Link>
           </div>
         </div>
 
-        {/* 히어로 */}
-        <div className="bg-gradient-to-r from-rose-900 to-rose-600 rounded-2xl p-8 text-white shadow-lg">
-          <h1 className="text-3xl font-extrabold mb-2">{t('world100Title')}</h1>
-          <p className="text-rose-100/90 mb-6">
+        <div className="bg-gradient-to-br from-challenge-strong via-challenge to-challenge/90 rounded-2xl p-8 sm:p-10 text-white shadow-lg">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{t('world100Title')}</h1>
+          <p className="text-challenge-muted/90 mb-6 max-w-2xl">
             {t('subtitle')}
           </p>
 
@@ -117,7 +101,7 @@ export default async function ChallengesPage({
             <div>
               <div className="flex justify-between text-sm font-semibold mb-2">
                 <span>{t('overallProgress')}</span>
-                <span>{totalCertified} / {totalChallenges}</span>
+                <span>{tc('progressCompleted', { completed: totalCertified, total: totalChallenges })}</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-3">
                 <div
@@ -136,7 +120,7 @@ export default async function ChallengesPage({
                 ].map(m => (
                   <span key={m.at}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      totalCertified >= m.at ? 'bg-surface text-rose-600' : 'bg-white/20 text-white/60'
+                      totalCertified >= m.at ? 'bg-surface text-challenge' : 'bg-white/20 text-white/60'
                     }`}>
                     {m.emoji} {m.label}
                   </span>
@@ -145,38 +129,38 @@ export default async function ChallengesPage({
             </div>
           ) : (
             <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/challenges`)}`}>
-              <button className="bg-white text-rose-700 font-bold px-6 py-2.5 rounded-full text-sm hover:bg-rose-50 transition-colors">
+              <Button className="rounded-full bg-white text-challenge-strong font-bold hover:bg-challenge-light">
                 {t('loginToTrack')}
-              </button>
+              </Button>
             </Link>
           )}
         </div>
 
-        {/* 카테고리 그리드 */}
         <div>
-          <h2 className="text-xl font-bold text-heading mb-4">{t('chooseCategory')}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-heading mb-4">{t('chooseCategory')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {CATEGORIES.map(cat => {
-              const done = certCountByCategory[cat.key] || 0
+            {CHALLENGE_CATEGORY_KEYS.map(key => {
+              const cat = CHALLENGE_CATEGORY_META[key]
+              const done = certCountByCategory[key] || 0
               const pct = Math.round((done / 100) * 100)
               return (
-                <Link key={cat.key} href={`/${locale}/challenges/${cat.key}`}>
-                  <div className="bg-surface rounded-2xl p-4 border border-edge/60 hover:border-rose-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                <Link key={key} href={`/${locale}/challenges/${key}`}>
+                  <div className="bg-surface rounded-2xl p-4 border border-edge/60 hover:border-challenge-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                     <div className="text-3xl mb-2">{cat.emoji}</div>
-                    <p className="font-bold text-heading text-sm leading-tight">{cat.title}</p>
-                    <p className="text-xs text-hint mt-0.5 mb-3">{cat.desc}</p>
+                    <p className="font-bold text-heading text-sm leading-tight">{tm(cat.titleKey)}</p>
+                    <p className="text-xs text-hint mt-0.5 mb-3 line-clamp-2">{tm(cat.descKey)}</p>
                     {user ? (
                       <>
                         <div className="w-full bg-surface-sunken rounded-full h-1.5 mb-1">
                           <div
-                            className="bg-rose-500 h-1.5 rounded-full"
+                            className="bg-challenge h-1.5 rounded-full transition-all duration-500"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <p className="text-[10px] text-hint">{done}/100</p>
+                        <p className="text-[10px] text-hint font-medium">{done}/100</p>
                       </>
                     ) : (
-                      <p className="text-[10px] text-hint">100 items</p>
+                      <p className="text-[10px] text-hint font-medium">{tc('itemsCount', { count: 100 })}</p>
                     )}
                   </div>
                 </Link>

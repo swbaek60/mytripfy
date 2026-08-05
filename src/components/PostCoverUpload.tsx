@@ -1,16 +1,19 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useTranslations } from 'next-intl'
 import { ImagePlus, X, Loader2 } from 'lucide-react'
+import { errorMessage, uploadImage } from '@/lib/client/api'
+import { optimizeImage } from '@/utils/imageOptimizer'
 
 interface Props {
-  userId: string
   currentUrl: string | null
   onUpload: (url: string | null) => void
 }
 
-export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props) {
+export default function PostCoverUpload({ currentUrl, onUpload }: Props) {
+  const tc = useTranslations('Common')
+  const ts = useTranslations('Sponsors')
   const [preview, setPreview] = useState<string | null>(currentUrl)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -19,28 +22,17 @@ export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props)
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 10 * 1024 * 1024) { setError('File must be under 10MB'); return }
 
     setUploading(true)
     setError('')
 
     try {
-      const supabase = createClient()
-      const ext = file.name.split('.').pop() || 'jpg'
-      const path = `${userId}/post-cover-${Date.now()}.${ext}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('photos')
-        .upload(path, file, { upsert: true, contentType: file.type })
-
-      if (uploadError) throw uploadError
-
-      const { data } = supabase.storage.from('photos').getPublicUrl(path)
-      const url = data.publicUrl + `?t=${Date.now()}`
+      const optimized = await optimizeImage(file, 'cover')
+      const { url } = await uploadImage('photos', optimized)
       setPreview(url)
       onUpload(url)
-    } catch (err: any) {
-      setError(err.message || 'Upload failed')
+    } catch (err) {
+      setError(errorMessage(err, tc('uploadFailed')))
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
@@ -61,33 +53,34 @@ export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props)
       >
         {preview ? (
           <>
-            <img src={preview} alt="cover" className="w-full h-full object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element -- 업로드 전 미리보기는 blob: URL 이라 최적화할 수 없다. */}
+            <img src={preview} alt={ts('coverAlt')} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center gap-3 opacity-0 hover:opacity-100">
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); inputRef.current?.click() }}
                 className="bg-white text-body text-sm font-medium px-4 py-2 rounded-full shadow hover:bg-surface-hover transition"
               >
-                Change
+                {ts('changePhoto')}
               </button>
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); handleRemove() }}
                 className="bg-white text-danger text-sm font-medium px-4 py-2 rounded-full shadow hover:bg-danger-light transition flex items-center gap-1"
               >
-                <X size={13} /> Remove
+                <X size={13} /> {tc('remove')}
               </button>
             </div>
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-hint">
             {uploading ? (
-              <Loader2 size={28} className="animate-spin text-blue-500" />
+              <Loader2 size={28} className="animate-spin text-brand" />
             ) : (
               <>
                 <ImagePlus size={28} />
-                <p className="text-sm font-medium">Add cover photo</p>
-                <p className="text-xs">JPG, PNG, WebP · Max 10MB</p>
+                <p className="text-sm font-medium">{tc('addCoverPhoto')}</p>
+                <p className="text-xs">{tc('imageFormatMax', { mb: 10 })}</p>
               </>
             )}
           </div>
@@ -106,6 +99,7 @@ export default function PostCoverUpload({ userId, currentUrl, onUpload }: Props)
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        aria-label={tc('selectPhoto')}
         className="hidden"
         onChange={handleUpload}
       />

@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Star, Globe, Trophy } from 'lucide-react'
+import { Star, Globe, Trophy } from 'lucide-react'
 import TranslatedText from '@/components/TranslatedText'
 import { useTranslations } from 'next-intl'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
 import UserChallengeAchievements from '@/components/UserChallengeAchievements'
 import SponsorVisitList from '@/components/SponsorVisitList'
 import type { SponsorVisitItem } from '@/components/SponsorVisitList'
+import Avatar from '@/components/ui/Avatar'
+import SmartImage from '@/components/ui/SmartImage'
 import { getCountryByCode, getCountryFlagEmoji } from '@/data/countries'
 import { getLanguageByCode, getLevelInfo as getLangLevel } from '@/data/languages'
 
@@ -87,9 +89,6 @@ export default function GuideDetailTabs({
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [photoIndex, setPhotoIndex] = useState<number | null>(null)
 
-  const certTitle = (c: CertificationItem) =>
-    locale.startsWith('ko') && c.challenges?.title_ko ? c.challenges.title_ko : (c.challenges?.title_en ?? '')
-
   const hasHof = challengesCompleted > 0 || experiencePoints > 0 || contributionPoints > 0 || sponsorVisitList.length > 0
   const hofSub = hasHof
     ? `${t('expPoints')} ${experiencePoints} · ${t('contribPoints')} ${contributionPoints}`
@@ -153,11 +152,11 @@ export default function GuideDetailTabs({
               <div>
                 <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('quickStats')}</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-3">
+                  <div className="bg-warning-light rounded-xl p-3 flex items-center gap-3">
                     <span className="text-2xl">🏆</span>
                     <div>
-                      <div className="font-bold text-amber-700 text-lg">{challengePoints}</div>
-                      <div className="text-xs text-amber-600">{tg('challengePoints')}</div>
+                      <div className="font-bold text-warning-strong text-lg">{challengePoints}</div>
+                      <div className="text-xs text-warning">{tg('challengePoints')}</div>
                     </div>
                   </div>
                   <div className="bg-purple-light rounded-xl p-3 flex items-center gap-3">
@@ -178,16 +177,16 @@ export default function GuideDetailTabs({
                     <div className="bg-warning-light rounded-xl p-3 flex items-center gap-3">
                       <span className="text-2xl">⭐</span>
                       <div>
-                        <div className="font-bold text-yellow-700 text-lg">{Number(trustScore).toFixed(1)}</div>
-                        <div className="text-xs text-yellow-600">{tg('averageRating')}</div>
+                        <div className="font-bold text-gold-strong text-lg">{Number(trustScore).toFixed(1)}</div>
+                        <div className="text-xs text-gold">{tg('averageRating')}</div>
                       </div>
                     </div>
                   ) : (
                     <div className="bg-warning-light rounded-xl p-3 flex items-center gap-3">
                       <span className="text-2xl">💬</span>
                       <div>
-                        <div className="font-bold text-yellow-700 text-lg">{reviews.length}</div>
-                        <div className="text-xs text-yellow-600">{tg('reviews')}</div>
+                        <div className="font-bold text-gold-strong text-lg">{reviews.length}</div>
+                        <div className="text-xs text-gold">{tg('reviews')}</div>
                       </div>
                     </div>
                   )}
@@ -257,7 +256,7 @@ export default function GuideDetailTabs({
               <div>
                 <h3 className="text-xs font-semibold text-hint uppercase tracking-wide mb-3">{tg('guideServices')}</h3>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3.5 bg-amber-50 rounded-xl border border-amber-100">
+                  <div className="flex items-center justify-between p-3.5 bg-warning-light rounded-xl border border-warning-muted">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">💰</span>
                       <span className="text-sm font-medium text-body">{tg('hourlyRate')}</span>
@@ -274,7 +273,7 @@ export default function GuideDetailTabs({
                     </div>
                   )}
                   {hasAccommodation && (
-                    <div className="flex items-center gap-3 p-3.5 bg-success-light rounded-xl border border-green-100">
+                    <div className="flex items-center gap-3 p-3.5 bg-success-light rounded-xl border border-success-muted">
                       <span className="text-xl">🏠</span>
                       <div>
                         <div className="text-sm font-medium text-body">{tg('accommodationIncluded')}</div>
@@ -295,7 +294,7 @@ export default function GuideDetailTabs({
                           const c = getCountryByCode(region.country)
                           const flag = c ? c.emoji : getCountryFlagEmoji(region.country)
                           return (
-                            <div key={region.country} className="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                            <div key={region.country} className="bg-warning-light border border-warning-muted rounded-xl p-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-lg">{flag}</span>
                                 <span className="font-semibold text-sm text-heading">{c?.name || '–'}</span>
@@ -303,13 +302,13 @@ export default function GuideDetailTabs({
                               {region.cities.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
                                   {region.cities.map(city => (
-                                    <span key={city} className="text-xs bg-surface border border-amber-200 text-amber-800 px-2.5 py-1 rounded-full font-medium">
+                                    <span key={city} className="text-xs bg-surface border border-warning-border text-warning-strong px-2.5 py-1 rounded-full font-medium">
                                       📍 {city}
                                     </span>
                                   ))}
                                 </div>
                               ) : (
-                                <span className="text-xs text-amber-700 bg-surface border border-amber-200 px-2.5 py-1 rounded-full">
+                                <span className="text-xs text-warning-strong bg-surface border border-warning-border px-2.5 py-1 rounded-full">
                                   🗺️ {tc('nationwide')}
                                 </span>
                               )}
@@ -320,12 +319,12 @@ export default function GuideDetailTabs({
                           const c = getCountryByCode(code)
                           const flag = c ? c.emoji : getCountryFlagEmoji(code)
                           return (
-                            <div key={code} className="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                            <div key={code} className="bg-warning-light border border-warning-muted rounded-xl p-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-lg">{flag}</span>
                                 <span className="font-semibold text-sm text-heading">{c?.name || '–'}</span>
                               </div>
-                              <span className="text-xs text-amber-700 bg-surface border border-amber-200 px-2.5 py-1 rounded-full">
+                              <span className="text-xs text-warning-strong bg-surface border border-warning-border px-2.5 py-1 rounded-full">
                                 🗺️ {tc('nationwide')}
                               </span>
                             </div>
@@ -343,7 +342,7 @@ export default function GuideDetailTabs({
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {vehiclePhotos.map((url, i) => (
                       <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-surface-sunken shrink-0">
-                        <img src={url} alt={`Vehicle ${i + 1}`} className="w-full h-full object-cover" />
+                        <SmartImage src={url} alt={`Vehicle ${i + 1}`} width={224} height={160} sizes="112px" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
@@ -355,7 +354,7 @@ export default function GuideDetailTabs({
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {accommodationPhotos.map((url, i) => (
                       <div key={i} className="w-28 h-20 rounded-xl overflow-hidden bg-surface-sunken shrink-0">
-                        <img src={url} alt={`Accommodation ${i + 1}`} className="w-full h-full object-cover" />
+                        <SmartImage src={url} alt={`Accommodation ${i + 1}`} width={224} height={160} sizes="112px" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
@@ -405,12 +404,12 @@ export default function GuideDetailTabs({
             <div>
               {/* 평점 요약 */}
               {reviews.length > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-warning-light rounded-2xl border border-yellow-100 mb-5">
+                <div className="flex items-center gap-4 p-4 bg-warning-light rounded-2xl border border-gold-muted mb-5">
                   <div className="text-center min-w-[60px]">
                     {trustScore && trustScore > 0 ? (
                       <>
-                        <div className="text-4xl font-extrabold text-yellow-600">{Number(trustScore).toFixed(1)}</div>
-                        <div className="text-yellow-500 text-base mt-0.5">
+                        <div className="text-4xl font-extrabold text-gold">{Number(trustScore).toFixed(1)}</div>
+                        <div className="text-gold text-base mt-0.5">
                           {'★'.repeat(Math.round(trustScore))}{'☆'.repeat(5 - Math.round(trustScore))}
                         </div>
                       </>
@@ -425,9 +424,9 @@ export default function GuideDetailTabs({
                       const pct = (count / reviews.length) * 100
                       return (
                         <div key={star} className="flex items-center gap-2 mb-0.5">
-                          <span className="text-xs text-yellow-500 w-3 text-right">{star}</span>
-                          <div className="flex-1 h-1.5 bg-yellow-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                          <span className="text-xs text-gold w-3 text-right">{star}</span>
+                          <div className="flex-1 h-1.5 bg-gold-muted rounded-full overflow-hidden">
+                            <div className="h-full bg-gold rounded-full" style={{ width: `${pct}%` }} />
                           </div>
                           <span className="text-xs text-hint w-4">{count}</span>
                         </div>
@@ -446,7 +445,7 @@ export default function GuideDetailTabs({
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center shrink-0 overflow-hidden">
                             {reviewer?.avatar_url
-                              ? <img src={reviewer.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ? <Avatar src={reviewer.avatar_url} size={40} fill />
                               : <span className="text-lg">👤</span>}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -460,7 +459,7 @@ export default function GuideDetailTabs({
                                   : <span className="font-semibold text-heading text-sm">{tc('anonymous')}</span>
                                 }
                                 <div className="flex items-center gap-1.5 mt-0.5">
-                                  <span className="text-yellow-400 text-sm leading-none">
+                                  <span className="text-gold text-sm leading-none">
                                     {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                   </span>
                                   <span suppressHydrationWarning className="text-xs text-hint">
@@ -472,7 +471,7 @@ export default function GuideDetailTabs({
                             {review.tags && review.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1.5">
                                 {review.tags.map(tag => (
-                                  <span key={tag} className="text-xs bg-brand-light text-brand border border-edge-brand px-2 py-0.5 rounded-full">
+                                  <span key={tag} className="text-xs bg-brand-light text-brand-strong border border-edge-brand px-2 py-0.5 rounded-full">
                                     #{tag}
                                   </span>
                                 ))}
@@ -508,15 +507,18 @@ export default function GuideDetailTabs({
       {photoIndex !== null && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setPhotoIndex(null)}>
-          <img src={profilePhotos[photoIndex]} alt="" className="max-w-full max-h-full rounded-2xl object-contain" />
+          <SmartImage src={profilePhotos[photoIndex]} alt="" width={1600} height={1600} sizes="100vw" priority className="max-w-full max-h-full rounded-2xl object-contain" />
           <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30"
+            aria-label={tc('close')}
             onClick={() => setPhotoIndex(null)}>✕</button>
           {photoIndex > 0 && (
             <button onClick={e => { e.stopPropagation(); setPhotoIndex(photoIndex - 1) }}
+              aria-label={tc('previousPhoto')}
               className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white text-xl hover:bg-white/30">‹</button>
           )}
           {photoIndex < profilePhotos.length - 1 && (
             <button onClick={e => { e.stopPropagation(); setPhotoIndex(photoIndex + 1) }}
+              aria-label={tc('nextPhoto')}
               className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white text-xl hover:bg-white/30">›</button>
           )}
         </div>

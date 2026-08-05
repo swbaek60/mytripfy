@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/utils/supabase/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextRequest } from 'next/server'
+import { adminDb, requireCronSecret } from '@/lib/api/guard'
+import { apiDbFailure, apiError, apiFailure, apiOk } from '@/lib/api/respond'
 
 const SUPPORTED = [
   // 기축통화
@@ -15,40 +15,40 @@ const SUPPORTED = [
   'MXN','BRL','ARS','CLP','COP','PEN','CRC',
 ]
 
-// 이 API를 하루 1번 호출하면 됨
-// 브라우저: /api/update-rates 접속 or Vercel Cron으로 자동화
-export async function GET() {
+export const dynamic = 'force-dynamic'
+
+/**
+ * 환율 테이블을 갱신한다. 내부 자동화 전용이므로 `CRON_SECRET` 을 요구한다.
+ *
+ * 호출 예:
+ *   curl -H "Authorization: Bearer $CRON_SECRET" https://mytripfy.com/api/update-rates
+ *
+ * `CRON_SECRET` 이 설정돼 있지 않으면 요청은 거부된다. 이 라우트가 없어도
+ * `/api/rates` 가 외부 API 를 폴백으로 사용하므로 사이트는 정상 동작한다.
+ */
+export async function GET(req: NextRequest) {
+  const denied = requireCronSecret(req)
+  if (denied) return denied.response
+
   try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD')
-    if (!res.ok) throw new Error('Failed to fetch exchange rates')
-    const json = await res.json()
+    const res = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' })
+    if (!res.ok) return apiError('unavailable', 'Exchange rate provider is unavailable.')
 
-    if (!json.rates) throw new Error('Invalid response from exchange rate API')
+    const json = (await res.json()) as { rates?: Record<string, number> }
+    if (!json.rates) return apiError('unavailable', 'Exchange rate provider returned no data.')
 
-    // Service Role Key가 있으면 RLS 우회, 없으면 일반 클라이언트 사용
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
-      ? createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY
-        )
-      : await createServerClient()
-
-    const upsertData = SUPPORTED.map(code => ({
+    const now = new Date().toISOString()
+    const upsertData = SUPPORTED.map((code) => ({
       currency_code: code,
-      rate_from_usd: json.rates[code] ?? 1,
-      updated_at: new Date().toISOString(),
+      rate_from_usd: json.rates![code] ?? 1,
+      updated_at: now,
     }))
 
-    const { error } = await supabase.from('exchange_rates').upsert(upsertData)
-    if (error) throw new Error(error.message)
+    const { error } = await adminDb().from('exchange_rates').upsert(upsertData)
+    if (error) return apiDbFailure('update-rates', error)
 
-    return NextResponse.json({
-      success: true,
-      updated: SUPPORTED.length,
-      timestamp: new Date().toISOString(),
-      sample: { KRW: json.rates['KRW'], EUR: json.rates['EUR'], JPY: json.rates['JPY'] },
-    })
+    return apiOk({ updated: SUPPORTED.length, timestamp: now })
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+    return apiFailure('update-rates', err)
   }
 }

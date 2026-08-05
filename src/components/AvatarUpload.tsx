@@ -1,16 +1,18 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useTranslations } from 'next-intl'
 import { optimizeImage, formatFileSize } from '@/utils/imageOptimizer'
+import { api, errorMessage, uploadImage } from '@/lib/client/api'
 
 interface Props {
-  userId: string
   currentUrl: string | null
   onUpload: (url: string) => void
 }
 
-export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
+export default function AvatarUpload({ currentUrl, onUpload }: Props) {
+  const tc = useTranslations('Common')
+  const ts = useTranslations('Sponsors')
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentUrl)
   const [sizeInfo, setSizeInfo] = useState('')
@@ -20,13 +22,12 @@ export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 10 * 1024 * 1024) { setError('File size must be under 10MB'); return }
 
     setUploading(true)
     setSizeInfo('')
     setError('')
 
-    // 로컬 미리보기 (업로드 성공 전에는 실제 저장 아님)
+    // 업로드가 끝나기 전까지는 로컬 미리보기만 보여준다.
     const previewUrl = await new Promise<string>((resolve) => {
       const reader = new FileReader()
       reader.onload = () => resolve(reader.result as string)
@@ -34,33 +35,16 @@ export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
     })
 
     try {
-      // Canvas 압축 (400×400, WebP)
       const optimized = await optimizeImage(file, 'avatar')
       setSizeInfo(`${formatFileSize(file.size)} → ${formatFileSize(optimized.size)}`)
 
-      const supabase = createClient()
-      const ext = optimized.name.split('.').pop()
-      const path = `${userId}/avatar.${ext}`
+      const { url } = await uploadImage('avatars', optimized, { stable: true })
+      await api.put('/api/profile/avatar', { avatarUrl: url })
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, optimized, { upsert: true, contentType: optimized.type })
-
-      if (uploadError) {
-        if (uploadError.message?.toLowerCase().includes('bucket not found')) {
-          throw new Error('스토리지 버킷이 설정되지 않았습니다. Supabase 대시보드 → SQL Editor에서 schema-storage.sql을 실행해 주세요.')
-        }
-        throw uploadError
-      }
-
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      const url = data.publicUrl + `?t=${Date.now()}`
-
-      await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId)
       setPreview(previewUrl)
       onUpload(url)
-    } catch (err: any) {
-      setError(err.message || String(err))
+    } catch (err) {
+      setError(errorMessage(err, 'Upload failed'))
       setSizeInfo('')
     } finally {
       setUploading(false)
@@ -75,6 +59,7 @@ export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
         onClick={() => inputRef.current?.click()}
       >
         {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element -- 업로드 전 미리보기는 blob: URL 이라 최적화할 수 없다.
           <img src={preview} alt="avatar" className="w-full h-full object-cover" />
         ) : <span>👤</span>}
         {uploading && (
@@ -88,19 +73,20 @@ export default function AvatarUpload({ userId, currentUrl, onUpload }: Props) {
         disabled={uploading}
         className="text-sm text-brand hover:underline font-medium disabled:opacity-50"
       >
-        {uploading ? '⏳ Optimizing & Uploading...' : '📷 Change Photo'}
+        {uploading ? `⏳ ${tc('optimizingUploading')}` : `📷 ${ts('changePhoto')}`}
       </button>
       {sizeInfo && (
-        <p className="text-xs text-success font-medium">✅ Compressed: {sizeInfo}</p>
+        <p className="text-xs text-success font-medium">✅ {tc('compressed', { info: sizeInfo })}</p>
       )}
       {error && (
         <p className="text-xs text-danger font-medium text-center max-w-[200px]">❌ {error}</p>
       )}
-      <p className="text-xs text-hint">JPG, PNG, WebP · Auto-compressed to WebP</p>
+      <p className="text-xs text-hint">{tc('imageFormatAutoWebp')}</p>
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic"
+        aria-label={tc('selectPhoto')}
         className="hidden"
         onChange={handleUpload}
       />

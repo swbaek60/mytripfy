@@ -3,15 +3,20 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
 import { optimizeImage } from '@/utils/imageOptimizer'
+import { api, errorMessage, uploadImage } from '@/lib/client/api'
 import ChallengeImage from '@/components/ChallengeImage'
 import CountryFlag from '@/components/CountryFlag'
+import Avatar from '@/components/ui/Avatar'
+import SmartImage from '@/components/ui/SmartImage'
 import { getCountryByCode } from '@/data/countries'
 import Link from 'next/link'
 import { Siren, Users, Trash2 } from 'lucide-react'
 import type { CommunityCert } from './page'
 import DisputeModal, { type DisputeTargetCert } from '@/components/DisputeModal'
+import ChallengeAffiliateCTA from '@/components/challenges/ChallengeAffiliateCTA'
+import { getChallengeAffiliateLinks } from '@/lib/affiliate'
+import type { ChallengeImageHints } from '@/lib/challenge-image/resolve'
 
 // 카테고리 → wish 번역 키 매핑
 function getWishKey(category: string): 'wishEat' | 'wishDrink' | 'wishSee' | 'wishGo' {
@@ -45,9 +50,14 @@ interface Challenge {
   country_code: string | null
   description: string | null
   points: number
+  /**
+   * 서버에서 확정한 이미지 힌트. 직접 URL 표(약 390KB)를 클라이언트로
+   * 내려보내지 않기 위해 항목별 결과만 받는다.
+   */
+  imageHints?: ChallengeImageHints
 }
 
-interface Certification {
+export interface Certification {
   challenge_id: string
   image_url: string
   created_at: string
@@ -73,6 +83,7 @@ export default function ChallengeClient({
   const router = useRouter()
   const t = useTranslations('ChallengesPage')
   const tc = useTranslations('Challenges')
+  const tCommon = useTranslations('Common')
   const [certs, setCerts] = useState<Certification[]>(initialCertifications)
   const [wishIds, setWishIds] = useState<Set<string>>(() => new Set(initialWishIds))
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
@@ -114,7 +125,7 @@ export default function ChallengeClient({
           image_url: c.image_url,
           created_at: c.created_at,
           dispute_status: c.dispute_status || 'clean',
-          full_name: c.full_name || 'User',
+          full_name: c.full_name || tCommon('anonymous'),
           avatar_url: c.avatar_url ?? null,
           already_disputed: existing?.already_disputed ?? false,
         }
@@ -141,34 +152,17 @@ export default function ChallengeClient({
     setError('')
 
     try {
-      const supabase = createClient()
       const optimized = await optimizeImage(file, 'certification')
-      const ext = optimized.name.split('.').pop()
-      const fileName = `${userId}-${selectedChallenge.id}-${Date.now()}.${ext}`
+      const { url } = await uploadImage('certifications', optimized)
 
-      const { error: uploadError } = await supabase.storage
-        .from('certifications')
-        .upload(fileName, optimized, { contentType: optimized.type })
-
-      if (uploadError) throw uploadError
-
-      const { data: publicUrlData } = supabase.storage
-        .from('certifications')
-        .getPublicUrl(fileName)
-
-      const { error: dbError } = await supabase
-        .from('challenge_certifications')
-        .insert({
-          user_id: userId,
-          challenge_id: selectedChallenge.id,
-          image_url: publicUrlData.publicUrl,
-        })
-
-      if (dbError) throw dbError
+      await api.post('/api/challenges/certs', {
+        challengeId: selectedChallenge.id,
+        imageUrl: url,
+      })
 
       setCerts(prev => [
         ...prev,
-        { challenge_id: selectedChallenge.id, image_url: publicUrlData.publicUrl, created_at: new Date().toISOString() },
+        { challenge_id: selectedChallenge.id, image_url: url, created_at: new Date().toISOString() },
       ])
 
       setShowSuccess(true)
@@ -177,26 +171,36 @@ export default function ChallengeClient({
         setSelectedChallenge(null)
         router.refresh()
       }, 2500)
-    } catch (err: any) {
-      console.error(err)
-      setError(err.message || 'Upload failed. Please try again.')
+    } catch (err) {
+      setError(errorMessage(err, tc('uploadFailed')))
     } finally {
       setUploading(false)
+      e.target.value = ''
     }
   }
 
   const toggleWish = async (challengeId: string) => {
     if (!userId) return
-    const supabase = createClient()
-    const isWished = wishIds.has(challengeId)
-    if (isWished) {
-      await supabase.from('challenge_wishes').delete().eq('user_id', userId).eq('challenge_id', challengeId)
-      setWishIds(prev => { const next = new Set(prev); next.delete(challengeId); return next })
-    } else {
-      await supabase.from('challenge_wishes').insert({ user_id: userId, challenge_id: challengeId })
-      setWishIds(prev => new Set([...prev, challengeId]))
+    const wasWished = wishIds.has(challengeId)
+    // 낙관적 업데이트 — 실패하면 되돌린다.
+    setWishIds(prev => {
+      const next = new Set(prev)
+      if (wasWished) next.delete(challengeId)
+      else next.add(challengeId)
+      return next
+    })
+    try {
+      await api.post('/api/challenges/wishes', { challengeId })
+      router.refresh()
+    } catch (err) {
+      setWishIds(prev => {
+        const next = new Set(prev)
+        if (wasWished) next.add(challengeId)
+        else next.delete(challengeId)
+        return next
+      })
+      setError(errorMessage(err))
     }
-    router.refresh()
   }
 
   const [deletingCertId, setDeletingCertId] = useState<string | null>(null)
@@ -205,20 +209,12 @@ export default function ChallengeClient({
     if (!confirm(tc('certCancelConfirm'))) return
     setDeletingCertId(challengeId)
     try {
-      const res = await fetch('/api/challenges/certs', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ challenge_id: challengeId }),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || tc('deleteFailed'))
-      }
+      await api.del('/api/challenges/certs', { challengeId })
       setCerts(prev => prev.filter(c => c.challenge_id !== challengeId))
       setCommCerts(prev => prev.filter(c => !(c.challenge_id === challengeId && c.user_id === userId)))
       router.refresh()
-    } catch (e: any) {
-      alert(e.message || tc('certCancelFailed'))
+    } catch (e) {
+      alert(errorMessage(e, tc('certCancelFailed')))
     } finally {
       setDeletingCertId(null)
     }
@@ -236,19 +232,20 @@ export default function ChallengeClient({
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
         <input
           type="text"
-          placeholder="Search..."
+          placeholder={tCommon('search')}
+          aria-label={tCommon('search')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 bg-surface"
+          className="flex-1 border border-edge rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-challenge/50 bg-surface shadow-sm"
           suppressHydrationWarning
         />
-        <div className="flex items-center gap-3 text-sm text-subtle shrink-0">
+        <div className="flex items-center gap-3 text-sm text-subtle shrink-0 bg-surface border border-edge/60 rounded-xl px-4 py-2.5 shadow-sm">
           <span>
-            <span className="font-bold text-rose-600">{completedCount}</span>
-            <span className="text-hint"> / {challenges.length} completed</span>
+            <span className="font-bold text-challenge">{completedCount}</span>
+            <span className="text-hint">{tc('completedSuffix', { total: challenges.length })}</span>
           </span>
           {completedCount > 0 && (
-            <span className="bg-rose-50 text-rose-600 font-bold px-2.5 py-1 rounded-full text-xs">
+            <span className="bg-challenge-light text-challenge-strong font-bold px-2.5 py-1 rounded-full text-xs">
               {Math.round((completedCount / challenges.length) * 100)}%
             </span>
           )}
@@ -279,8 +276,8 @@ export default function ChallengeClient({
               key={challenge.id}
               className={`group bg-surface rounded-2xl overflow-hidden border-2 transition-all duration-200 flex flex-col
                 ${isCompleted
-                  ? 'border-rose-400/40 shadow-md shadow-rose-400/20'
-                  : 'border-edge hover:border-rose-300 hover:shadow-md'}`}
+                  ? 'border-challenge/40 shadow-md shadow-challenge/20'
+                  : 'border-edge hover:border-challenge-border hover:shadow-md'}`}
             >
               {/* ── Photo area ── */}
               <div className="relative">
@@ -289,12 +286,15 @@ export default function ChallengeClient({
                   titleEn={challenge.title_en}
                   category={challenge.category}
                   countryCode={challenge.country_code}
+                  directUrl={challenge.imageHints?.directUrl}
+                  wikiArticles={challenge.imageHints?.wikiArticles}
+                  countryArticles={challenge.imageHints?.countryArticles}
                   className="w-full h-44"
                 />
 
                 {/* Points badge */}
                 <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-lg">
-                  +{challenge.points} PT
+                  {tc('pointsBadge', { points: challenge.points })}
                 </div>
 
                 {/* Flag + completion overlay (foods/animals: 어디서나 가능이라 국기 미표시) */}
@@ -305,8 +305,8 @@ export default function ChallengeClient({
                     </span>
                   )}
                   {isCompleted && (
-                    <span className="bg-success text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
-                      ✓ Done
+                    <span className="bg-success-strong text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+                      ✓ {tc('doneBadge')}
                     </span>
                   )}
                 </div>
@@ -314,14 +314,17 @@ export default function ChallengeClient({
                 {/* Certified photo overlay */}
                 {isCompleted && cert && (
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <img
+                    <SmartImage
                       src={cert.image_url}
-                      alt="Your photo"
+                      alt={tCommon('yourPhoto')}
+                      width={640}
+                      height={360}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-black/40 flex items-end p-3">
                       <span className="text-white text-xs font-semibold">
-                        📅 {new Date(cert.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        📅 {new Date(cert.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                   </div>
@@ -385,7 +388,7 @@ export default function ChallengeClient({
                         if (!userId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
                         setSelectedChallenge(challenge)
                       }}
-                      className="w-full py-2 rounded-xl border-2 border-dashed border-rose-300/60 text-rose-600 text-xs font-bold hover:bg-rose-50 hover:border-rose-400 transition-colors"
+                      className="w-full py-2 rounded-xl border-2 border-dashed border-challenge-border/60 text-challenge text-xs font-bold hover:bg-challenge-light hover:border-challenge transition-colors"
                     >
                       {t(getVerifyKey(challenge.category))}
                     </button>
@@ -413,7 +416,7 @@ export default function ChallengeClient({
                       onClick={() => toggleWish(challenge.id)}
                       className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                         wishIds.has(challenge.id)
-                          ? 'bg-gold-light text-gold border border-gold/20'
+                          ? 'bg-gold-light text-gold-strong border border-gold/20'
                           : 'text-hint hover:text-gold hover:bg-gold-light/50 border border-transparent'
                       }`}
                     >
@@ -430,7 +433,7 @@ export default function ChallengeClient({
       {filtered.length === 0 && (
         <div className="text-center py-20 text-hint">
           <div className="text-4xl mb-2">🔍</div>
-          <p className="font-medium">No results for "{search}"</p>
+          <p className="font-medium">{tCommon('noResultsFor', { search })}</p>
         </div>
       )}
 
@@ -439,14 +442,14 @@ export default function ChallengeClient({
         <div className="mt-14">
           <div className="flex items-center gap-3 mb-5">
             <h2 className="text-xl font-extrabold text-heading flex items-center gap-2">
-              👥 Community Certifications
+              👥 {tc('communityCertifications')}
             </h2>
-            <span className="text-sm text-hint font-normal">{commCerts.length}건</span>
+            <span className="text-sm text-hint font-normal">{tCommon('itemCount', { count: commCerts.length })}</span>
             {!userId && (
-              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full">{tc('loginForDispute')}</span>
+              <span className="text-xs text-gold-strong bg-gold-light border border-gold/20 px-2 py-1 rounded-full">{tc('loginForDispute')}</span>
             )}
             {userId && myCertCount < 3 && (
-              <span className="text-xs text-gold bg-gold-light border border-gold/20 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> {tc('disputeRequires3')}</span>
+              <span className="text-xs text-gold-strong bg-gold-light border border-gold/20 px-2 py-1 rounded-full flex items-center gap-1"><Siren className="w-3 h-3" /> {tc('disputeRequires3')}</span>
             )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -460,8 +463,8 @@ export default function ChallengeClient({
                   className={`group relative rounded-2xl overflow-hidden bg-surface border-2 shadow-sm hover:shadow-md transition-all ${
                     cert.dispute_status === 'reviewing' ? 'border-edge-brand' :
                     cert.dispute_status === 'flagged' ? 'border-gold/20' :
-                    cert.dispute_status === 'invalidated' ? 'border-red-200 opacity-60' :
-                    'border-edge hover:border-rose-300'
+                    cert.dispute_status === 'invalidated' ? 'border-danger-border opacity-60' :
+                    'border-edge hover:border-challenge-border'
                   }`}
                 >
                   {/* 사진 영역 */}
@@ -469,7 +472,7 @@ export default function ChallengeClient({
                     className="relative h-36 cursor-zoom-in"
                     onClick={() => setExpandedImg(cert.image_url)}
                   >
-                    <img src={cert.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <SmartImage src={cert.image_url} alt="" width={400} height={300} sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
                     {/* 내 인증: 취소 아이콘 / 남의 인증: 딴지걸기 아이콘 (hover 시 표시) */}
@@ -481,7 +484,7 @@ export default function ChallengeClient({
                           deleteCert(cert.challenge_id)
                         }}
                         disabled={deletingCertId === cert.challenge_id}
-                        className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+                        className="absolute top-2 right-2 w-8 h-8 bg-subtle/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
                         title={tc('certCancel')}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -504,7 +507,7 @@ export default function ChallengeClient({
 
                     {/* 이미 딴지 건 표시 */}
                     {cert.already_disputed && (
-                      <div className="absolute top-2 right-2 bg-gray-600/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                      <div className="absolute top-2 right-2 bg-subtle/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
                         {tc('disputeFiled')}
                       </div>
                     )}
@@ -513,7 +516,7 @@ export default function ChallengeClient({
                     {cert.dispute_status !== 'clean' && (
                       <div className={`absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                         cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
-                        cert.dispute_status === 'flagged' ? 'bg-gold text-white' :
+                        cert.dispute_status === 'flagged' ? 'bg-gold text-heading' :
                         'bg-danger text-white'
                       }`}>
                         {cert.dispute_status === 'reviewing' ? `⚖️ ${tc('statusReviewing')}` :
@@ -534,10 +537,10 @@ export default function ChallengeClient({
 
                     {/* 유저 정보 */}
                     <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-rose-50 flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-challenge-light flex items-center justify-center">
                         {cert.avatar_url
-                          ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
-                          : <span className="text-[9px] font-bold text-rose-600">{cert.full_name[0]?.toUpperCase()}</span>
+                          ? <Avatar src={cert.avatar_url} name={cert.full_name} size={20} fill />
+                          : <span className="text-[9px] font-bold text-challenge">{cert.full_name[0]?.toUpperCase()}</span>
                         }
                       </div>
                       <p className="text-white text-[10px] font-semibold truncate">{cert.full_name}</p>
@@ -570,12 +573,12 @@ export default function ChallengeClient({
                   {certViewLoading ? tc('loading') : tc('certifiedCount', { count: certViewData.length })}
                 </p>
               </div>
-              <button suppressHydrationWarning onClick={() => setCertViewChallenge(null)} className="w-8 h-8 bg-surface-sunken rounded-full flex items-center justify-center hover:bg-surface-hover">✕</button>
+              <button suppressHydrationWarning onClick={() => setCertViewChallenge(null)} aria-label={tCommon('close')} className="w-8 h-8 bg-surface-sunken rounded-full flex items-center justify-center hover:bg-surface-hover">✕</button>
             </div>
             <div className="overflow-y-auto p-6">
               {certViewLoading ? (
                 <div className="text-center py-12 text-hint">
-                  <div className="w-8 h-8 border-2 border-rose-500/60 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <div className="w-8 h-8 border-2 border-challenge/60 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                   {tc('loading')}
                 </div>
               ) : certViewData.length === 0 ? (
@@ -588,15 +591,15 @@ export default function ChallengeClient({
                   {certViewData.map(cert => {
                     const canFlag = cert.user_id !== userId && !cert.already_disputed && cert.dispute_status !== 'reviewing' && cert.dispute_status !== 'invalidated'
                     return (
-                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-rose-300 shadow-sm hover:shadow-md transition-all">
+                      <div key={`${cert.user_id}-${cert.challenge_id}`} className="group relative rounded-2xl overflow-hidden border border-edge hover:border-challenge-border shadow-sm hover:shadow-md transition-all">
                         <div className="relative h-36 cursor-zoom-in" onClick={() => setExpandedImg(cert.image_url)}>
-                          <img src={cert.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <SmartImage src={cert.image_url} alt="" width={400} height={300} sizes="(max-width: 640px) 50vw, 33vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           {/* 상태 뱃지 */}
                           {cert.dispute_status !== 'clean' && (
                             <div className={`absolute top-2 left-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                               cert.dispute_status === 'reviewing' ? 'bg-brand text-white' :
-                              cert.dispute_status === 'flagged' ? 'bg-gold text-white' : 'bg-danger text-white'
+                              cert.dispute_status === 'flagged' ? 'bg-gold text-heading' : 'bg-danger text-white'
                             }`}>
                               {cert.dispute_status === 'reviewing' ? `⚖️ ${tc('statusReviewing')}` : cert.dispute_status === 'flagged' ? `🚨 ${tc('statusFlagged')}` : `❌ ${tc('statusInvalidated')}`}
                             </div>
@@ -611,7 +614,7 @@ export default function ChallengeClient({
                                 setCertViewData(prev => prev.filter(c => !(c.user_id === cert.user_id && c.challenge_id === cert.challenge_id)))
                               }}
                               disabled={deletingCertId === cert.challenge_id}
-                              className="absolute top-2 right-2 w-8 h-8 bg-gray-600/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+                              className="absolute top-2 right-2 w-8 h-8 bg-subtle/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
                               title={tc('certCancel')}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -638,7 +641,7 @@ export default function ChallengeClient({
                             </button>
                           ) : null}
                           {cert.already_disputed && (
-                            <div className="absolute top-2 right-2 bg-gray-600/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">{tc('disputeFiled')}</div>
+                            <div className="absolute top-2 right-2 bg-subtle/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">{tc('disputeFiled')}</div>
                           )}
                           {cert.dispute_status === 'reviewing' && (
                             <Link href={`/${locale}/challenges/disputes/${cert.user_id}/${cert.challenge_id}`} onClick={e => e.stopPropagation()} className="absolute bottom-6 left-0 right-0 text-center text-[10px] font-bold text-white bg-brand/80 hover:bg-brand-hover/90 py-1 transition-colors">
@@ -646,10 +649,10 @@ export default function ChallengeClient({
                             </Link>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-rose-50 flex items-center justify-center">
+                            <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 bg-challenge-light flex items-center justify-center">
                               {cert.avatar_url
-                                ? <img src={cert.avatar_url} alt="" className="w-full h-full object-cover" />
-                                : <span className="text-[9px] font-bold text-rose-600">{cert.full_name[0]?.toUpperCase()}</span>
+                                ? <Avatar src={cert.avatar_url} name={cert.full_name} size={20} fill />
+                                : <span className="text-[9px] font-bold text-challenge">{cert.full_name[0]?.toUpperCase()}</span>
                               }
                             </div>
                             <p className="text-white text-[10px] font-semibold truncate">{cert.full_name}</p>
@@ -683,15 +686,19 @@ export default function ChallengeClient({
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
           onClick={() => setExpandedImg(null)}
         >
-          <img
+          <SmartImage
             src={expandedImg}
             alt=""
+            width={1600}
+            height={1600}
+            sizes="100vw"
             className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
             onClick={e => e.stopPropagation()}
           />
           <button
             suppressHydrationWarning
             onClick={() => setExpandedImg(null)}
+            aria-label={tCommon('close')}
             className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/30 text-xl"
           >✕</button>
         </div>
@@ -712,6 +719,9 @@ export default function ChallengeClient({
                 titleEn={selectedChallenge.title_en}
                 category={selectedChallenge.category}
                 countryCode={selectedChallenge.country_code}
+                directUrl={selectedChallenge.imageHints?.directUrl}
+                wikiArticles={selectedChallenge.imageHints?.wikiArticles}
+                countryArticles={selectedChallenge.imageHints?.countryArticles}
                 className="w-full h-full"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
@@ -723,6 +733,7 @@ export default function ChallengeClient({
               <button
                 suppressHydrationWarning
                 onClick={() => !uploading && setSelectedChallenge(null)}
+                aria-label={tCommon('close')}
                 className="absolute top-3 right-3 w-8 h-8 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60"
               >
                 ✕
@@ -734,7 +745,7 @@ export default function ChallengeClient({
                 <div className="py-6 animate-in zoom-in duration-300">
                   <div className="text-6xl mb-3">🎊</div>
                   <h3 className="text-2xl font-bold text-heading mb-1">{tc('challengeComplete')}</h3>
-                  <p className="text-rose-600 font-bold text-lg">+{selectedChallenge.points} Points Earned</p>
+                  <p className="text-challenge font-bold text-lg">{tc('pointsEarned', { points: selectedChallenge.points })}</p>
                 </div>
               ) : (
                 <>
@@ -744,17 +755,26 @@ export default function ChallengeClient({
                     </p>
                   )}
 
+                  <ChallengeAffiliateCTA
+                    links={getChallengeAffiliateLinks(
+                      selectedChallenge.title_en || selectedChallenge.title,
+                      selectedChallenge.category,
+                      selectedChallenge.country_code
+                    )}
+                  />
+
                   {error && (
-                    <div className="text-danger text-sm mb-4 bg-danger-light p-3 rounded-xl">{error}</div>
+                    <div className="text-danger-strong text-sm mb-4 bg-danger-light p-3 rounded-xl">{error}</div>
                   )}
 
-                  <div className="border-2 border-dashed border-rose-300/60 rounded-2xl p-8 hover:bg-rose-50 transition-colors relative cursor-pointer group">
+                  <div className="border-2 border-dashed border-challenge-border/60 rounded-2xl p-8 hover:bg-challenge-light transition-colors relative cursor-pointer group">
                     <div className="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
-                    <div className="text-sm font-bold text-rose-600">{tc('uploadPhoto')}</div>
+                    <div className="text-sm font-bold text-challenge">{tc('uploadPhoto')}</div>
                     <div className="text-xs text-hint mt-1">{t(getVerifyHintKey(selectedChallenge.category))}</div>
                     <input
                       type="file"
                       accept="image/*"
+                      aria-label={tCommon('selectPhoto')}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                       onChange={handleUpload}
                       disabled={uploading}
@@ -763,8 +783,8 @@ export default function ChallengeClient({
                   </div>
 
                   {uploading && (
-                    <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-rose-600">
-                      <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-challenge">
+                      <div className="w-4 h-4 border-2 border-challenge border-t-transparent rounded-full animate-spin" />
                       Uploading and verifying...
                     </div>
                   )}

@@ -4,9 +4,10 @@
  * - 아바타: 400×400px, WebP 0.82
  * - 프로필 사진: 1200×900px (최대), WebP 0.85
  * - 인증 사진: 1024×1024px (최대), WebP 0.80
+ * - 커버 배너: 1600×1000px (최대), WebP 0.82
  */
 
-export type ImagePreset = 'avatar' | 'photo' | 'certification'
+export type ImagePreset = 'avatar' | 'photo' | 'certification' | 'cover'
 
 interface Preset {
   maxWidth: number
@@ -18,6 +19,8 @@ const PRESETS: Record<ImagePreset, Preset> = {
   avatar: { maxWidth: 400, maxHeight: 400, quality: 0.82 },
   photo: { maxWidth: 1200, maxHeight: 900, quality: 0.85 },
   certification: { maxWidth: 1024, maxHeight: 1024, quality: 0.80 },
+  // 16:7 배너로 잘려 나오므로 가로만 넉넉히 잡는다.
+  cover: { maxWidth: 1600, maxHeight: 1000, quality: 0.82 },
 }
 
 /**

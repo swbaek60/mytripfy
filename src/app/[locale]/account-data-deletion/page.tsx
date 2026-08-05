@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { createClient, getAuthUser } from '@/utils/supabase/server'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
@@ -29,9 +28,7 @@ export default async function AccountDataDeletionPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const supabase = await createClient()
-  const authUser = await getAuthUser()
-  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
+  setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'AccountDeletion' })
 
   const steps = [
@@ -43,14 +40,14 @@ export default async function AccountDataDeletionPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         <div className="mb-8 sm:mb-10">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-heading mb-2">{t('pageTitle')}</h1>
         </div>
 
-        <div className="bg-brand-light border border-edge-brand rounded-2xl p-5 sm:p-6 mb-8 text-sm text-blue-800 leading-relaxed">
+        <div className="bg-brand-light border border-edge-brand rounded-2xl p-5 sm:p-6 mb-8 text-sm text-brand-strong leading-relaxed">
           {t('lead')}
         </div>
 

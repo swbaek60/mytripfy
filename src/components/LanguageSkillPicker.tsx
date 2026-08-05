@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
-import { LANGUAGES, LANGUAGE_LEVELS, getLanguageByCode, getLevelInfo, type LanguageSkill } from '@/data/languages'
+import { LANGUAGES, LANGUAGE_LEVELS, getLanguageByCode, type LanguageSkill } from '@/data/languages'
 
 interface Props {
   value: LanguageSkill[]
@@ -12,6 +12,7 @@ interface Props {
 
 export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: Props) {
   const t = useTranslations('LanguagePicker')
+  const tc = useTranslations('Common')
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -56,7 +57,6 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
         <div className="space-y-2">
           {value.map(skill => {
             const lang = getLanguageByCode(skill.lang)
-            const level = getLevelInfo(skill.level)
             return (
               <div
                 key={skill.lang}
@@ -78,7 +78,7 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
                       className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all ${
                         skill.level === lvl.code
                           ? `${lvl.color} text-white`
-                          : 'bg-surface-sunken text-subtle hover:bg-gray-200'
+                          : 'bg-surface-sunken text-subtle hover:bg-edge'
                       }`}
                       title={t(`level_${lvl.code}` as Parameters<typeof t>[0])}
                     >
@@ -91,7 +91,8 @@ export default function LanguageSkillPicker({ value, onChange, maxItems = 10 }: 
                 <button
                   type="button"
                   onClick={() => removeLanguage(skill.lang)}
-                  className="w-6 h-6 flex items-center justify-center rounded-full text-hint hover:text-red-500 hover:bg-danger-light transition-colors shrink-0"
+                  aria-label={tc('remove')}
+                  className="w-6 h-6 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light transition-colors shrink-0"
                 >
                   ×
                 </button>

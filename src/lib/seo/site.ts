@@ -70,3 +70,10 @@ export function hreflangAlternates(path: string): Record<string, string> {
 export function ogImageAbsoluteUrl(): string {
   return `${SITE_URL}/og-image.png`
 }
+
+/** 오른쪽에서 왼쪽으로 읽는 언어. <html dir> 을 뒤집어야 글이 제대로 흐른다. */
+const RTL_LOCALES = new Set(['ar', 'fa'])
+
+export function isRtlLocale(locale: string): boolean {
+  return RTL_LOCALES.has(locale)
+}

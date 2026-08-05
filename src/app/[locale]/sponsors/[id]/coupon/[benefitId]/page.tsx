@@ -19,13 +19,18 @@ const BENEFIT_TYPE_KEYS: Record<string, string> = {
 export async function generateMetadata({
   params,
 }: { params: Promise<{ locale: string; id: string; benefitId: string }> }): Promise<Metadata> {
-  const { id, benefitId } = await params
+  const { locale, id, benefitId } = await params
   const supabase = await createClient()
   const { data: sponsor } = await supabase.from('sponsors').select('name, name_en').eq('id', id).eq('status', 'active').single()
   const { data: benefit } = await supabase.from('sponsor_benefits').select('title, title_en').eq('id', benefitId).eq('sponsor_id', id).single()
-  const name = sponsor?.name_en || sponsor?.name || 'Sponsor'
-  const title = benefit?.title_en || benefit?.title || 'Coupon'
-  return { title: `${title} | ${name} | mytripfy` }
+  const t = await getTranslations({ locale, namespace: 'Sponsors' })
+  const name = sponsor?.name_en || sponsor?.name || t('sponsorBadge')
+  const title = benefit?.title_en || benefit?.title || t('viewCoupon')
+  return {
+    title: `${title} | ${name} | mytripfy`,
+    // 매장에서 보여 주는 쿠폰 화면이다. 검색으로 바로 들어오면 혜택이 새어 나간다.
+    robots: { index: false, follow: true },
+  }
 }
 
 export default async function CouponCapturePage({
@@ -69,25 +74,25 @@ export default async function CouponCapturePage({
   const hasContact = !!(sponsor.phone || sponsor.website_url || sponsor.instagram_url || sponsor.facebook_url || sponsor.twitter_url)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center p-4 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-success-light to-white flex flex-col items-center justify-center p-4 pb-12">
       {/* 캡처 시 잘리거나 숨겨져도 되는 작은 뒤로가기 */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-center">
         <Link
           href={`/${locale}/sponsors/${id}`}
-          className="text-sm text-hint hover:text-gray-600"
+          className="text-sm text-hint hover:text-subtle"
         >
           ← {t('backToStore')}
         </Link>
       </div>
 
       {/* 쿠폰 카드 - 캡처용 중앙 배치, 깔끔한 디자인 */}
-      <div className="w-full max-w-md bg-surface rounded-3xl shadow-xl border-2 border-dashed border-emerald-300 p-8 text-center mt-8">
-        <p className="text-xs text-hint uppercase tracking-widest mb-3">mytripfy Sponsor</p>
+      <div className="w-full max-w-md bg-surface rounded-3xl shadow-xl border-2 border-dashed border-success-border p-8 text-center mt-8">
+        <p className="text-xs text-hint uppercase tracking-widest mb-3">{t('sponsorBadge')}</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-heading mb-4 leading-tight">
           {displayName}
         </h1>
-        <div className="my-6 py-4 border-y border-emerald-100">
-          <p className="text-xl sm:text-2xl font-extrabold text-emerald-600">
+        <div className="my-6 py-4 border-y border-success-muted">
+          <p className="text-xl sm:text-2xl font-extrabold text-success">
             {benefitTitle}
           </p>
           <p className="text-base text-body mt-2">{benefitLabel}</p>

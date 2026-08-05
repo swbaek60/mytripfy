@@ -3,11 +3,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { Bookmark, Users } from 'lucide-react'
+import { useAuth } from '@clerk/nextjs'
+import { Bookmark } from 'lucide-react'
 import { getDestinationCover } from '@/data/destination-covers'
 import { getCountryByCode } from '@/data/countries'
 import ApplicantPreview from '@/components/explore/ApplicantPreview'
 import BookmarkButton from '@/components/BookmarkButton'
+import Avatar from '@/components/ui/Avatar'
 
 interface CompanionStoryCardProps {
   locale: string
@@ -28,6 +30,7 @@ interface CompanionStoryCardProps {
   }
   appCount: number
   isBookmarked: boolean
+  /** 생략하면 로그인 여부를 클라이언트에서 판별한다 (ISR 페이지용). */
   userId?: string | null
 }
 
@@ -39,6 +42,8 @@ export default function CompanionStoryCard({
   isBookmarked,
   userId,
 }: CompanionStoryCardProps) {
+  const { isSignedIn } = useAuth()
+  const canBookmark = userId !== undefined ? Boolean(userId) : Boolean(isSignedIn)
   const t = useTranslations('Companions')
   const th = useTranslations('HomeSection')
   const tm = useTranslations('Marketing')
@@ -86,9 +91,8 @@ export default function CompanionStoryCard({
             className="absolute top-3 right-3"
             onClick={e => e.preventDefault()}
           >
-            {userId ? (
+            {canBookmark ? (
               <BookmarkButton
-                userId={userId}
                 referenceId={post.id}
                 type="companion_post"
                 isBookmarked={isBookmarked}
@@ -110,7 +114,7 @@ export default function CompanionStoryCard({
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 rounded-full bg-brand-muted overflow-hidden shrink-0">
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              <Avatar src={profile.avatar_url} fill size={32} />
             ) : (
               <span className="w-full h-full flex items-center justify-center text-xs font-bold text-brand">
                 {fullName.charAt(0)}
@@ -123,7 +127,7 @@ export default function CompanionStoryCard({
               {profile.trust_score != null && profile.trust_score > 0
                 ? `★ ${profile.trust_score.toFixed(1)} · `
                 : ''}
-              {start.toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+              {start.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
             </p>
           </div>
         </div>

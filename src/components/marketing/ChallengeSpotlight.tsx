@@ -15,18 +15,20 @@ interface Props {
   locale: string
   title: string
   subtitle: string
+  badgeLabel: string
   viewAllLabel: string
+  pointsLabel: string
 }
 
-export default function ChallengeSpotlight({ certs, locale, title, subtitle, viewAllLabel }: Props) {
+export default function ChallengeSpotlight({ certs, locale, title, subtitle, badgeLabel, viewAllLabel, pointsLabel }: Props) {
   if (certs.length === 0) return null
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-challenge-light text-challenge text-xs font-bold mb-3">
-            🏆 Challenges
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-challenge-light text-challenge-strong text-xs font-bold mb-3">
+            🏆 {badgeLabel}
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-heading">{title}</h2>
           <p className="text-subtle mt-2 text-sm">{subtitle}</p>
@@ -55,7 +57,7 @@ export default function ChallengeSpotlight({ certs, locale, title, subtitle, vie
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-3">
               <p className="text-white text-xs font-semibold line-clamp-2">{cert.title}</p>
-              <p className="text-white/70 text-[10px] mt-1">{cert.userName} · {cert.points} pts</p>
+              <p className="text-white/70 text-[10px] mt-1">{cert.userName} · {cert.points} {pointsLabel}</p>
             </div>
           </Link>
         ))}

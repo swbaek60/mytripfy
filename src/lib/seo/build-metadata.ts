@@ -40,8 +40,10 @@ export function buildPageMetadata(opts: BuildPageMetadataOptions): Metadata {
     title,
     description,
     ...(keywords?.length ? { keywords } : {}),
+    // noindex 에도 follow 는 남긴다. 색인은 막되 이 페이지에 걸린 링크는 따라가게 해야
+    // 거기서 이어지는 공개 페이지가 발견된다. nofollow 까지 걸면 그 경로가 끊긴다.
     robots: noindex
-      ? { index: false, follow: false, googleBot: { index: false, follow: false } }
+      ? { index: false, follow: true, googleBot: { index: false, follow: true } }
       : {
           index: true,
           follow: true,
@@ -55,7 +57,9 @@ export function buildPageMetadata(opts: BuildPageMetadataOptions): Metadata {
         },
     alternates: {
       canonical,
-      languages: hreflangAlternates(path),
+      // 색인하지 않는 페이지에 hreflang 을 달면 검색엔진에 "이 언어판을 대신 보라"고
+      // 알려 주는 셈이 된다. noindex 와 모순이라 언어 대체 링크는 빼 둔다.
+      ...(noindex ? {} : { languages: hreflangAlternates(path) }),
     },
     openGraph: {
       type: openGraphType,

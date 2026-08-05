@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,7 +22,6 @@ import type { GuideRegion } from '@/data/cities'
 
 interface Props {
   profile: Record<string, unknown> | null
-  userId: string
   locale: string
   visitedCodes: string[]
   certifiedCountryCodes?: string[]
@@ -34,7 +33,7 @@ interface Props {
 type TabId = 'basic' | 'guide' | 'language' | 'contact' | 'visited'
 
 export default function ProfileEditForm({
-  profile, userId, locale,
+  profile, locale,
   visitedCodes: initialCodes,
   certifiedCountryCodes = [],
   wishedCountryCodes = [],
@@ -95,65 +94,51 @@ export default function ProfileEditForm({
   ).slice(0, 10)
 
   const toggleCountry = async (code: string) => {
-    const supabase = createClient()
-    if (visitedCodes.includes(code)) {
-      await supabase.from('visited_countries').delete().eq('user_id', userId).eq('country_code', code)
-      setVisitedCodes(prev => prev.filter(c => c !== code))
-    } else {
-      const country = COUNTRIES.find(c => c.code === code)
-      await supabase.from('visited_countries').insert({ user_id: userId, country_code: code, country_name: country?.name })
-      setVisitedCodes(prev => [...prev, code])
+    const wasVisited = visitedCodes.includes(code)
+    setVisitedCodes(prev => (wasVisited ? prev.filter(c => c !== code) : [...prev, code]))
+    try {
+      await api.post('/api/profile/visited-countries', { countryCode: code })
+    } catch (err) {
+      setVisitedCodes(prev => (wasVisited ? [...prev, code] : prev.filter(c => c !== code)))
+      setMessage('❌ ' + errorMessage(err))
     }
   }
 
   const handleSave = async () => {
     setSaving(true)
     setMessage('')
-    const supabase = createClient()
 
-    const emptyToNull = (v: string | number) => (v === '' || v === 0 ? null : v)
-    const basePayload = {
-      id: userId,
-      full_name: fullName.trim() || null,
-      gender: gender || null,
-      birth_year: emptyToNull(birthYear) as number | null,
-      nationality: nationality.trim() || null,
-      bio: bio.trim() || null,
-      instagram_url: instagram.trim() || null,
-      facebook_url: facebook.trim() || null,
-      twitter_url: twitter.trim() || null,
-      whatsapp: whatsapp.trim() || null,
-      telegram: telegram.trim() || null,
-      line_id: lineId.trim() || null,
-      is_guide: isGuide,
-      guide_hourly_rate: isGuide ? guideRate : null,
-      rate_currency: isGuide ? (rateCurrency || 'USD') : 'USD',
-      guide_has_vehicle: isGuide ? hasVehicle : false,
-      guide_vehicle_info: isGuide && hasVehicle ? (vehicleInfo.trim() || null) : null,
-      guide_vehicle_photos: isGuide && hasVehicle ? vehiclePhotos : [],
-      guide_has_accommodation: isGuide ? hasAccommodation : false,
-      guide_accommodation_info: isGuide && hasAccommodation ? (accommodationInfo.trim() || null) : null,
-      guide_accommodation_photos: isGuide && hasAccommodation ? accommodationPhotos : [],
-      guide_regions: isGuide && guideRegions.length > 0 ? guideRegions.map(r => r.country) : null,
-      guide_city_regions: isGuide && guideRegions.length > 0 ? guideRegions : [],
-      spoken_languages: spokenLanguages.length > 0 ? spokenLanguages : [],
-      updated_at: new Date().toISOString(),
-    }
-
-    let { error } = await supabase.from('profiles').upsert(basePayload)
-
-    if (error && error.message?.includes('guide_city_regions')) {
-      const { guide_city_regions: _removed, ...fallbackPayload } = basePayload
-      const result = await supabase.from('profiles').upsert(fallbackPayload)
-      error = result.error
-    }
-
-    setSaving(false)
-    if (error) {
-      setMessage('❌ ' + t('saveError') + error.message)
-    } else {
+    try {
+      await api.patch('/api/profile', {
+        fullName,
+        gender: gender || null,
+        birthYear: birthYear || null,
+        nationality,
+        bio,
+        instagramUrl: instagram,
+        facebookUrl: facebook,
+        twitterUrl: twitter,
+        whatsapp,
+        telegram,
+        lineId,
+        isGuide,
+        guideHourlyRate: isGuide ? guideRate || null : null,
+        rateCurrency: rateCurrency || 'USD',
+        guideHasVehicle: hasVehicle,
+        guideVehicleInfo: vehicleInfo,
+        guideVehiclePhotos: vehiclePhotos,
+        guideHasAccommodation: hasAccommodation,
+        guideAccommodationInfo: accommodationInfo,
+        guideAccommodationPhotos: accommodationPhotos,
+        guideRegions,
+        spokenLanguages,
+      })
       setMessage('✅ ' + t('saveSuccess'))
       startTransition(() => router.refresh())
+    } catch (err) {
+      setMessage('❌ ' + t('saveError') + errorMessage(err))
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -231,10 +216,10 @@ export default function ProfileEditForm({
                   <span className="text-xs font-normal text-hint"> — {t('photo_desc')}</span>
                 </p>
                 <div className="flex justify-center py-2 mb-4">
-                  <AvatarUpload userId={userId} currentUrl={avatarUrl} onUpload={setAvatarUrl} />
+                  <AvatarUpload currentUrl={avatarUrl} onUpload={setAvatarUrl} />
                 </div>
                 <div className="border-t border-edge pt-4">
-                  <ProfilePhotos userId={userId} initialPhotos={profilePhotos} onUpdate={setProfilePhotos} />
+                  <ProfilePhotos initialPhotos={profilePhotos} onUpdate={setProfilePhotos} />
                 </div>
               </div>
               <div className="border-t border-edge" />
@@ -281,7 +266,7 @@ export default function ProfileEditForm({
                   {t('personality_title')}
                 </p>
                 {travelPersonality ? (
-                  <div className="rounded-xl p-4 bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100">
+                  <div className="rounded-xl p-4 bg-gradient-to-br from-purple-light to-purple-muted border border-purple-border">
                     <div className="flex items-start gap-3">
                       <span className="text-3xl shrink-0">{getPersonalityDisplay(travelPersonality.personality_type)?.emoji ?? '🌍'}</span>
                       <div>
@@ -295,7 +280,7 @@ export default function ProfileEditForm({
                         )}
                       </div>
                     </div>
-                    <Link href={`/${locale}/personality`} className="inline-block mt-3 text-sm font-medium text-violet-600 hover:text-violet-700">
+                    <Link href={`/${locale}/personality`} className="inline-block mt-3 text-sm font-medium text-purple hover:text-purple-strong">
                       {t('personality_retake')}
                     </Link>
                   </div>
@@ -305,7 +290,7 @@ export default function ProfileEditForm({
                   </p>
                 )}
                 <Link href={`/${locale}/personality`}>
-                  <Button type="button" variant="outline" className="rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 mt-1">
+                  <Button type="button" variant="outline" className="rounded-xl border-purple-border text-purple-strong hover:bg-purple-light mt-1">
                     {travelPersonality ? t('personality_title') : t('personality_take')}
                   </Button>
                 </Link>
@@ -318,28 +303,31 @@ export default function ProfileEditForm({
             <div className="space-y-5">
               <div className={`rounded-2xl p-5 border-2 transition-all ${
                 isGuide
-                  ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300'
-                  : 'bg-gradient-to-br from-slate-50 to-gray-50 border-edge'
+                  ? 'bg-gradient-to-br from-warning-light to-sunset-light border-warning-border'
+                  : 'bg-surface-sunken border-edge'
               }`}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 ${isGuide ? 'bg-amber-100 text-amber' : 'bg-surface-sunken text-hint'}`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 ${isGuide ? 'bg-warning-muted text-warning-strong' : 'bg-surface-sunken text-hint'}`}>
                       {isGuide ? '✓' : '·'}
                     </div>
                     <div>
-                      <p className={`font-semibold ${isGuide ? 'text-amber-900' : 'text-body'}`}>
+                      <p className={`font-semibold ${isGuide ? 'text-warning-strong' : 'text-body'}`}>
                         {isGuide ? t('guide_toggle_on') : t('guide_toggle_off')}
                       </p>
-                      <p className={`text-xs mt-0.5 ${isGuide ? 'text-amber-700' : 'text-hint'}`}>
+                      <p className={`text-xs mt-0.5 ${isGuide ? 'text-warning-strong' : 'text-hint'}`}>
                         {isGuide ? t('guide_hint_on') : t('guide_hint_off')}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
+                    role="switch"
+                    aria-checked={isGuide}
+                    aria-label={t('guideModeToggle')}
                     onClick={() => setIsGuide(v => !v)}
                     className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors focus:outline-none ${
-                      isGuide ? 'bg-amber-light0' : 'bg-gray-300'
+                      isGuide ? 'bg-warning' : 'bg-edge-strong'
                     }`}
                   >
                     <span className={`inline-block h-6 w-6 transform rounded-full bg-surface shadow-md transition-transform ${
@@ -366,7 +354,7 @@ export default function ProfileEditForm({
                       <select
                         value={rateCurrency}
                         onChange={e => setRateCurrency(e.target.value)}
-                        className="border border-edge rounded-lg px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
+                        className="border border-edge rounded-lg px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-warning shrink-0"
                       >
                         {CURRENCIES.map(c => (
                           <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
@@ -387,30 +375,30 @@ export default function ProfileEditForm({
                   <div className="space-y-3">
                     <p className="text-sm font-semibold text-body">{t('guide_services')}</p>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-3 p-3 bg-surface-sunken rounded-xl cursor-pointer hover:bg-amber-light transition-colors">
+                      <label className="flex items-center gap-3 p-3 bg-surface-sunken rounded-xl cursor-pointer hover:bg-warning-light transition-colors">
                         <input type="checkbox" checked={hasVehicle} onChange={e => setHasVehicle(e.target.checked)}
-                          className="w-4 h-4 accent-amber-500" />
+                          className="w-4 h-4 accent-warning" />
                         <span className="text-sm font-medium text-body">{t('guide_vehicle_check')}</span>
                       </label>
                       {hasVehicle && (
-                        <div className="space-y-2 pl-4 border-l-2 border-amber-200">
+                        <div className="space-y-2 pl-4 border-l-2 border-warning-border">
                           <Input value={vehicleInfo} onChange={e => setVehicleInfo(e.target.value)}
                             placeholder={t('guide_vehicle_placeholder')} />
-                          <GuideMediaUpload userId={userId} bucket="guide-media" folder="vehicle"
+                          <GuideMediaUpload folder="vehicle"
                             initialPhotos={vehiclePhotos} label={t('guide_vehicle_photos')} onUpdate={setVehiclePhotos} />
                         </div>
                       )}
 
-                      <label className="flex items-center gap-3 p-3 bg-surface-sunken rounded-xl cursor-pointer hover:bg-amber-light transition-colors">
+                      <label className="flex items-center gap-3 p-3 bg-surface-sunken rounded-xl cursor-pointer hover:bg-warning-light transition-colors">
                         <input type="checkbox" checked={hasAccommodation} onChange={e => setHasAccommodation(e.target.checked)}
-                          className="w-4 h-4 accent-amber-500" />
+                          className="w-4 h-4 accent-warning" />
                         <span className="text-sm font-medium text-body">{t('guide_accommodation_check')}</span>
                       </label>
                       {hasAccommodation && (
-                        <div className="space-y-2 pl-4 border-l-2 border-amber-200">
+                        <div className="space-y-2 pl-4 border-l-2 border-warning-border">
                           <Input value={accommodationInfo} onChange={e => setAccommodationInfo(e.target.value)}
                             placeholder={t('guide_accommodation_placeholder')} />
-                          <GuideMediaUpload userId={userId} bucket="guide-media" folder="accommodation"
+                          <GuideMediaUpload folder="accommodation"
                             initialPhotos={accommodationPhotos} label={t('guide_accommodation_photos')} onUpdate={setAccommodationPhotos} />
                         </div>
                       )}
@@ -442,22 +430,22 @@ export default function ProfileEditForm({
           {activeTab === 'contact' && (
             <div className="space-y-4">
               <p className="text-xs text-hint">{t('contact_notice')}</p>
-              <Field label="Instagram URL">
+              <Field label={t('instagramUrl')}>
                 <Input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="https://instagram.com/username" />
               </Field>
-              <Field label="Facebook URL">
+              <Field label={t('facebookUrl')}>
                 <Input value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="https://facebook.com/username" />
               </Field>
-              <Field label="X (Twitter) URL">
+              <Field label={t('xUrl')}>
                 <Input value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="https://x.com/username" />
               </Field>
               <Field label="WhatsApp">
                 <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+1 234 567 8900" />
               </Field>
-              <Field label="Telegram ID">
+              <Field label={t('telegramId')}>
                 <Input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="@username" />
               </Field>
-              <Field label="Line ID">
+              <Field label={t('lineId')}>
                 <Input value={lineId} onChange={e => setLineId(e.target.value)} placeholder="line_id" />
               </Field>
             </div>
@@ -491,7 +479,7 @@ export default function ProfileEditForm({
                       {certifiedCountryCodes.map(code => {
                         const country = COUNTRIES.find(c => c.code === code)
                         return country ? (
-                          <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success-light text-green-800 rounded-full text-sm font-medium border border-green-200">
+                          <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-success-light text-success-strong rounded-full text-sm font-medium border border-success-border">
                             <span className="text-base">{country.emoji}</span>
                             <span>{country.name}</span>
                             <span className="text-success text-xs">✓</span>
@@ -531,10 +519,10 @@ export default function ProfileEditForm({
                         const country = COUNTRIES.find(c => c.code === code)
                         return country ? (
                           <button key={code} type="button" onClick={() => toggleCountry(code)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-light text-blue-800 rounded-full text-sm font-medium border border-edge-brand hover:bg-danger-light hover:text-danger hover:border-red-200 transition-colors group">
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-light text-brand-strong rounded-full text-sm font-medium border border-edge-brand hover:bg-danger-light hover:text-danger hover:border-danger-border transition-colors group">
                             <span className="text-base">{country.emoji}</span>
                             <span>{country.name}</span>
-                            <span className="text-hint group-hover:text-red-500 ml-0.5">×</span>
+                            <span className="text-hint group-hover:text-danger ml-0.5">×</span>
                           </button>
                         ) : null
                       })}
@@ -552,7 +540,7 @@ export default function ProfileEditForm({
                     {wishedCountryCodes.map(code => {
                       const country = COUNTRIES.find(c => c.code === code)
                       return country ? (
-                        <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-light text-amber-800 rounded-full text-sm font-medium border border-amber-200">
+                        <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-warning-light text-warning-strong rounded-full text-sm font-medium border border-warning-border">
                           <span className="text-base">{country.emoji}</span>
                           <span>{country.name}</span>
                         </span>
@@ -562,8 +550,8 @@ export default function ProfileEditForm({
                 ) : (
                   <p className="text-sm text-hint py-2">{t('wishlist_empty')}</p>
                 )}
-                <p className="text-xs text-amber mt-2">
-                  💡 <Link href={`/${locale}/challenges/countries`} className="underline font-medium">100 Countries</Link>
+                <p className="text-xs text-warning mt-2">
+                  💡 <Link href={`/${locale}/challenges/countries`} className="underline font-medium">{t('wishlist_link')}</Link>
                   {' '}{t('wishlist_hint')}
                 </p>
               </div>
@@ -575,7 +563,7 @@ export default function ProfileEditForm({
 
       {/* 메시지 */}
       {message && (
-        <div className={`rounded-xl p-4 text-sm text-center ${message.startsWith('✅') ? 'bg-success-light text-success border border-green-200' : 'bg-danger-light text-danger border border-red-200'}`}>
+        <div className={`rounded-xl p-4 text-sm text-center ${message.startsWith('✅') ? 'bg-success-light text-success-strong border border-success-border' : 'bg-danger-light text-danger-strong border border-danger-border'}`}>
           {message}
         </div>
       )}

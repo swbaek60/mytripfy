@@ -1,70 +1,96 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/utils/supabase/server'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
 import { sendEmail } from '@/utils/email'
 import { guideRequestNotifyEmail } from '@/utils/emailTemplates'
 import { getLanguageByCode } from '@/data/languages'
+import { adminDb, enforceRateLimit, parseJsonBody, requireUser } from '@/lib/api/guard'
+import { ownsGuideRequest } from '@/lib/api/ownership'
+import { RATE_LIMITS } from '@/lib/api/rate-limit'
+import { apiError, apiFailure, apiOk } from '@/lib/api/respond'
 
+const bodySchema = z.object({
+  requestId: z.string().uuid(),
+})
+
+/** 한 번의 요청으로 알릴 수 있는 가이드 수 상한 (대량 발송 남용 방지) */
+const MAX_RECIPIENTS = 50
+
+/**
+ * 새 가이드 요청을 매칭되는 가이드들에게 알린다.
+ * 요청 작성자만 호출할 수 있고, 요청당 1회로 제한한다.
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { requestId } = await req.json()
-    if (!requestId) return NextResponse.json({ error: 'requestId required' }, { status: 400 })
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
 
-    const supabase = createAdminClient()
+    const limited = enforceRateLimit(req, 'email:guide-request', auth.user.profileId, RATE_LIMITS.email)
+    if (limited) return limited.response
 
-    // 요청 정보 조회
-    const { data: request } = await supabase
+    const parsed = await parseJsonBody(req, bodySchema)
+    if ('response' in parsed) return parsed.response
+    const { requestId } = parsed.data
+
+    const db = adminDb()
+
+    if (!(await ownsGuideRequest(db, requestId, auth.user.profileId))) {
+      return apiError('forbidden', 'Only the request owner can notify guides.')
+    }
+
+    const { data: request } = await db
       .from('guide_requests')
-      .select('*, profiles(full_name)')
+      .select(
+        'id, title, user_id, destination_country, destination_city, start_date, end_date, preferred_languages'
+      )
       .eq('id', requestId)
-      .single()
+      .maybeSingle()
 
-    if (!request) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+    if (!request) return apiError('not_found', 'Request not found.')
 
-    const requesterName = (request.profiles as Record<string, unknown>)?.full_name as string || 'A traveler'
+    const { data: requester } = await db
+      .from('profiles')
+      .select('full_name')
+      .eq('id', request.user_id)
+      .maybeSingle()
 
-    // 매칭 가이드 조회: 같은 지역 + 가이드 등록 + 이메일 있음
-    let guidesQuery = supabase
+    let guidesQuery = db
       .from('profiles')
       .select('id, full_name, email, spoken_languages')
       .eq('is_guide', true)
       .not('email', 'is', null)
       .neq('id', request.user_id)
+      .limit(MAX_RECIPIENTS)
 
-    // 지역 매칭
     if (request.destination_country) {
       guidesQuery = guidesQuery.contains('guide_regions', [request.destination_country])
     }
 
     const { data: allGuides } = await guidesQuery
+    if (!allGuides?.length) return apiOk({ sent: 0, total: 0, reason: 'no_matching_guides' })
 
-    if (!allGuides || allGuides.length === 0) {
-      return NextResponse.json({ sent: 0, message: 'No matching guides' })
-    }
-
-    // 언어 필터 (preferred_languages가 있는 경우)
     const preferredLangs: string[] = request.preferred_languages || []
-    const matchedGuides = preferredLangs.length > 0
-      ? allGuides.filter(g => {
-          const skills = (g.spoken_languages as Array<{ lang: string }>) || []
-          return skills.some(s => preferredLangs.includes(s.lang))
-        })
-      : allGuides
+    const matchedGuides =
+      preferredLangs.length > 0
+        ? allGuides.filter((guide) => {
+            const skills = (guide.spoken_languages as Array<{ lang: string }>) || []
+            return skills.some((skill) => preferredLangs.includes(skill.lang))
+          })
+        : allGuides
 
-    if (matchedGuides.length === 0) {
-      return NextResponse.json({ sent: 0, message: 'No language-matched guides' })
+    if (!matchedGuides.length) {
+      return apiOk({ sent: 0, total: 0, reason: 'no_language_matched_guides' })
     }
 
-    // 언어 이름 변환
     const languageNames = preferredLangs
-      .map(code => getLanguageByCode(code)?.name)
+      .map((code) => getLanguageByCode(code)?.name)
       .filter(Boolean) as string[]
 
     const locale = process.env.DEFAULT_LOCALE || 'en'
     const results = await Promise.allSettled(
-      matchedGuides.map(guide => {
+      matchedGuides.map((guide) => {
         const { subject, html } = guideRequestNotifyEmail({
           guideName: guide.full_name || 'Guide',
-          requesterName,
+          requesterName: requester?.full_name || 'A traveler',
           requestTitle: request.title,
           country: request.destination_country,
           city: request.destination_city || undefined,
@@ -78,11 +104,11 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    const succeeded = results.filter(r => r.status === 'fulfilled').length
-    return NextResponse.json({ sent: succeeded, total: matchedGuides.length })
-
-  } catch (error) {
-    console.error('[email/guide-request]', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return apiOk({
+      sent: results.filter((r) => r.status === 'fulfilled').length,
+      total: matchedGuides.length,
+    })
+  } catch (err) {
+    return apiFailure('email/guide-request', err)
   }
 }

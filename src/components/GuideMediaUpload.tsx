@@ -1,12 +1,11 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
 import { optimizeImage } from '@/utils/imageOptimizer'
+import { deleteImages, errorMessage, uploadImage } from '@/lib/client/api'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface Props {
-  userId: string
-  bucket: string
   folder: string
   initialPhotos: string[]
   label: string
@@ -14,12 +13,15 @@ interface Props {
   maxPhotos?: number
 }
 
+const BUCKET = 'guide-media'
+
 export default function GuideMediaUpload({
-  userId, bucket, folder, initialPhotos, label, onUpdate, maxPhotos = 4
+  folder, initialPhotos, label, onUpdate, maxPhotos = 4
 }: Props) {
   const tc = useTranslations('Common')
   const [photos, setPhotos] = useState<string[]>(initialPhotos)
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,21 +32,17 @@ export default function GuideMediaUpload({
     if (!toUpload.length) return
 
     setUploading(true)
-    const supabase = createClient()
+    setError('')
     const newUrls: string[] = []
 
     for (const file of toUpload) {
       try {
         const optimized = await optimizeImage(file, 'photo')
-        const ext = optimized.name.split('.').pop()
-        const fileName = `${userId}/${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(fileName, optimized, { contentType: optimized.type })
-        if (uploadError) continue
-        const { data } = supabase.storage.from(bucket).getPublicUrl(fileName)
-        newUrls.push(data.publicUrl)
-      } catch {}
+        const { url } = await uploadImage(BUCKET, optimized)
+        newUrls.push(url)
+      } catch (err) {
+        setError(errorMessage(err, 'Some photos could not be uploaded.'))
+      }
     }
 
     if (newUrls.length > 0) {
@@ -60,12 +58,8 @@ export default function GuideMediaUpload({
     const updated = photos.filter(p => p !== url)
     setPhotos(updated)
     onUpdate(updated)
-
-    const supabase = createClient()
-    try {
-      const path = url.split(`/storage/v1/object/public/${bucket}/`)[1]
-      if (path) await supabase.storage.from(bucket).remove([path])
-    } catch {}
+    // 프로필 저장 전 미리 지워도 무방하다 (저장 시 목록에서 이미 빠져 있다).
+    deleteImages(BUCKET, [url]).catch(() => {})
   }
 
   return (
@@ -74,11 +68,12 @@ export default function GuideMediaUpload({
       <div className="flex flex-wrap gap-2">
         {photos.map((url, i) => (
           <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden bg-surface-sunken group shrink-0">
-            <img src={url} alt={`${folder} ${i + 1}`} className="w-full h-full object-cover" />
+            <SmartImage src={url} alt={`${folder} ${i + 1}`} width={160} height={160} sizes="80px" className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={() => handleRemove(url)}
-              className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-red-500 text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+              aria-label={tc('remove')}
+              className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-danger text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
             >✕</button>
           </div>
         ))}
@@ -87,10 +82,10 @@ export default function GuideMediaUpload({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="w-20 h-20 rounded-xl border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light flex flex-col items-center justify-center text-hint hover:text-blue-400 transition-all disabled:opacity-50 shrink-0"
+            className="w-20 h-20 rounded-xl border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light flex flex-col items-center justify-center text-hint hover:text-brand transition-all disabled:opacity-50 shrink-0"
           >
             {uploading ? (
-              <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <span className="text-xl leading-none">+</span>
@@ -100,11 +95,14 @@ export default function GuideMediaUpload({
           </button>
         )}
       </div>
+      {error && <p className="text-xs text-danger mt-2">{error}</p>}
+
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic"
         multiple
+        aria-label={tc('selectPhoto')}
         className="hidden"
         onChange={handleUpload}
       />

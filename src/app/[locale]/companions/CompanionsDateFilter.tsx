@@ -50,7 +50,7 @@ export default function CompanionsDateFilter({
   }
 
   return (
-    <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-center">
+    <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 p-4 mb-4 flex flex-wrap gap-3 items-center">
       <span className="text-sm text-subtle font-medium mr-1 shrink-0 flex items-center gap-1.5">
         <CalendarDays className="w-4 h-4 text-brand" />
         {labelFrom}
@@ -60,6 +60,7 @@ export default function CompanionsDateFilter({
           type="date"
           value={date}
           min={new Date().toISOString().split('T')[0]}
+          aria-label={labelFrom}
           onChange={e => handleChange(e.target.value)}
           className="px-3 py-1.5 rounded-full text-xs font-medium bg-surface-sunken text-body border border-edge/60 focus:outline-none focus:border-brand transition-colors cursor-pointer"
         />
@@ -68,7 +69,7 @@ export default function CompanionsDateFilter({
         <button
           type="button"
           onClick={handleClear}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-danger-light text-danger-strong hover:bg-danger-muted transition-colors"
         >
           <X className="w-3 h-3" />
           {labelClear}

@@ -1,38 +1,18 @@
 import Link from 'next/link'
-import { getHeaderBadgeCounts } from '@/utils/notifications'
 import Logo from '@/components/Logo'
 import { getTranslations } from 'next-intl/server'
-import { createAdminClient } from '@/utils/supabase/server'
 import HeaderNav from '@/components/HeaderNav'
-import { currentUser } from '@clerk/nextjs/server'
 import type { MegaMenuGroup, NavPrimaryLink } from '@/components/explore/ExploreMegaMenu'
 
-export default async function Header({
-  locale,
-  currentPath = '',
-  user: _userProp,
-}: {
-  locale: string
-  currentPath?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: { id?: string; email?: string } | null | any
-}) {
+/**
+ * SSR: 번역·메뉴만. 배지·프로필은 HeaderNav 클라이언트 fetch (Origin Transfer 절감)
+ *
+ * 활성 메뉴 표시는 하위 클라이언트 컴포넌트가 usePathname 으로 직접 판단한다.
+ * 따로 현재 경로를 내려주지 않는다.
+ */
+export default async function Header({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: 'Nav' })
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
-
-  // Clerk 현재 사용자 (오류 시 null 처리)
-  let clerkUser: Awaited<ReturnType<typeof currentUser>> = null
-  try {
-    clerkUser = await currentUser()
-  } catch {
-    // Keyless Mode 초기화 중이거나 인증 컨텍스트 없음 → 비로그인 상태로 처리
-  }
-
-  const isLoggedIn = !!clerkUser
-  const authHref = (path: string) => {
-    if (isLoggedIn) return path
-    return `/login?returnTo=${encodeURIComponent(`/${locale}${path}`)}`
-  }
 
   const PRIMARY_NAV_LINKS: NavPrimaryLink[] = [
     { href: '/companions', label: t('findCompanions'), description: tm('navExploreCompanionsDesc') },
@@ -70,36 +50,11 @@ export default async function Header({
       id: 'host',
       label: tm('navHost'),
       links: [
-        { href: authHref('/profile/edit'), label: tm('navBecomeGuide'), description: tm('navHostGuideDesc') },
-        { href: authHref('/sponsors/new'), label: tm('navListBusiness'), description: tm('navHostBusinessDesc') },
+        { href: '/profile/edit', label: tm('navBecomeGuide'), description: tm('navHostGuideDesc') },
+        { href: '/sponsors/new', label: tm('navListBusiness'), description: tm('navHostBusinessDesc') },
       ],
     },
   ]
-
-  let unreadCount = 0
-  let unreadMessageCount = 0
-  let profile: { id: string; avatar_url: string | null; full_name: string | null } | null = null
-
-  if (clerkUser) {
-    try {
-      const admin = createAdminClient()
-      const { data: profileData } = await admin
-        .from('profiles')
-        .select('id, avatar_url, full_name')
-        .eq('clerk_id', clerkUser.id)
-        .single()
-
-      if (profileData) {
-        profile = profileData
-        const { unreadNotifications, unreadMessages } = await getHeaderBadgeCounts(
-          admin,
-          profileData.id
-        )
-        unreadCount = unreadNotifications
-        unreadMessageCount = unreadMessages
-      }
-    } catch { /* DB 조회 실패 시 무시 */ }
-  }
 
   const logoSlot = (
     <Link
@@ -119,22 +74,14 @@ export default async function Header({
         <HeaderNav
           logoSlot={logoSlot}
           locale={locale}
-          userId={clerkUser?.id}
-          profileId={profile?.id}
-          userEmail={clerkUser?.emailAddresses?.[0]?.emailAddress}
-          avatarUrl={profile?.avatar_url ?? clerkUser?.imageUrl}
-          fullName={profile?.full_name ?? clerkUser?.fullName}
           primaryNavLinks={PRIMARY_NAV_LINKS}
           megaMenuGroups={MEGA_MENU_GROUPS}
-          unreadCount={unreadCount}
-          unreadMessageCount={unreadMessageCount}
           tDashboard={t('dashboard')}
           tProfile={t('profile')}
           tLogout={t('logout')}
           tLogin={t('login')}
           tBookmarks={tm('navSaved')}
           tMessages={t('messages')}
-          tNotifications={t('notifications')}
           tMenu={t('menu')}
           tAccount={tm('footerAccount')}
           tMobileMore={tm('navMobileMore')}

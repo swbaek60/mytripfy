@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 import SectionShell from '@/components/layout/SectionShell'
 import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -43,6 +43,7 @@ export default async function BlogArticlePage({
 }) {
   const { locale, slug } = await params
   if (!isBlogSlug(slug)) notFound()
+  setRequestLocale(locale)
 
   const t = await getTranslations({ locale, namespace: 'Blog' })
   const tb = await getTranslations({ locale, namespace: 'SeoPages' })
@@ -66,7 +67,7 @@ export default async function BlogArticlePage({
     <div className="min-h-screen bg-surface-warm">
       <JsonLdScript data={articleLd} />
       <JsonLdScript data={breadcrumb} />
-      <Header locale={locale} currentPath="/blog" />
+      <Header locale={locale} />
 
       <article>
         <header className="relative bg-midnight text-white py-14 sm:py-20">

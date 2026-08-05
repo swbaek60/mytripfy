@@ -1,19 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useTranslations } from 'next-intl'
+import { api } from '@/lib/client/api'
 import { useRouter } from 'next/navigation'
 import { Bookmark } from 'lucide-react'
 
 interface Props {
-  userId: string
   type: 'companion_post' | 'guide'
   referenceId: string
   isBookmarked: boolean
   size?: 'sm' | 'md'
 }
 
-export default function BookmarkButton({ userId, type, referenceId, isBookmarked: initial, size = 'md' }: Props) {
+export default function BookmarkButton({ type, referenceId, isBookmarked: initial, size = 'md' }: Props) {
+  const tc = useTranslations('Common')
   const [bookmarked, setBookmarked] = useState(initial)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -22,18 +23,16 @@ export default function BookmarkButton({ userId, type, referenceId, isBookmarked
     e.preventDefault()
     e.stopPropagation()
     setLoading(true)
-    const supabase = createClient()
-
-    if (bookmarked) {
-      await supabase.from('bookmarks').delete()
-        .eq('user_id', userId).eq('type', type).eq('reference_id', referenceId)
-      setBookmarked(false)
-    } else {
-      await supabase.from('bookmarks').insert({ user_id: userId, type, reference_id: referenceId })
-      setBookmarked(true)
+    try {
+      const { bookmarked: next } = await api.post<{ bookmarked: boolean }>('/api/bookmarks', {
+        type,
+        referenceId,
+      })
+      setBookmarked(next)
+      router.refresh()
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-    router.refresh()
   }
 
   const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5'
@@ -43,9 +42,11 @@ export default function BookmarkButton({ userId, type, referenceId, isBookmarked
     <button
       onClick={toggle}
       disabled={loading}
-      title={bookmarked ? 'Remove bookmark' : 'Bookmark'}
+      title={bookmarked ? tc('removeBookmark') : tc('bookmark')}
+      aria-label={bookmarked ? tc('removeBookmark') : tc('bookmark')}
+      aria-pressed={bookmarked}
       className={`rounded-full transition-all hover:scale-110 ${padClass} ${
-        bookmarked ? 'text-brand' : 'text-hint hover:text-blue-400'
+        bookmarked ? 'text-brand' : 'text-hint hover:text-brand'
       } disabled:opacity-50`}
     >
       <Bookmark className={`${iconSize} ${bookmarked ? 'fill-brand' : ''}`} />

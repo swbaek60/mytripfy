@@ -22,12 +22,12 @@ interface Props {
   }
 }
 
-const POPULAR_COUNTRIES = ['JP', 'KR', 'TH', 'VN', 'ID', 'FR', 'IT', 'ES', 'US', 'AU', 'CN', 'TW', 'PH', 'SG', 'MY', 'GB', 'DE', 'CA', 'MX', 'BR']
 const POPULAR_LANGS = ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'th', 'vi', 'id', 'pt', 'ar']
 
 export default function GuidesFilterBar({ locale, currentFilters }: Props) {
   const router = useRouter()
   const t = useTranslations('Guides')
+  const tc = useTranslations('Common')
   const [isPending, startTransition] = useTransition()
 
   const [q, setQ] = useState(currentFilters.q ?? '')
@@ -95,6 +95,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           />
           {q && (
             <button onClick={() => { setQ(''); navigate({ q: '' }) }}
+              aria-label={tc('clearSearch')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-hint hover:text-body">
               <X className="w-3.5 h-3.5" />
             </button>
@@ -119,12 +120,12 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
         {/* 고급 필터 토글 */}
         <button
           onClick={() => setShowAdvanced(v => !v)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${showAdvanced ? 'border-gold bg-gold-light text-gold' : 'border-edge text-body hover:bg-surface-hover'}`}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${showAdvanced ? 'border-gold bg-gold-light text-gold-strong' : 'border-edge text-body hover:bg-surface-hover'}`}
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filters
           {activeCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-gold text-white text-xs flex items-center justify-center font-bold">
+            <span className="w-5 h-5 rounded-full bg-gold text-heading text-xs flex items-center justify-center font-bold">
               {activeCount}
             </span>
           )}
@@ -132,7 +133,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
 
         <button
           onClick={handleSearch}
-          className="px-5 py-2.5 bg-gold hover:brightness-110 text-white text-sm font-semibold rounded-xl transition-colors"
+          className="px-5 py-2.5 bg-gold hover:brightness-110 text-heading text-sm font-semibold rounded-xl transition-colors"
         >
           {t('searchBtn')}
         </button>
@@ -145,15 +146,15 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           {/* 서비스 토글 */}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => { setVehicle(v => { navigate({ vehicle: !v ? '1' : '' }); return !v }) }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${vehicle ? 'bg-brand text-white border-brand' : 'bg-surface border-edge text-body hover:border-blue-300'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${vehicle ? 'bg-brand text-white border-brand' : 'bg-surface border-edge text-body hover:border-brand-border'}`}>
               🚗 {t('filterVehicle')}
             </button>
             <button onClick={() => { setAccommodation(v => { navigate({ accommodation: !v ? '1' : '' }); return !v }) }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${accommodation ? 'bg-success text-white border-success' : 'bg-surface border-edge text-body hover:border-green-300'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${accommodation ? 'bg-success-strong text-white border-success' : 'bg-surface border-edge text-body hover:border-success-border'}`}>
               🏠 {t('filterAccommodation')}
             </button>
             <button onClick={() => { setFree(v => { navigate({ free: !v ? '1' : '' }); return !v }) }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${free ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-surface border-edge text-body hover:border-emerald-300'}`}>
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${free ? 'bg-success-strong text-white border-success' : 'bg-surface border-edge text-body hover:border-success-border'}`}>
               🎁 {t('filterFreeService')}
             </button>
           </div>
@@ -161,11 +162,11 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           {/* 국가 필터 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-subtle uppercase tracking-wide">🌍 Country</span>
+              <span className="text-xs font-semibold text-subtle uppercase tracking-wide">🌍 {tc('country')}</span>
               {country && (
                 <button onClick={() => { setCountry(''); setCity(''); navigate({ country: '', city: '' }) }}
-                  className="text-xs text-red-400 hover:text-red-600 flex items-center gap-0.5">
-                  <X className="w-3 h-3" /> Clear
+                  className="text-xs text-danger hover:text-danger flex items-center gap-0.5">
+                  <X className="w-3 h-3" /> {tc('clear')}
                 </button>
               )}
             </div>
@@ -175,6 +176,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
                 <CountryFlag code={selectedCountry.code} size="sm" />
                 <span className="font-semibold text-gold text-sm">{selectedCountry.name}</span>
                 <button onClick={() => { setCountry(''); setCity(''); navigate({ country: '', city: '' }) }}
+                  aria-label={tc('clearCountryFilter')}
                   className="ml-auto text-gold hover:opacity-80"><X className="w-3.5 h-3.5" /></button>
               </div>
             )}
@@ -190,7 +192,7 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
               {filteredCountries.map(c => (
                 <button key={c.code}
                   onClick={() => { setCountry(c.code === country ? '' : c.code); setCity(''); setCountrySearch(''); navigate({ country: c.code === country ? '' : c.code, city: '' }) }}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${country === c.code ? 'bg-gold text-white' : 'bg-surface-sunken text-body hover:bg-gold-light'}`}>
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${country === c.code ? 'bg-gold text-heading' : 'bg-surface-sunken text-body hover:bg-gold-light'}`}>
                   <CountryFlag code={c.code} size="xs" />
                   {c.name}
                 </button>
@@ -207,10 +209,10 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
                   placeholder={`City in ${selectedCountry?.name ?? country}...`}
                   className="flex-1 px-3 py-2 rounded-xl border border-edge text-sm focus:outline-none focus:ring-2 focus:ring-gold/40"
                 />
-                <button onClick={() => navigate({})} className="px-4 py-2 bg-gold hover:brightness-110 text-white text-sm rounded-xl font-medium">
+                <button onClick={() => navigate({})} className="px-4 py-2 bg-gold hover:brightness-110 text-heading text-sm rounded-xl font-medium">
                   {t('go')}
                 </button>
-                {city && <button onClick={() => { setCity(''); navigate({ city: '' }) }} className="px-3 py-2 text-hint hover:text-body"><X className="w-4 h-4" /></button>}
+                {city && <button onClick={() => { setCity(''); navigate({ city: '' }) }} aria-label={tc('clearCityFilter')} className="px-3 py-2 text-hint hover:text-body"><X className="w-4 h-4" /></button>}
               </div>
             )}
           </div>
@@ -218,11 +220,11 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
           {/* 언어 필터 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-subtle uppercase tracking-wide">🗣️ Language</span>
+              <span className="text-xs font-semibold text-subtle uppercase tracking-wide">🗣️ {tc('language')}</span>
               {lang && (
                 <button onClick={() => { setLang(''); navigate({ lang: '' }) }}
-                  className="text-xs text-red-400 hover:text-red-600 flex items-center gap-0.5">
-                  <X className="w-3 h-3" /> Clear
+                  className="text-xs text-danger hover:text-danger flex items-center gap-0.5">
+                  <X className="w-3 h-3" /> {tc('clear')}
                 </button>
               )}
             </div>
@@ -254,12 +256,12 @@ export default function GuidesFilterBar({ locale, currentFilters }: Props) {
               <div className="flex flex-wrap gap-1.5">
                 {selectedCountry && <span className="flex items-center gap-1 text-xs bg-gold/20 text-gold px-2 py-0.5 rounded-full"><CountryFlag code={selectedCountry.code} size="xs" />{selectedCountry.name}</span>}
                 {city && <span className="text-xs bg-gold/20 text-gold px-2 py-0.5 rounded-full">📍 {city}</span>}
-                {selectedLang && <span className="text-xs bg-purple-light text-purple-700 px-2 py-0.5 rounded-full">{selectedLang.emoji} {selectedLang.name}</span>}
+                {selectedLang && <span className="text-xs bg-purple-light text-purple-strong px-2 py-0.5 rounded-full">{selectedLang.emoji} {selectedLang.name}</span>}
                 {vehicle && <span className="text-xs bg-brand-muted text-brand-hover px-2 py-0.5 rounded-full">🚗 {t('filterVehicle')}</span>}
-                {accommodation && <span className="text-xs bg-success-light text-success px-2 py-0.5 rounded-full">🏠 {t('filterAccommodation')}</span>}
-                {free && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">🎁 {t('filterFreeTag')}</span>}
+                {accommodation && <span className="text-xs bg-success-light text-success-strong px-2 py-0.5 rounded-full">🏠 {t('filterAccommodation')}</span>}
+                {free && <span className="text-xs bg-success-muted text-success-strong px-2 py-0.5 rounded-full">🎁 {t('filterFreeTag')}</span>}
               </div>
-              <button onClick={clearAll} className="text-xs text-red-400 hover:text-red-600 font-medium flex items-center gap-1 shrink-0">
+              <button onClick={clearAll} className="text-xs text-danger hover:text-danger font-medium flex items-center gap-1 shrink-0">
                 <X className="w-3 h-3" /> {t('clearAll')}
               </button>
             </div>

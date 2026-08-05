@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { getLevelInfo } from '@/data/countries'
@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { MessageSquare, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import TranslatedText from '@/components/TranslatedText'
+import Avatar from '@/components/ui/Avatar'
 
 interface Application {
   id: string
@@ -22,14 +23,10 @@ interface Application {
 export default function ApplicationsList({
   applications,
   postId,
-  postTitle,
-  groupChatId,
   locale,
 }: {
   applications: Application[]
   postId: string
-  postTitle: string
-  groupChatId: string | null
   locale: string
 }) {
   const router = useRouter()
@@ -39,72 +36,29 @@ export default function ApplicationsList({
 
   const updateStatus = async (appId: string, applicantId: string, status: 'accepted' | 'rejected') => {
     setLoading(appId)
-
     try {
-      const res = await fetch('/api/companion/application-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appId, applicantId, status, postId, groupChatId }),
-      })
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        alert(`${tc('errorOccurred')} ${body?.error || res.statusText}`)
-        setLoading(null)
-        return
-      }
-    } catch (e) {
-      alert(tc('errorUnexpected'))
+      await api.post('/api/companion/application-status', { appId, status })
+      // 신청자 이메일 알림은 실패해도 상태 변경을 되돌리지 않는다.
+      api.post('/api/email/companion-application-status', { postId, applicantId, status }).catch(() => {})
+      router.refresh()
+    } catch (err) {
+      alert(errorMessage(err, tc('errorUnexpected')))
+    } finally {
       setLoading(null)
-      return
     }
-
-    // 신청자에게 이메일 알림 (비동기, 실패 무시)
-    fetch('/api/email/companion-application-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ postId, applicantId, status }),
-    }).catch(console.error)
-
-    setLoading(null)
-    router.refresh()
   }
 
-  const removeMember = async (applicantId: string) => {
+  const removeMember = async (appId: string, applicantId: string) => {
     if (!confirm(t('qaRemoveConfirm'))) return
     setLoading(applicantId)
-    const supabase = createClient()
-
-    // 상태를 'removed'로 변경 (재신청 가능 상태)
-    await supabase
-      .from('companion_applications')
-      .update({ status: 'removed' })
-      .eq('post_id', postId)
-      .eq('applicant_id', applicantId)
-
-    // 그룹 채팅방에서 제거
-    if (groupChatId) {
-      await supabase
-        .from('chat_participants')
-        .delete()
-        .eq('chat_id', groupChatId)
-        .eq('user_id', applicantId)
+    try {
+      await api.post('/api/companion/application-status', { appId, status: 'removed' })
+      router.refresh()
+    } catch (err) {
+      alert(errorMessage(err, tc('errorUnexpected')))
+    } finally {
+      setLoading(null)
     }
-
-    // 제거된 멤버에게 알림 발송
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: applicantId,
-        type: 'companion',
-        title: '🚫 Removed from trip',
-        message: `You have been removed from "${postTitle}". You may re-apply if you wish.`,
-        reference_id: postId,
-        reference_type: 'companion_post',
-      })
-
-    setLoading(null)
-    router.refresh()
   }
 
   const pending  = applications.filter(a => a.status === 'pending')
@@ -122,10 +76,10 @@ export default function ApplicationsList({
             {t('qaApplications')}
           </h3>
           <p className="text-sm text-subtle mt-0.5">
-            Accepted <span className="text-success font-semibold">{accepted.length}</span>
-            &nbsp;· Pending <span className="text-warning font-semibold">{pending.length}</span>
-            &nbsp;· Rejected <span className="text-hint">{rejected.length}</span>
-            {removed.length > 0 && <>&nbsp;· Removed <span className="text-red-400">{removed.length}</span></>}
+            {tc('accepted')} <span className="text-success font-semibold">{accepted.length}</span>
+            &nbsp;· {tc('pending')} <span className="text-warning font-semibold">{pending.length}</span>
+            &nbsp;· {tc('rejected')} <span className="text-hint">{rejected.length}</span>
+            {removed.length > 0 && <>&nbsp;· {tc('removed')} <span className="text-danger">{removed.length}</span></>}
           </p>
         </div>
       </div>
@@ -141,7 +95,7 @@ export default function ApplicationsList({
                 {t('qaAcceptedMembers')} ({accepted.length})
               </p>
               {accepted.map(app => <AppCard key={app.id} app={app} locale={locale} status="accepted"
-                onRemove={() => removeMember(app.applicant_id)}
+                onRemove={() => removeMember(app.id, app.applicant_id)}
                 onMessage={`/${locale}/messages/${app.applicant_id}?postId=${postId}`}
                 loading={loading} />)}
             </div>
@@ -150,8 +104,8 @@ export default function ApplicationsList({
           {/* 대기중 */}
           {pending.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wider mb-2 mt-4">
-                Pending ({pending.length})
+              <p className="text-xs font-semibold text-gold-strong uppercase tracking-wider mb-2 mt-4">
+                {tc('pending')} ({pending.length})
               </p>
               {pending.map(app => <AppCard key={app.id} app={app} locale={locale} status="pending"
                 onAccept={() => updateStatus(app.id, app.applicant_id, 'accepted')}
@@ -164,7 +118,7 @@ export default function ApplicationsList({
           {rejected.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-hint uppercase tracking-wider mb-2 mt-4">
-                Rejected ({rejected.length})
+                {tc('rejected')} ({rejected.length})
               </p>
               {rejected.map(app => <AppCard key={app.id} app={app} locale={locale} status="rejected"
                 loading={loading} />)}
@@ -174,8 +128,8 @@ export default function ApplicationsList({
           {/* 강제 제거됨 */}
           {removed.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 mt-4">
-                Removed ({removed.length})
+              <p className="text-xs font-semibold text-danger uppercase tracking-wider mb-2 mt-4">
+                {tc('removed')} ({removed.length})
               </p>
               {removed.map(app => <AppCard key={app.id} app={app} locale={locale} status="removed"
                 loading={loading} />)}
@@ -205,16 +159,16 @@ function AppCard({
 
   return (
     <div className={`rounded-xl p-4 border transition-all ${
-      status === 'accepted' ? 'bg-success-light border-green-200'
+      status === 'accepted' ? 'bg-success-light border-success-border'
       : status === 'rejected' ? 'bg-surface-sunken border-edge opacity-50'
-      : status === 'removed'  ? 'bg-danger-light border-red-200 opacity-60'
+      : status === 'removed'  ? 'bg-danger-light border-danger-border opacity-60'
       : 'bg-surface border-edge hover:border-edge-brand'
     }`}>
       <div className="flex items-start gap-3">
         <Link href={`/${locale}/users/${app.applicant_id}`}>
           <div className="w-10 h-10 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 overflow-hidden">
             {(profile?.avatar_url as string) ? (
-              <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover rounded-full" />
+              <Avatar src={profile.avatar_url as string} size={40} fill />
             ) : <span className="text-hint text-sm">?</span>}
           </div>
         </Link>
@@ -236,7 +190,7 @@ function AppCard({
             </div>
           )}
           <p suppressHydrationWarning className="text-xs text-hint mt-1">
-            {new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            {new Date(app.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}
           </p>
         </div>
 
@@ -245,12 +199,12 @@ function AppCard({
           {status === 'pending' && (
             <>
               <Button size="sm" onClick={onAccept} disabled={loading === app.id}
-                className="bg-success hover:bg-success text-white rounded-full text-xs px-3 h-7">
-                Accept
+                className="bg-success-strong hover:bg-success text-white rounded-full text-xs px-3 h-7">
+                {tc('accept')}
               </Button>
               <Button size="sm" variant="outline" onClick={onReject} disabled={loading === app.id}
-                className="border-red-200 text-danger hover:bg-danger-light rounded-full text-xs px-3 h-7">
-                Reject
+                className="border-danger-border text-danger hover:bg-danger-light rounded-full text-xs px-3 h-7">
+                {tc('reject')}
               </Button>
             </>
           )}
@@ -265,8 +219,8 @@ function AppCard({
                 </Link>
               )}
               <Button size="sm" variant="outline" onClick={onRemove} disabled={loading === app.applicant_id}
-                className="border-red-200 text-red-400 hover:bg-danger-light rounded-full text-xs px-3 h-7">
-                Remove
+                className="border-danger-border text-danger hover:bg-danger-light rounded-full text-xs px-3 h-7">
+                {tc('remove')}
               </Button>
             </>
           )}

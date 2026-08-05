@@ -69,6 +69,9 @@ body {
 
   --color-gold: var(--gold);
   --color-gold-light: var(--gold-light);
+  --color-gold-muted: var(--gold-muted);
+  --color-gold-border: var(--gold-border);
+  --color-gold-strong: var(--gold-strong);
 
   --color-heading: var(--heading);
   --color-body: var(--body);
@@ -88,21 +91,38 @@ body {
 
   --color-success: var(--success);
   --color-success-light: var(--success-light);
+  --color-success-muted: var(--success-muted);
+  --color-success-border: var(--success-border);
+  --color-success-strong: var(--success-strong);
   --color-warning: var(--warning);
   --color-warning-light: var(--warning-light);
+  --color-warning-muted: var(--warning-muted);
+  --color-warning-border: var(--warning-border);
+  --color-warning-strong: var(--warning-strong);
   --color-danger: var(--danger);
   --color-danger-light: var(--danger-light);
+  --color-danger-muted: var(--danger-muted);
+  --color-danger-border: var(--danger-border);
+  --color-danger-strong: var(--danger-strong);
   --color-info: var(--info);
   --color-info-light: var(--info-light);
+  --color-brand-strong: var(--brand-strong);
 
-  --color-amber: var(--amber);
-  --color-amber-light: var(--amber-light);
   --color-purple: var(--purple-accent);
   --color-purple-light: var(--purple-accent-light);
+  --color-purple-muted: var(--purple-accent-muted);
+  --color-purple-border: var(--purple-accent-border);
+  --color-purple-strong: var(--purple-accent-strong);
   --color-teal: var(--teal-accent);
   --color-teal-light: var(--teal-accent-light);
+  --color-teal-muted: var(--teal-accent-muted);
+  --color-teal-border: var(--teal-accent-border);
+  --color-teal-strong: var(--teal-accent-strong);
   --color-indigo: var(--indigo-accent);
   --color-indigo-light: var(--indigo-accent-light);
+  --color-indigo-muted: var(--indigo-accent-muted);
+  --color-indigo-border: var(--indigo-accent-border);
+  --color-indigo-strong: var(--indigo-accent-strong);
 
   --color-footer-bg: var(--footer-bg);
   --color-footer-text: var(--footer-text);
@@ -113,12 +133,38 @@ body {
   --color-brand-deep: var(--brand-deep);
   --color-sunset: var(--sunset);
   --color-sunset-light: var(--sunset-light);
+  --color-sunset-muted: var(--sunset-muted);
+  --color-sunset-border: var(--sunset-border);
+  --color-sunset-strong: var(--sunset-strong);
   --color-challenge: var(--challenge);
   --color-challenge-light: var(--challenge-light);
+  --color-challenge-muted: var(--challenge-muted);
+  --color-challenge-border: var(--challenge-border);
+  --color-challenge-strong: var(--challenge-strong);
   --color-midnight: var(--midnight);
   --color-surface-warm: var(--surface-warm);
   --color-teal-trust: var(--teal-trust);
   --color-teal-trust-light: var(--teal-trust-light);
+
+  /* ── 외부 서비스 식별색 ── */
+  --color-sns-whatsapp: var(--sns-whatsapp);
+  --color-sns-whatsapp-light: var(--sns-whatsapp-light);
+  --color-sns-whatsapp-strong: var(--sns-whatsapp-strong);
+  --color-sns-telegram: var(--sns-telegram);
+  --color-sns-telegram-light: var(--sns-telegram-light);
+  --color-sns-telegram-strong: var(--sns-telegram-strong);
+  --color-sns-line: var(--sns-line);
+  --color-sns-line-light: var(--sns-line-light);
+  --color-sns-line-strong: var(--sns-line-strong);
+  --color-sns-instagram: var(--sns-instagram);
+  --color-sns-instagram-light: var(--sns-instagram-light);
+  --color-sns-instagram-strong: var(--sns-instagram-strong);
+  --color-sns-facebook: var(--sns-facebook);
+  --color-sns-facebook-light: var(--sns-facebook-light);
+  --color-sns-facebook-strong: var(--sns-facebook-strong);
+  --color-sns-x: var(--sns-x);
+  --color-sns-x-light: var(--sns-x-light);
+  --color-sns-x-strong: var(--sns-x-strong);
 }
 
 :root {
@@ -168,22 +214,64 @@ body {
   /* ── v2 accents ── */
   --sunset: #F97316;
   --sunset-light: #FFF7ED;
-  --challenge: #7C3AED;
-  --challenge-light: #F5F3FF;
+  --sunset-muted: #FFEDD5;
+  --sunset-border: #FED7AA;
+  --sunset-strong: #C2410C;
+
+  /* 챌린지 악센트는 로즈다. 예전에는 마케팅 화면이 보라, 실제 챌린지 화면이
+     로즈를 써서 같은 제품이 두 색으로 보였다. 기능 화면 쪽 색으로 통일한다. */
+  --challenge: #E11D48;
+  --challenge-light: #FFF1F2;
+  --challenge-muted: #FFE4E6;
+  --challenge-border: #FDA4AF;
+  --challenge-strong: #BE123C;
+
   --midnight: #0B1220;
   --surface-warm: #FAFAF8;
   --teal-trust: #0D9488;
   --teal-trust-light: #F0FDFA;
 
+  /* ── 외부 서비스 식별색 ── */
+  /*
+   * 의미색이 아니라 상대 서비스가 정한 고유색이다. 텔레그램을 파랑 계열이라는 이유로
+   * brand 토큰에 묶으면 사용자가 아이콘을 못 알아본다. 이름을 따로 두어 의미색 통일
+   * 작업에 휩쓸리지 않게 한다. base 는 아이콘 타일, light/strong 은 카드 배경·라벨용.
+   */
+  --sns-whatsapp: #25D366;
+  --sns-whatsapp-light: #ECFDF3;
+  --sns-whatsapp-strong: #0A6E3A;
+  --sns-telegram: #229ED9;
+  --sns-telegram-light: #EFF9FE;
+  --sns-telegram-strong: #10658A;
+  --sns-line: #06C755;
+  --sns-line-light: #EDFCF3;
+  --sns-line-strong: #05743A;
+  --sns-instagram: #E1306C;
+  --sns-instagram-light: #FDF0F5;
+  --sns-instagram-strong: #A11248;
+  --sns-facebook: #1877F2;
+  --sns-facebook-light: #EFF5FE;
+  --sns-facebook-strong: #0B4DA2;
+  --sns-x: #0F1419;
+  --sns-x-light: #F1F3F4;
+  --sns-x-strong: #0F1419;
+
   /* ── 프리미엄 골드 악센트 ── */
+  /* 별점·신뢰도·명예의 전당에 쓴다. 예전에는 yellow-400/500/600/700 이 섞여 있었다. */
   --gold: #D4A853;
   --gold-light: #FEF9EF;
+  --gold-muted: #FDF3D8;
+  --gold-border: #EFD9A3;
+  --gold-strong: #8A6A1F;
 
-  /* ── 텍스트 계층 ── */
+  /* ── 텍스트 계층 ──
+     hint 는 가장 약한 단계지만 읽을 수는 있어야 한다. 예전 값(slate-400 #94A3B8)은
+     흰 배경에서 대비가 2.8:1 밖에 안 나와 292곳 전부가 WCAG AA 미달이었다.
+     한 단계 진하게 내려 4.5:1 을 넘기면서 body·subtle 과의 위계는 유지한다. */
   --heading: #0F172A;
   --body: #334155;
   --subtle: #475569;
-  --hint: #94A3B8;
+  --hint: #64748B;
 
   /* ── 표면 / 배경 ── */
   --surface: #FFFFFF;
@@ -199,25 +287,50 @@ body {
   /* ── 오버레이 ── */
   --overlay-color: rgba(15, 23, 42, 0.5);
 
-  /* ── 상태 ── */
+  /* ── 상태 ──
+     각 상태는 5단계다. light=연한 배경, muted=조금 진한 배경,
+     border=테두리/링, base=솔리드 채움·아이콘, strong=연한 배경 위 글자.
+     strong 은 light 배경과 흰 배경 모두에서 WCAG AA(4.5:1)를 넘긴다. */
   --success: #059669;
   --success-light: #ECFDF5;
+  --success-muted: #D1FAE5;
+  --success-border: #A7F3D0;
+  --success-strong: #047857;
+
   --warning: #D97706;
   --warning-light: #FFFBEB;
+  --warning-muted: #FEF3C7;
+  --warning-border: #FDE68A;
+  --warning-strong: #B45309;
+
   --danger: #DC2626;
   --danger-light: #FEF2F2;
+  --danger-muted: #FEE2E2;
+  --danger-border: #FECACA;
+  --danger-strong: #B91C1C;
+
   --info: #2563EB;
   --info-light: #EFF6FF;
+  --brand-strong: #1E40AF;
 
   /* ── 역할색 ── */
-  --amber: #D97706;
-  --amber-light: #FFFBEB;
   --purple-accent: #7C3AED;
   --purple-accent-light: #F5F3FF;
+  --purple-accent-muted: #EDE9FE;
+  --purple-accent-border: #DDD6FE;
+  --purple-accent-strong: #6D28D9;
+
   --teal-accent: #0D9488;
   --teal-accent-light: #F0FDFA;
+  --teal-accent-muted: #CCFBF1;
+  --teal-accent-border: #99F6E4;
+  --teal-accent-strong: #0F766E;
+
   --indigo-accent: #4F46E5;
   --indigo-accent-light: #EEF2FF;
+  --indigo-accent-muted: #E0E7FF;
+  --indigo-accent-border: #C7D2FE;
+  --indigo-accent-strong: #4338CA;
 
   /* ── 푸터 ── */
   --footer-bg: #0B1220;

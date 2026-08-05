@@ -23,16 +23,17 @@ interface Props {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  application: 'bg-brand-muted text-brand',
-  accepted: 'bg-success-light text-success',
+  application: 'bg-brand-muted text-brand-strong',
+  accepted: 'bg-success-light text-success-strong',
   rejected: 'bg-surface-sunken text-subtle',
-  review: 'bg-warning-light text-warning',
-  message: 'bg-indigo-light text-indigo',
-  question: 'bg-warning-light text-warning',
-  answer: 'bg-teal-light text-teal',
-  guide_match: 'bg-amber-light text-amber',
-  guide_request_match: 'bg-amber-light text-amber',
-  guide_application: 'bg-amber-light text-amber',
+  review: 'bg-warning-light text-warning-strong',
+  message: 'bg-indigo-light text-indigo-strong',
+  question: 'bg-warning-light text-warning-strong',
+  answer: 'bg-teal-light text-teal-strong',
+  // 가이드 관련 알림은 가이드 화면과 같은 gold 계열로 묶어 리뷰·질문 알림과 구분한다.
+  guide_match: 'bg-gold-light text-gold-strong',
+  guide_request_match: 'bg-gold-light text-gold-strong',
+  guide_application: 'bg-gold-light text-gold-strong',
 }
 const TYPE_LABELS: Record<string, string> = {
   application: 'Applied',
@@ -108,7 +109,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
   if (items.length === 0) {
     return (
       <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
-        <p className="text-hint font-medium">No notifications yet.</p>
+        <p className="text-hint font-medium">{tc('noNotificationsYet')}</p>
       </div>
     )
   }
@@ -120,7 +121,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
         <button
           onClick={clearAll}
           disabled={clearing}
-          className="flex items-center gap-1.5 text-xs text-danger hover:text-red-700 bg-danger-light hover:bg-danger-light px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 text-xs text-danger-strong hover:text-danger-strong bg-danger-light hover:bg-danger-light px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
         >
           <Trash2 className="w-3.5 h-3.5" />
           {clearing ? tc('deleting') : tc('delete')}
@@ -141,7 +142,7 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
                     {n.message && <p className="text-sm text-body mt-0.5">{n.message}</p>}
                     <p suppressHydrationWarning className="text-xs text-hint mt-1">
                       {new Date(n.created_at).toLocaleDateString(locale)}{' '}
-                      {new Date(n.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(n.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -152,7 +153,8 @@ export default function NotificationsList({ notifications: initial, locale }: Pr
               onClick={(e) => deleteOne(n.id, e)}
               disabled={deletingId === n.id}
               className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
-              title="Delete"
+              title={tc('delete')}
+              aria-label={tc('delete')}
             >
               <X className="w-3.5 h-3.5" />
             </button>

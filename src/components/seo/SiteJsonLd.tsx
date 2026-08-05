@@ -1,6 +1,7 @@
 import { LOGO_SVG_PRIMARY } from '@/lib/brand/logoAssets'
 import { routing } from '@/i18n/routing'
 import { SITE_URL, absoluteLocaleUrl, ogImageAbsoluteUrl } from '@/lib/seo/site'
+import { TOTAL_CHALLENGES } from '@/data/challengeTotals'
 
 type Props = { locale: string }
 
@@ -61,8 +62,7 @@ export default function SiteJsonLd({ locale }: Props) {
         price: '0',
         priceCurrency: 'USD',
       },
-      description:
-        'Find travel companions and local guides worldwide. Free community travel platform with 1,600+ travel challenges.',
+      description: `Find travel companions and local guides worldwide. Free community travel platform with ${TOTAL_CHALLENGES.toLocaleString('en-US')}+ travel challenges.`,
       featureList: [
         'Travel companion matching',
         'Local guide marketplace',

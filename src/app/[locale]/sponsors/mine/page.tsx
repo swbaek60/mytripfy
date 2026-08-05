@@ -6,6 +6,19 @@ import { Button } from '@/components/ui/button'
 import { getCountryByCode } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
 import CountryFlag from '@/components/CountryFlag'
+import SmartImage from '@/components/ui/SmartImage'
+
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/sponsors/mine', namespace: 'Sponsors', titleKey: 'mySponsors' })
+}
 
 const BUSINESS_TYPE_KEYS: Record<string, string> = {
   restaurant: 'restaurant',
@@ -20,6 +33,7 @@ const BUSINESS_TYPE_KEYS: Record<string, string> = {
 export default async function MySponsorsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
+  const tc = await getTranslations({ locale, namespace: 'Common' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -33,12 +47,12 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/sponsors" />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-heading">{t('mySponsors')}</h1>
           <Link href={`/${locale}/sponsors/new`}>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-full">+ {t('addSponsor')}</Button>
+            <Button className="bg-success hover:bg-success-strong rounded-full">+ {t('addSponsor')}</Button>
           </Link>
         </div>
         {sponsors && sponsors.length > 0 ? (
@@ -51,7 +65,7 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
                 <div key={s.id} className="bg-surface rounded-2xl p-4 shadow-sm border border-edge flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-surface-sunken overflow-hidden flex items-center justify-center text-xl shrink-0">
-                      {s.logo_url ? <img src={s.logo_url} alt="" className="w-full h-full object-cover" /> : '🏪'}
+                      {s.logo_url ? <SmartImage src={s.logo_url} alt="" width={96} height={96} className="w-full h-full object-cover" /> : '🏪'}
                     </div>
                     <div>
                       <p className="font-bold text-heading">{displayName}</p>
@@ -60,15 +74,15 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
                         {t(BUSINESS_TYPE_KEYS[s.business_type] || 'other')}
                         {s.city && ` · ${s.city}`}
                       </p>
-                      <p className="text-xs text-emerald-600">{benefitsCount} {t('benefits')}</p>
+                      <p className="text-xs text-success">{benefitsCount} {t('benefits')}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <Link href={`/${locale}/sponsors/${s.id}`}>
-                      <Button variant="outline" size="sm" className="rounded-full">View</Button>
+                      <Button variant="outline" size="sm" className="rounded-full">{tc('view')}</Button>
                     </Link>
                     <Link href={`/${locale}/sponsors/${s.id}/edit`}>
-                      <Button size="sm" className="rounded-full bg-emerald-600 hover:bg-emerald-700">Edit</Button>
+                      <Button size="sm" className="rounded-full bg-success hover:bg-success-strong">{tc('edit')}</Button>
                     </Link>
                   </div>
                 </div>
@@ -77,9 +91,9 @@ export default async function MySponsorsPage({ params }: { params: Promise<{ loc
           </div>
         ) : (
           <div className="text-center py-12 bg-surface rounded-2xl border border-edge">
-            <p className="text-subtle mb-4">No stores registered yet.</p>
+            <p className="text-subtle mb-4">{t('noStoresYet')}</p>
             <Link href={`/${locale}/sponsors/new`}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 rounded-full">+ {t('addSponsor')}</Button>
+              <Button className="bg-success hover:bg-success-strong rounded-full">+ {t('addSponsor')}</Button>
             </Link>
           </div>
         )}

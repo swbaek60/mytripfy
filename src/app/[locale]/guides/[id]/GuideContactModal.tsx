@@ -60,14 +60,14 @@ export default function GuideContactModal({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         let msg: string
-        if (data?.error === 'Guide email not found') {
+        if (data?.code === 'not_found') {
           msg = 'This guide has not set an email address. Please use the in-app chat instead.'
-        } else if (data?.error === 'Unauthorized') {
+        } else if (data?.code === 'unauthorized') {
           msg = 'Please log in to send a message.'
-        } else if (data?.code === 'SES_SANDBOX_RECIPIENT' || data?.code === 'SES_SEND_FAILED') {
-          msg = `Email delivery failed: ${data?.detail || 'unknown error'}. Please use the in-app chat above instead.`
-        } else if (data?.code === 'AWS_CREDENTIALS_MISSING') {
-          msg = 'Email service is not configured. Please use the in-app chat above instead.'
+        } else if (data?.code === 'rate_limited') {
+          msg = 'You have sent too many messages. Please try again later.'
+        } else if (data?.code === 'unavailable') {
+          msg = 'Email delivery is unavailable. Please use the in-app chat above instead.'
         } else {
           msg = data?.error || 'Something went wrong. Please try again.'
         }
@@ -112,9 +112,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">💬</span>,
       label: 'WhatsApp',
       desc: whatsapp,
-      color: 'bg-green-500',
-      lightBg: 'bg-green-50 border-green-100',
-      textColor: 'text-green-700',
+      color: 'bg-sns-whatsapp',
+      lightBg: 'bg-sns-whatsapp-light border-sns-whatsapp/30',
+      textColor: 'text-sns-whatsapp-strong',
       available: true,
       href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`,
       external: true,
@@ -124,9 +124,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">✈️</span>,
       label: 'Telegram',
       desc: telegram,
-      color: 'bg-sky-500',
-      lightBg: 'bg-sky-50 border-sky-100',
-      textColor: 'text-sky-700',
+      color: 'bg-sns-telegram',
+      lightBg: 'bg-sns-telegram-light border-sns-telegram/30',
+      textColor: 'text-sns-telegram-strong',
       available: true,
       href: `https://t.me/${telegram.replace('@', '')}`,
       external: true,
@@ -136,9 +136,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">🟢</span>,
       label: 'LINE',
       desc: `ID: ${lineId}`,
-      color: 'bg-lime-500',
-      lightBg: 'bg-lime-50 border-lime-100',
-      textColor: 'text-lime-700',
+      color: 'bg-sns-line',
+      lightBg: 'bg-sns-line-light border-sns-line/30',
+      textColor: 'text-sns-line-strong',
       available: true,
       href: `https://line.me/ti/p/~${lineId}`,
       external: true,
@@ -148,9 +148,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">📸</span>,
       label: 'Instagram',
       desc: instagram.replace('https://instagram.com/', '@').replace('https://www.instagram.com/', '@'),
-      color: 'bg-pink-500',
-      lightBg: 'bg-pink-50 border-pink-100',
-      textColor: 'text-pink-700',
+      color: 'bg-sns-instagram',
+      lightBg: 'bg-sns-instagram-light border-sns-instagram/30',
+      textColor: 'text-sns-instagram-strong',
       available: true,
       href: instagram,
       external: true,
@@ -160,9 +160,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">👤</span>,
       label: 'Facebook',
       desc: 'Open Facebook profile',
-      color: 'bg-brand',
-      lightBg: 'bg-brand-light border-brand-muted',
-      textColor: 'text-brand-hover',
+      color: 'bg-sns-facebook',
+      lightBg: 'bg-sns-facebook-light border-sns-facebook/30',
+      textColor: 'text-sns-facebook-strong',
       available: true,
       href: facebook,
       external: true,
@@ -172,9 +172,9 @@ export default function GuideContactModal({
       icon: <span className="text-xl leading-none">🐦</span>,
       label: 'X (Twitter)',
       desc: twitter.replace('https://x.com/', '@').replace('https://twitter.com/', '@'),
-      color: 'bg-footer-border',
-      lightBg: 'bg-surface-sunken border-edge',
-      textColor: 'text-heading',
+      color: 'bg-sns-x',
+      lightBg: 'bg-sns-x-light border-edge',
+      textColor: 'text-sns-x-strong',
       available: true,
       href: twitter,
       external: true,
@@ -189,11 +189,11 @@ export default function GuideContactModal({
       {/* 트리거 버튼 */}
       <button
         onClick={() => setOpen(true)}
-        className="w-full bg-gradient-to-r from-gold-light to-gold hover:from-gold hover:to-gold text-white rounded-xl py-4 text-base font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+        className="w-full bg-gradient-to-r from-gold-muted to-gold hover:brightness-105 text-heading rounded-xl py-4 text-base font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
       >
         <MessageCircle className="w-5 h-5" />
         {tg('contactGuide')}
-        <span className="text-xs font-normal bg-white/20 px-2 py-0.5 rounded-full">
+        <span className="text-xs font-normal bg-heading/10 px-2 py-0.5 rounded-full">
           {availableCount} ways
         </span>
       </button>
@@ -208,7 +208,12 @@ export default function GuideContactModal({
           />
 
           {/* 패널 */}
-          <div className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[min(90vh,calc(100dvh-2rem))] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={tg('contactGuide')}
+            className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[min(90vh,calc(100dvh-2rem))] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
+          >
 
             {/* 헤더 */}
             <div className="px-6 py-5 border-b border-edge flex items-center justify-between shrink-0">
@@ -218,6 +223,7 @@ export default function GuideContactModal({
               </div>
               <button
                 onClick={() => { setOpen(false); setShowEmail(false) }}
+                aria-label={tc('close')}
                 className="w-8 h-8 rounded-full bg-surface-sunken flex items-center justify-center text-subtle hover:bg-surface-hover transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -228,8 +234,8 @@ export default function GuideContactModal({
             {showEmail ? (
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setShowEmail(false)} className="text-hint hover:text-body text-sm">← Back</button>
-                  <span className="text-sm font-semibold text-body">Send Message to {guideName}</span>
+                  <button onClick={() => setShowEmail(false)} className="text-hint hover:text-body text-sm">{tc('back')}</button>
+                  <span className="text-sm font-semibold text-body">{tg('sendMessageTo', { name: guideName })}</span>
                 </div>
                 {sent ? (
                   <div className="text-center py-8">
@@ -242,7 +248,8 @@ export default function GuideContactModal({
                     <textarea
                       value={emailMsg}
                       onChange={e => setEmailMsg(e.target.value)}
-                      placeholder={`Hi ${guideName}, I'm interested in hiring you as a guide for my trip to...`}
+                      placeholder={tg('emailMessagePlaceholder', { name: guideName })}
+                      aria-label={tg('sendMessageTo', { name: guideName })}
                       rows={5}
                       className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple"
                       autoFocus
@@ -253,7 +260,7 @@ export default function GuideContactModal({
                       className="w-full bg-purple hover:brightness-95 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
                     >
                       <Send className="w-4 h-4" />
-                      {sending ? 'Sending...' : 'Send Message'}
+                      {sending ? tc('sending') : tg('sendMessage')}
                     </button>
                   </>
                 )}
@@ -307,7 +314,7 @@ export default function GuideContactModal({
             {!showEmail && (
               <div className="px-6 py-3 border-t border-edge bg-surface-sunken/50 shrink-0">
                 <p className="text-[11px] text-hint text-center">
-                  🔒 For your safety, keep initial communications on mytripfy chat.
+                  🔒 {tg('safetyNotice')}
                 </p>
               </div>
             )}

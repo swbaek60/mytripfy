@@ -30,19 +30,6 @@ function extFromUrl(url) {
   return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg'
 }
 
-/** 썸네일 URL → 원본(캐노니컬) URL. 다운로드 안정화 */
-function thumbToCanonical(url) {
-  try {
-    const u = new URL(url)
-    if (!u.pathname.includes('/thumb/')) return url
-    const newPath = u.pathname.replace(/\/thumb\/(.+)\/\d+px-[^/]+$/, '/$1')
-    if (newPath === u.pathname) return url
-    return u.origin + newPath
-  } catch {
-    return url
-  }
-}
-
 const FOODS = {
   'A5 Wagyu Beef': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Wagyu_beef_2.jpg/640px-Wagyu_beef_2.jpg',
   'Alaskan King Crab': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Paralithodes_camtschaticus_2.jpg/640px-Paralithodes_camtschaticus_2.jpg',

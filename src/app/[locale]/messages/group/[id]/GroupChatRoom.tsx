@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Send, Users, Crown, LogOut, X } from 'lucide-react'
 import Link from 'next/link'
 import { getLevelInfo } from '@/data/countries'
+import Avatar from '@/components/ui/Avatar'
 
 interface Message {
   id: string
@@ -17,7 +18,7 @@ interface Message {
   created_at: string
 }
 
-interface Member {
+export interface Member {
   user_id: string
   joined_at: string
   profiles: {
@@ -50,12 +51,12 @@ interface Props {
   locale: string
 }
 
-function formatTime(ts: string) {
+function formatTime(ts: string, locale: string) {
   const d = new Date(ts)
   const now = new Date()
   const isToday = d.toDateString() === now.toDateString()
-  if (isToday) return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  if (isToday) return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 /**
@@ -88,8 +89,6 @@ function GroupReadReceipt({
       new Date(p.last_read_at) >= new Date(messageCreatedAt)
   )
 
-  const unreadCount = totalMembers - 1 - readers.length // 발신자 제외한 수신 대상 - 읽은 수
-
   if (readers.length === 0) return null
 
   const displayReaders = readers.slice(0, 3)
@@ -102,15 +101,8 @@ function GroupReadReceipt({
         {displayReaders.map(r => {
           const p = profilesByUserId[r.user_id.toLowerCase()]
           return (
-            <div
-              key={r.user_id}
-              className="w-4 h-4 rounded-full border border-white bg-brand-muted overflow-hidden flex items-center justify-center"
-              title={p?.full_name || ''}
-            >
-              {p?.avatar_url
-                ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
-                : <span className="text-[6px]">👤</span>
-              }
+            <div key={r.user_id} title={p?.full_name || ''} className="rounded-full border border-white">
+              <Avatar src={p?.avatar_url} name={p?.full_name} size={16} fallbackClassName="bg-brand-muted text-brand-strong" />
             </div>
           )
         })}
@@ -135,152 +127,72 @@ export default function GroupChatRoom({
   const tm = useTranslations('Messages')
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [members, setMembers]   = useState<Member[]>(initialMembers)
-  const [profilesByUserId, setProfilesByUserId] = useState<Record<string, ProfileByUserId>>({})
+  // 초기 멤버 프로필은 서버에서 이미 내려왔으므로 그대로 시드로 쓴다.
+  const [profilesByUserId, setProfilesByUserId] = useState<Record<string, ProfileByUserId>>(() => {
+    const seed: Record<string, ProfileByUserId> = {}
+    for (const member of initialMembers) {
+      const id = String(member.user_id ?? '').trim()
+      if (!id) continue
+      seed[id.toLowerCase()] = {
+        id,
+        full_name: member.profiles?.full_name ?? null,
+        avatar_url: member.profiles?.avatar_url ?? null,
+        travel_level: member.profiles?.travel_level ?? null,
+      }
+    }
+    return seed
+  })
   const [participantsReadAt, setParticipantsReadAt] = useState<ParticipantReadAt[]>([])
   const [input, setInput]       = useState('')
   const [sending, setSending]   = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const supabase  = createClient()
   const isHost    = currentUserId === hostId
 
-  // 입장 시 읽음 처리
-  useEffect(() => {
-    const now = new Date().toISOString()
-    Promise.all([
-      supabase
-        .from('chat_participants')
-        .update({ last_read_at: now })
-        .eq('chat_id', chatId)
-        .eq('user_id', currentUserId),
-      supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', currentUserId)
-        .eq('type', 'message')
-        .eq('reference_type', 'group_chat')
-        .eq('reference_id', chatId),
-    ]).then(() => router.refresh())
-  }, [chatId, currentUserId, router])
+  /**
+   * 메시지·읽음 상태·발신자 프로필을 서버에서 한 번에 받아온다.
+   * 브라우저가 Supabase 를 직접 구독하지 않으므로 익명 DB 접근이 필요 없다.
+   */
+  const sync = useCallback(async () => {
+    try {
+      const { messages: rows, participants, senders } = await api.get<{
+        messages: Message[]
+        participants: ParticipantReadAt[]
+        senders: ProfileByUserId[]
+      }>(`/api/messages/sync?chatId=${encodeURIComponent(chatId)}`)
 
-  // 프로필 조회
-  useEffect(() => {
-    const userIds = new Set<string>()
-    members.forEach(m => { const id = m?.user_id; if (id != null && String(id).trim()) userIds.add(String(id).trim()) })
-    messages.forEach(m => { const id = m?.sender_id; if (id != null && String(id).trim()) userIds.add(String(id).trim()) })
-    const ids = [...userIds]
-    if (ids.length === 0) return
-    let cancelled = false
-    const orFilter = ids.map(id => `id.eq.${id}`).join(',')
-    supabase
-      .from('profiles')
-      .select('id, full_name, avatar_url, travel_level')
-      .or(orFilter)
-      .then(({ data: rows, error }) => {
-        if (cancelled || error) return
-        const map: Record<string, ProfileByUserId> = {}
-        for (const row of rows ?? []) {
-          const id = row?.id
-          if (id == null) continue
-          const key = String(id).toLowerCase()
-          map[key] = {
-            id: String(id),
-            full_name: row.full_name ?? null,
-            avatar_url: row.avatar_url ?? null,
-            travel_level: row.travel_level ?? null,
-          }
+      setMessages(rows)
+      setParticipantsReadAt(participants)
+      setProfilesByUserId(prev => {
+        const map = { ...prev }
+        for (const sender of senders) {
+          map[sender.id.toLowerCase()] = sender
         }
-        setProfilesByUserId(map)
+        return map
       })
-    return () => { cancelled = true }
-  }, [members, messages])
-
-  // 참여자 읽음 상태 초기 로드
-  useEffect(() => {
-    const fetchReadStatus = async () => {
-      try {
-        const res = await fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`)
-        if (!res.ok) return
-        const { participants } = await res.json()
-        if (Array.isArray(participants)) setParticipantsReadAt(participants)
-      } catch {}
+    } catch {
+      // 일시적인 실패는 다음 주기에 회복된다.
     }
-    fetchReadStatus()
   }, [chatId])
 
-  // 참여자 읽음 상태 Realtime 구독
+  // 입장 시 읽음 처리 → 헤더 배지 숫자 감소
   useEffect(() => {
-    const channel = supabase
-      .channel(`read-receipt-group:${chatId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'chat_participants',
-        filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        const updated = payload.new as { user_id: string; last_read_at: string | null }
-        setParticipantsReadAt(prev => {
-          const exists = prev.some(p => p.user_id === updated.user_id)
-          if (exists) {
-            return prev.map(p => p.user_id === updated.user_id ? { ...p, last_read_at: updated.last_read_at } : p)
-          }
-          return [...prev, { user_id: updated.user_id, last_read_at: updated.last_read_at }]
-        })
-      })
-      .subscribe()
+    api.post('/api/messages/sync', { chatId }).then(() => router.refresh()).catch(() => {})
+  }, [chatId, router])
 
-    return () => { supabase.removeChannel(channel) }
-  }, [chatId])
-
-  // 실시간 메시지 구독
+  // 첫 화면은 서버에서 받은 initialMessages 를 쓰므로 마운트 직후 재조회하지 않는다.
   useEffect(() => {
-    const channel = supabase
-      .channel(`group-chat-${chatId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `chat_id=eq.${chatId}`,
-      }, payload => {
-        const newMsg = payload.new as Message
-        setMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev
-          return [...prev, newMsg]
-        })
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [chatId])
-
-  // 폴링: 메시지 + 읽음 상태 동시 갱신
-  useEffect(() => {
-    const refetch = async () => {
-      try {
-        const [msgRes, readRes] = await Promise.all([
-          fetch(`/api/group-chat/messages?chatId=${encodeURIComponent(chatId)}`),
-          fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`),
-        ])
-        if (msgRes.ok) {
-          const { messages: next } = await msgRes.json()
-          if (Array.isArray(next)) setMessages(next)
-        }
-        if (readRes.ok) {
-          const { participants } = await readRes.json()
-          if (Array.isArray(participants)) setParticipantsReadAt(participants)
-        }
-      } catch {}
-    }
-    const onFocus = () => refetch()
+    const onFocus = () => sync()
     window.addEventListener('focus', onFocus)
     const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') refetch()
+      if (document.visibilityState === 'visible') sync()
     }, 5000)
     return () => {
       window.removeEventListener('focus', onFocus)
       clearInterval(interval)
     }
-  }, [chatId])
+  }, [sync])
 
   // 스크롤 하단 고정
   useEffect(() => {
@@ -294,24 +206,11 @@ export default function GroupChatRoom({
     setInput('')
 
     try {
-      const res = await fetch('/api/group-chat/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId, content: text }),
-      })
-
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        console.error('Send failed:', body)
-        setInput(text)
-        alert(`${tm('sendFailed')} ${body?.error || tc('errorUnexpected')}`)
-      } else if (body.message) {
-        setMessages(prev => [...prev, body.message as Message])
-      }
-    } catch (e) {
-      console.error('Send error:', e)
+      const { message } = await api.post<{ message?: Message }>('/api/group-chat/send', { chatId, content: text })
+      if (message) setMessages(prev => [...prev, message])
+    } catch (err) {
       setInput(text)
-      alert(tc('errorUnexpected'))
+      alert(`${tm('sendFailed')} ${errorMessage(err, tc('errorUnexpected'))}`)
     }
 
     setSending(false)
@@ -319,20 +218,24 @@ export default function GroupChatRoom({
 
   const leaveGroup = async () => {
     if (!confirm('Leave this trip group? You will lose access to the group chat.')) return
-    await supabase.from('chat_participants').delete()
-      .eq('chat_id', chatId).eq('user_id', currentUserId)
-    window.location.href = `/${locale}/messages`
+    try {
+      await api.del(`/api/messages/leave?chatId=${encodeURIComponent(chatId)}`)
+      window.location.href = `/${locale}/messages`
+    } catch (err) {
+      alert(errorMessage(err, tc('errorUnexpected')))
+    }
   }
 
   const removeMember = async (userId: string) => {
     if (!confirm('Remove this member from the group?')) return
-    await supabase.from('chat_participants').delete()
-      .eq('chat_id', chatId).eq('user_id', userId)
-    setMembers(prev => prev.filter(m => m.user_id !== userId))
+    try {
+      await api.del('/api/group-chat/members', { chatId, userId })
+      setMembers(prev => prev.filter(m => m.user_id !== userId))
+    } catch (err) {
+      alert(errorMessage(err, tc('errorUnexpected')))
+    }
   }
 
-  const getMember = (userId: string) =>
-    members.find(m => String(m.user_id).toLowerCase() === String(userId).toLowerCase())
   const getProfile = (userId: string): ProfileByUserId | null =>
     profilesByUserId[String(userId ?? '').toLowerCase()] ?? null
 
@@ -355,15 +258,16 @@ export default function GroupChatRoom({
           {postId && (
             <Link href={`/${locale}/companions/${postId}`}>
               <Button variant="outline" size="sm" className="rounded-full text-xs border-edge-brand text-brand hover:bg-brand-light hidden sm:flex">
-                View Trip
+                {tm('viewTrip')}
               </Button>
             </Link>
           )}
           <Button
             variant="ghost" size="sm"
             onClick={() => setShowMembers(v => !v)}
-            className={`rounded-full ${showMembers ? 'bg-brand-light text-brand' : 'text-subtle hover:bg-surface-hover'}`}
-            title="Members"
+            className={`rounded-full ${showMembers ? 'bg-brand-light text-brand-strong' : 'text-subtle hover:bg-surface-hover'}`}
+            title={tc('members')}
+            aria-label={tc('members')}
           >
             <Users className="w-4 h-4" />
           </Button>
@@ -372,7 +276,8 @@ export default function GroupChatRoom({
               variant="ghost" size="sm"
               onClick={leaveGroup}
               className="rounded-full text-hint hover:text-danger hover:bg-danger-light"
-              title="Leave group"
+              title={tm('leaveGroup')}
+              aria-label={tm('leaveGroup')}
             >
               <LogOut className="w-4 h-4" />
             </Button>
@@ -384,8 +289,8 @@ export default function GroupChatRoom({
       {showMembers && (
         <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-sm text-heading">Members ({members.length})</p>
-            <button onClick={() => setShowMembers(false)} className="text-hint hover:text-body">
+            <p className="font-bold text-sm text-heading">{tc('members')} ({members.length})</p>
+            <button onClick={() => setShowMembers(false)} aria-label={tc('close')} className="text-hint hover:text-body">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -398,11 +303,9 @@ export default function GroupChatRoom({
               return (
                 <div key={member.user_id} className="flex items-center gap-2 bg-surface-sunken rounded-xl px-3 py-2">
                   <Link href={`/${locale}/users/${member.user_id}`} className="shrink-0 relative">
-                    <div className="w-8 h-8 rounded-full bg-brand-muted overflow-hidden flex items-center justify-center text-sm">
-                      {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : '👤'}
-                    </div>
+                    <Avatar src={p?.avatar_url} name={p?.full_name} size={32} fallbackClassName="bg-brand-muted text-brand-strong" />
                     {isHostMember && (
-                      <Crown className="w-3 h-3 text-yellow-500 absolute -top-0.5 -right-0.5" />
+                      <Crown className="w-3 h-3 text-gold absolute -top-0.5 -right-0.5" />
                     )}
                   </Link>
                   <div className="min-w-0">
@@ -418,7 +321,8 @@ export default function GroupChatRoom({
                     <button
                       onClick={() => removeMember(member.user_id)}
                       className="text-hint hover:text-danger ml-1"
-                      title="Remove member"
+                      title={tm('removeMember')}
+                      aria-label={tm('removeMember')}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -435,7 +339,7 @@ export default function GroupChatRoom({
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-hint">
             <div className="text-4xl mb-3">💬</div>
-            <p className="text-sm">Start the group conversation!</p>
+            <p className="text-sm">{tm('startGroupConversation')}</p>
           </div>
         ) : (
           messages.map((msg, i) => {
@@ -452,12 +356,10 @@ export default function GroupChatRoom({
                   <div className="shrink-0 mt-auto">
                     {!sameAsPrev ? (
                       <Link href={`/${locale}/users/${msg.sender_id}`}>
-                        <div className="w-7 h-7 rounded-full bg-brand-muted overflow-hidden flex items-center justify-center text-sm relative">
-                          {profile?.avatar_url
-                            ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                            : '👤'}
+                        <div className="relative">
+                          <Avatar src={profile?.avatar_url} name={profile?.full_name} size={28} fallbackClassName="bg-brand-muted text-brand-strong" />
                           {msgIsHost && (
-                            <Crown className="w-2.5 h-2.5 text-yellow-500 absolute -top-0.5 -right-0.5" />
+                            <Crown className="w-2.5 h-2.5 text-gold absolute -top-0.5 -right-0.5" />
                           )}
                         </div>
                       </Link>
@@ -470,7 +372,7 @@ export default function GroupChatRoom({
                       <span className="text-xs font-semibold text-body">
                         {profile?.full_name || 'Member'}
                       </span>
-                      {msgIsHost && <Crown className="w-3 h-3 text-yellow-500" />}
+                      {msgIsHost && <Crown className="w-3 h-3 text-gold" />}
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: levelInfo.color }}>
                         Lv.{levelInfo.level}
                       </span>
@@ -483,7 +385,7 @@ export default function GroupChatRoom({
                   }`}>
                     {msg.content}
                   </div>
-                  <span className="text-[10px] text-hint px-1">{formatTime(msg.created_at)}</span>
+                  <span className="text-[10px] text-hint px-1">{formatTime(msg.created_at, locale)}</span>
                   {/* 읽음 표시: 내가 보낸 메시지에만 표시 */}
                   {isMine && (
                     <GroupReadReceipt
@@ -511,13 +413,15 @@ export default function GroupChatRoom({
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
-          placeholder="Message the group..."
+          placeholder={tm('messageGroupPlaceholder')}
+          aria-label={tm('messageGroupPlaceholder')}
           className="flex-1 rounded-full border-edge bg-surface-sunken text-sm"
         />
         <Button
           onClick={sendMessage}
           disabled={!input.trim() || sending}
           size="sm"
+          aria-label={tc('send')}
           className="rounded-full w-9 h-9 p-0 bg-brand hover:bg-brand-hover shrink-0"
         >
           <Send className="w-4 h-4" />

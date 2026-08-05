@@ -7,6 +7,21 @@ import { CalendarDays, Globe, Lock, Plus, MapPin } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import Avatar from '@/components/ui/Avatar'
+import { relationOne, type ProfileRef } from '@/lib/db/relation'
+
+interface TripCardData {
+  id: string
+  user_id: string
+  title: string
+  destination_country: string | null
+  start_date: string | null
+  end_date: string | null
+  visibility: 'public' | 'private'
+  /** `trip_days(count)` 임베드는 `[{ count: n }]` 모양으로 온다. */
+  trip_days?: { count: number }[] | null
+  profiles?: ProfileRef | ProfileRef[] | null
+}
 
 export async function generateMetadata({
   params,
@@ -30,6 +45,10 @@ export default async function TripsPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'Trips' })
+  const tm = await getTranslations({ locale, namespace: 'Marketing' })
+  const ts = await getTranslations({ locale, namespace: 'SeoPages' })
+  const td = await getTranslations({ locale, namespace: 'Dashboard' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -50,14 +69,22 @@ export default async function TripsPage({
       .limit(12),
   ])
 
-  const myTrips = (myTripsRes.data ?? []) as any[]
-  const publicTrips = (publicTripsRes.data ?? []).filter(
-    (t: any) => t.user_id !== user?.id
-  ) as any[]
+  const myTrips = (myTripsRes.data ?? []) as TripCardData[]
+  const publicTrips = ((publicTripsRes.data ?? []) as TripCardData[]).filter(
+    (t) => t.user_id !== user?.id
+  )
 
   return (
-    <div className="min-h-screen bg-surface-sunken">
-      <Header user={user || null} locale={locale} currentPath="/trips" />
+    <div className="min-h-screen bg-surface-warm">
+      <Header locale={locale} />
+
+      <section className="relative bg-midnight text-white py-12 sm:py-14 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight via-midnight to-brand-deep/30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{tm('tripsHeroTitle')}</h1>
+          <p className="text-white/70 max-w-xl leading-relaxed">{tm('tripsHeroSubtitle')}</p>
+        </div>
+      </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
 
@@ -65,35 +92,35 @@ export default async function TripsPage({
         <section>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-2xl font-bold text-heading">My Trip Plans</h1>
-              <p className="text-sm text-subtle mt-0.5">Day-by-day itineraries you've created</p>
+              <h1 className="text-2xl font-bold text-heading">{td('myTripPlans')}</h1>
+              <p className="text-sm text-subtle mt-0.5">{t('itinerariesCreated')}</p>
             </div>
             {user && (
               <Link href={`/${locale}/trips/new`}>
-                <Button className="rounded-full gap-1.5 text-sm">
-                  <Plus size={15} /> New Trip
+                <Button className="rounded-full gap-1.5 text-sm shadow-md shadow-brand/20">
+                  <Plus size={15} /> {t('newTrip')}
                 </Button>
               </Link>
             )}
           </div>
 
           {!user ? (
-            <div className="bg-surface rounded-2xl shadow-sm p-8 text-center">
-              <p className="text-subtle mb-4">Log in to create and manage your own trip itineraries.</p>
+            <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 p-8 text-center">
+              <p className="text-subtle mb-4">{ts('tripsLoginHint')}</p>
               <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/trips`)}`}>
-                <Button className="rounded-full px-8">Login to Start Planning</Button>
+                <Button className="rounded-full px-8 shadow-md shadow-brand/20">{ts('tripsLoginCta')}</Button>
               </Link>
             </div>
           ) : myTrips.length === 0 ? (
-            <div className="bg-surface rounded-2xl shadow-sm p-10 text-center">
-              <p className="text-hint text-sm mb-4">No trip plans yet. Start by creating your first itinerary!</p>
+            <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 p-10 text-center">
+              <p className="text-hint text-sm mb-4">{t('noTripPlans')}</p>
               <Link href={`/${locale}/trips/new`}>
-                <Button variant="outline" className="rounded-full">Create your first trip</Button>
+                <Button variant="outline" className="rounded-full border-brand/30 text-brand hover:bg-brand-light">{ts('tripsCreateFirst')}</Button>
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {myTrips.map((trip: any) => <TripCard key={trip.id} trip={trip} locale={locale} showOwner={false} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {myTrips.map((trip) => <TripCard key={trip.id} trip={trip} locale={locale} showOwner={false} />)}
             </div>
           )}
         </section>
@@ -102,11 +129,11 @@ export default async function TripsPage({
         {publicTrips.length > 0 && (
           <section>
             <div className="mb-5">
-              <h2 className="text-xl font-bold text-heading">Explore Public Itineraries</h2>
-              <p className="text-sm text-subtle mt-0.5">Discover travel plans shared by the community</p>
+              <h2 className="text-xl font-bold text-heading">{ts('tripsExplorePublic')}</h2>
+              <p className="text-sm text-subtle mt-0.5">{ts('tripsExplorePublicHint')}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {publicTrips.map((trip: any) => <TripCard key={trip.id} trip={trip} locale={locale} showOwner />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {publicTrips.map((trip) => <TripCard key={trip.id} trip={trip} locale={locale} showOwner />)}
             </div>
           </section>
         )}
@@ -116,30 +143,33 @@ export default async function TripsPage({
   )
 }
 
-function TripCard({ trip, locale, showOwner }: { trip: any; locale: string; showOwner: boolean }) {
+async function TripCard({ trip, locale, showOwner }: { trip: TripCardData; locale: string; showOwner: boolean }) {
+  const t = await getTranslations({ locale, namespace: 'Trips' })
+  const tc = await getTranslations({ locale, namespace: 'Common' })
+  const owner = relationOne<ProfileRef>(trip.profiles)
   const country = trip.destination_country ? getCountryByCode(trip.destination_country) : null
   const start = trip.start_date ? new Date(trip.start_date + 'T00:00:00') : null
   const end   = trip.end_date   ? new Date(trip.end_date   + 'T00:00:00') : null
   const dateLabel = start && end && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())
-    ? `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    ? `${start.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`
     : null
   const dayCount = trip.trip_days?.[0]?.count ?? 0
 
   return (
-    <Link href={`/${locale}/trips/${trip.id}`}>
-      <div className="bg-surface rounded-2xl shadow-sm border border-transparent hover:border-edge-brand hover:shadow-md transition-all p-5 cursor-pointer h-full flex flex-col">
+    <Link href={`/${locale}/trips/${trip.id}`} className="group block h-full">
+      <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 hover:border-edge-brand hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-5 h-full flex flex-col">
         {/* Country flag + visibility */}
         <div className="flex items-start justify-between mb-3">
           <span className="text-3xl">{country?.emoji || '✈️'}</span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${
-            trip.visibility === 'public' ? 'bg-success-light text-green-700' : 'bg-surface-sunken text-subtle'
+            trip.visibility === 'public' ? 'bg-success-light text-success-strong' : 'bg-surface-sunken text-subtle'
           }`}>
             {trip.visibility === 'public' ? <Globe size={10} /> : <Lock size={10} />}
-            {trip.visibility === 'public' ? 'Public' : 'Private'}
+            {trip.visibility === 'public' ? t('public') : t('private')}
           </span>
         </div>
 
-        <h3 className="font-bold text-heading text-sm leading-snug mb-2 line-clamp-2 flex-1">{trip.title}</h3>
+        <h3 className="font-bold text-heading text-sm leading-snug mb-2 line-clamp-2 flex-1 group-hover:text-brand transition-colors">{trip.title}</h3>
 
         <div className="space-y-1.5 mt-auto">
           {country && (
@@ -155,19 +185,15 @@ function TripCard({ trip, locale, showOwner }: { trip: any; locale: string; show
             </p>
           )}
           {dayCount > 0 && (
-            <p className="text-xs text-brand font-medium">{dayCount} day{dayCount > 1 ? 's' : ''} planned</p>
+            <p className="text-xs text-brand font-medium">{t('daysPlanned', { count: dayCount })}</p>
           )}
         </div>
 
         {/* Owner info */}
-        {showOwner && trip.profiles && (
+        {showOwner && owner && (
           <div className="flex items-center gap-2 mt-3 pt-3 border-t border-edge">
-            <div className="w-5 h-5 rounded-full bg-brand-muted flex items-center justify-center text-xs overflow-hidden shrink-0">
-              {trip.profiles.avatar_url
-                ? <img src={trip.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                : <span className="text-hint">?</span>}
-            </div>
-            <span className="text-xs text-subtle truncate">{trip.profiles.full_name || 'Anonymous'}</span>
+            <Avatar src={owner.avatar_url} name={owner.full_name} size={20} fallbackClassName="bg-brand-muted text-brand-strong" />
+            <span className="text-xs text-subtle truncate">{owner.full_name || tc('anonymous')}</span>
           </div>
         )}
       </div>

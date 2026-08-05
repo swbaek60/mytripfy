@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { MessageSquare, Users, X, Trash2, ExternalLink } from 'lucide-react'
+import Avatar from '@/components/ui/Avatar'
 
 interface GroupChat {
   chatId: string
@@ -42,6 +43,7 @@ function timeAgo(dateStr: string, t: (key: string, values?: { count: number }) =
 export default function MessagesPanel({ locale, unreadCount: initialCount, onCountChange }: Props) {
   const t = useTranslations('Messages')
   const tn = useTranslations('Notifications')
+  const tc = useTranslations('Common')
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [groupChats, setGroupChats] = useState<GroupChat[]>([])
@@ -128,15 +130,15 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
 
   const panel = open && mounted ? createPortal(
     <div className="fixed inset-0 z-[9999]">
-      {/* 배경 딤처리 */}
+      {/* ?? ?????*/}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={() => setOpen(false)}
       />
 
-      {/* 슬라이드 패널 */}
+      {/* ?????? ??? */}
       <div className="absolute right-0 top-0 h-[100dvh] w-[min(100vw,24rem)] bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        {/* 헤더 */}
+        {/* ??? */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-edge shrink-0">
           <div className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-brand" />
@@ -158,6 +160,7 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
             </Link>
             <button
               onClick={() => setOpen(false)}
+              aria-label={tc('close')}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle transition-colors"
             >
               <X className="w-4 h-4" />
@@ -165,7 +168,7 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
           </div>
         </div>
 
-        {/* 내용 */}
+        {/* ??? */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
@@ -181,13 +184,13 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
                   <span className="text-xs bg-brand text-white px-3 py-1.5 rounded-full hover:bg-brand-hover transition-colors">{t('findCompanions')}</span>
                 </Link>
                 <Link href={`/${locale}/guides`} onClick={() => setOpen(false)}>
-                  <span className="text-xs bg-warning text-white px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">{t('findGuides')}</span>
+                  <span className="text-xs bg-warning-strong text-white px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">{t('findGuides')}</span>
                 </Link>
               </div>
             </div>
           ) : (
             <div className="p-3 space-y-4">
-              {/* 그룹 채팅 */}
+              {/* ?? ?? */}
               {groupChats.length > 0 && (
                 <div>
                   <p className="text-[10px] font-semibold text-subtle uppercase tracking-wider px-1 mb-2 flex items-center gap-1">
@@ -207,7 +210,7 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="font-semibold text-sm text-heading truncate">{chat.name}</p>
-                                <span className="text-[10px] bg-brand-muted text-brand px-1.5 py-0.5 rounded-full shrink-0">
+                                <span className="text-[10px] bg-brand-muted text-brand-strong px-1.5 py-0.5 rounded-full shrink-0">
                                   {chat.memberCount}
                                 </span>
                               </div>
@@ -227,6 +230,7 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
                         <button
                           onClick={(e) => leaveChat(chat.chatId, e)}
                           disabled={leavingId === chat.chatId}
+                          aria-label={t('leaveChat')}
                           className="absolute top-1/2 -translate-y-1/2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -237,7 +241,7 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
                 </div>
               )}
 
-              {/* 1:1 채팅 */}
+              {/* 1:1 ?? */}
               {directChats.length > 0 && (
                 <div>
                   <p className="text-[10px] font-semibold text-subtle uppercase tracking-wider px-1 mb-2 flex items-center gap-1">
@@ -253,8 +257,8 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
                           <div className="bg-surface rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-3 border border-transparent hover:border-edge-brand pr-9">
                             <div className="w-10 h-10 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 overflow-hidden">
                               {chat.other?.avatar_url ? (
-                                <img src={chat.other.avatar_url} alt="" className="w-full h-full object-cover" />
-                              ) : <span className="text-hint text-lg">👤</span>}
+                                <Avatar src={chat.other.avatar_url} fill size={40} />
+                              ) : <span className="text-hint text-lg">???</span>}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm text-heading">{chat.other?.full_name || t('unknownUser')}</p>
@@ -272,6 +276,7 @@ export default function MessagesPanel({ locale, unreadCount: initialCount, onCou
                         <button
                           onClick={(e) => leaveChat(chat.chatId, e)}
                           disabled={leavingId === chat.chatId}
+                          aria-label={t('leaveChat')}
                           className="absolute top-1/2 -translate-y-1/2 right-2 w-7 h-7 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

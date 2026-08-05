@@ -82,14 +82,6 @@ function getSafariIosLegacyUrl(): string {
   return `com-apple-mobilesafari-tab:${url}`
 }
 
-/** iOS: Chrome 앱으로 열기 (Chrome 설치 시). https → googlechromes:// */
-function getChromeIosUrl(): string {
-  const url = window.location.href
-  if (url.startsWith('https://')) return `googlechromes://${url.slice(8)}`
-  if (url.startsWith('http://')) return `googlechrome://${url.slice(7)}`
-  return `googlechromes://${url}`
-}
-
 function NoticeContent({
   copied,
   onCopy,
@@ -107,19 +99,19 @@ function NoticeContent({
   return (
     <>
       <p className="font-medium">{t('title')}</p>
-      <p className="mt-2 text-amber-800">{t('desc')}</p>
+      <p className="mt-2 text-warning-strong">{t('desc')}</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={onOpenExternal}
-          className="rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-light0"
+          className="rounded-lg bg-warning-strong px-4 py-2.5 text-sm font-medium text-white transition-colors hover:brightness-110"
         >
           {t('openInBrowser')}
         </button>
         <button
           type="button"
           onClick={onCopy}
-          className="rounded-lg bg-amber-200 px-4 py-2.5 text-sm font-medium text-amber-900 hover:bg-amber-300"
+          className="rounded-lg bg-warning-muted px-4 py-2.5 text-sm font-medium text-warning-strong transition-colors hover:bg-warning-border"
         >
           {copied ? t('copied') : t('copyAddress')}
         </button>
@@ -127,7 +119,7 @@ function NoticeContent({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs underline text-amber-700 hover:text-amber-900"
+            className="text-xs underline text-warning-strong hover:no-underline"
           >
             {t('closeNotice')}
           </button>
@@ -142,6 +134,8 @@ export default function InAppBrowserNotice({ standalone = false }: { standalone?
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
+    // userAgent 판별은 브라우저에서만 가능하므로 서버 HTML 과 맞출 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!standalone) setShow(isInAppBrowser())
   }, [standalone])
 
@@ -179,8 +173,8 @@ export default function InAppBrowserNotice({ standalone = false }: { standalone?
       role="alert"
       className={
         standalone
-          ? 'rounded-2xl border border-amber-200 bg-amber-light p-6 text-sm text-amber-900'
-          : 'mb-4 rounded-xl border border-amber-200 bg-amber-light p-4 text-sm text-amber-900'
+          ? 'rounded-2xl border border-warning-border bg-warning-light p-6 text-sm text-warning-strong'
+          : 'mb-4 rounded-xl border border-warning-border bg-warning-light p-4 text-sm text-warning-strong'
       }
     >
       <NoticeContent copied={copied} onCopy={copyUrl} onOpenExternal={openInExternalBrowser} showCloseButton={!standalone} onClose={() => setShow(false)} />

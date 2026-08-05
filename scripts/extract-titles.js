@@ -26,7 +26,6 @@ let m;
 const golfRe = /\('golf','[^']*','([^']*(?:''[^']*)*)'/g;
 while ((m = golfRe.exec(v16)) !== null) out.golf.push(m[1].replace(/''/g, "'"));
 const merged = fs.readFileSync(path.join(base, 'schema-merged-v14-to-v18.sql'), 'utf8');
-const fishSection = merged.slice(merged.indexOf("('fishing'"), merged.indexOf("\n('", merged.indexOf("('fishing'") + 1) + 1 || merged.length);
 out.fishing = [];
 const fishRe = /\('fishing','[^']*','([^']*(?:''[^']*)*)'/g;
 while ((m = fishRe.exec(merged)) !== null) out.fishing.push(m[1].replace(/''/g, "'"));

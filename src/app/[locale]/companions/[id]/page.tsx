@@ -1,5 +1,5 @@
 import { createClient, createAdminClient, getAuthUser, getAdminClientSafe } from '@/utils/supabase/server'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import { getCountryByCode, getLevelInfo } from '@/data/countries'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,11 @@ import CompanionStickyCta from '@/components/explore/CompanionStickyCta'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import { normalizeItineraryDays } from '@/types/itinerary'
+import Avatar from '@/components/ui/Avatar'
+import SmartImage from '@/components/ui/SmartImage'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildCompanionEventJsonLd } from '@/lib/seo/json-ld'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { locale, id } = await params
@@ -57,6 +62,7 @@ export default async function CompanionDetailPage({
   const { locale, id } = await params
   const t = await getTranslations({ locale, namespace: 'CompanionDetail' })
   const tc = await getTranslations({ locale, namespace: 'Common' })
+  const tNav = await getTranslations({ locale, namespace: 'Nav' })
   const supabase = await createClient()
   // Clerk auth()를 직접 사용 - shim 실패 방지
   const authUser = await getAuthUser()
@@ -125,12 +131,7 @@ export default async function CompanionDetailPage({
     .eq('post_id', id)
     .order('day_number', { ascending: true })
 
-  const itineraryDays = (daysRaw ?? []).map((d: any) => ({
-    ...d,
-    trip_activities: (d.trip_activities ?? []).sort(
-      (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order
-    ),
-  }))
+  const itineraryDays = normalizeItineraryDays(daysRaw)
 
   const startDate = new Date(post.start_date)
   const endDate = new Date(post.end_date)
@@ -177,7 +178,28 @@ export default async function CompanionDetailPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/companions" />
+      <JsonLdScript
+        data={buildCompanionEventJsonLd({
+          locale,
+          postId: id,
+          name: post.title,
+          description: post.description,
+          startDate: post.start_date,
+          endDate: post.end_date,
+          locationName: (post.destination_cities as string[] | null)?.[0] ?? destCountry?.name ?? null,
+          countryCode: post.destination_country,
+          image: (post.cover_image_url as string | null) ?? null,
+          organizerName: (profile?.full_name as string | null) ?? null,
+          isOpen: effectiveStatus === 'open',
+        })}
+      />
+      <JsonLdScript
+        data={buildBreadcrumbJsonLd(locale, [
+          { name: tNav('findCompanions'), path: '/companions' },
+          { name: post.title, path: `/companions/${id}` },
+        ])}
+      />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -209,7 +231,7 @@ export default async function CompanionDetailPage({
           {/* Split Header: Left = Poster profile, Right = Cover photo or flag */}
           <div className="flex h-56 sm:h-64 overflow-hidden">
             {/* Left — Poster profile photo (carousel if multiple) */}
-            <div className="w-1/2 relative bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden border-r border-white/30">
+            <div className="w-1/2 relative bg-gradient-to-br from-surface-hover to-edge overflow-hidden border-r border-white/30">
               <CompanionPosterCarousel
                 avatarUrl={(profile?.avatar_url as string) || null}
                 photos={(profile?.profile_photos as string[] | null) ?? []}
@@ -223,11 +245,12 @@ export default async function CompanionDetailPage({
             <div className="w-1/2 relative overflow-hidden">
               {post.cover_image ? (
                 <>
-                  <img src={post.cover_image} alt="" className="w-full h-full object-cover" />
+                  <SmartImage src={post.cover_image} alt="" width={700} height={520} sizes="(max-width: 1024px) 50vw, 350px" priority className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
                 </>
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-brand/80 to-indigo/90 flex flex-col items-center justify-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- flagcdn 은 요청한 크기로 바로 서빙한다. */}
                   <img
                     src={`https://flagcdn.com/160x120/${post.destination_country.toLowerCase()}.png`}
                     srcSet={`https://flagcdn.com/320x240/${post.destination_country.toLowerCase()}.png 2x`}
@@ -244,11 +267,11 @@ export default async function CompanionDetailPage({
               {/* Status badge */}
               <div className="absolute top-3 right-3">
                 {effectiveStatus === 'open' ? (
-                  <span className="bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full shadow">{t('open')}</span>
+                  <span className="bg-success-muted text-success-strong text-xs font-bold px-3 py-1 rounded-full shadow">{t('open')}</span>
                 ) : effectiveStatus === 'ended' ? (
-                  <span className="bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow">{t('ended')}</span>
+                  <span className="bg-sunset-strong text-white text-xs font-bold px-3 py-1 rounded-full shadow">{t('ended')}</span>
                 ) : (
-                  <span className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow">{t('closed')}</span>
+                  <span className="bg-subtle text-white text-xs font-bold px-3 py-1 rounded-full shadow">{t('closed')}</span>
                 )}
               </div>
               {/* Country + city overlay at bottom */}
@@ -295,7 +318,7 @@ export default async function CompanionDetailPage({
                   {PURPOSE_LABELS[post.purpose] || post.purpose}
                 </span>
               )}
-              <span className="text-sm bg-purple-light text-purple px-3 py-1.5 rounded-full font-medium">
+              <span className="text-sm bg-purple-light text-purple-strong px-3 py-1.5 rounded-full font-medium">
                 {post.gender_preference === 'male_only' ? 'Male only'
                   : post.gender_preference === 'female_only' ? 'Female only'
                   : 'Anyone welcome'}
@@ -324,8 +347,8 @@ export default async function CompanionDetailPage({
               <h3 className="text-lg font-bold text-heading">{t('tripItinerary')}</h3>
               <p className="text-xs text-hint mt-0.5">
                 {itineraryDays.length > 0
-                  ? `${itineraryDays.length} day${itineraryDays.length > 1 ? 's' : ''} · ${itineraryDays.flatMap((d: any) => d.trip_activities).length} activities`
-                  : isOwner ? 'Add your day-by-day plan to attract companions' : 'No detailed itinerary yet'}
+                  ? `${itineraryDays.length} day${itineraryDays.length > 1 ? 's' : ''} · ${itineraryDays.flatMap((d) => d.trip_activities).length} activities`
+                  : isOwner ? t('itineraryOwnerHint') : t('itineraryEmptyHint')}
               </p>
             </div>
           </div>
@@ -339,7 +362,6 @@ export default async function CompanionDetailPage({
         {/* Q&A */}
         <QuestionsSection
           postId={post.id}
-          postTitle={post.title}
           locale={locale}
           currentUserId={user?.id || null}
           hostId={profile?.id as string}
@@ -366,7 +388,7 @@ export default async function CompanionDetailPage({
                 <span>{acceptedCount} accepted</span>
                 <span>·</span>
                 <span>{(applications?.length ?? 0)} total</span>
-                <span className="ml-auto bg-success-light text-success text-xs font-bold px-2 py-0.5 rounded-full">{t('open')}</span>
+                <span className="ml-auto bg-success-light text-success-strong text-xs font-bold px-2 py-0.5 rounded-full">{t('open')}</span>
               </div>
               {!user ? (
                 <div className="text-center py-2">
@@ -376,20 +398,20 @@ export default async function CompanionDetailPage({
                   </Link>
                 </div>
               ) : !canApplyByGender ? (
-                <div className="bg-amber-light border border-amber-200 rounded-xl p-4 text-sm">
-                  {pref === 'female_only' && <p className="text-amber-800 font-medium">👩 This trip is for women only.</p>}
-                  {pref === 'male_only' && <p className="text-amber-800 font-medium">👨 This trip is for men only.</p>}
-                  <Link href={`/${locale}/profile/edit`} className="inline-block mt-2 text-xs text-amber-700 underline">{t('editProfileFirst')}</Link>
+                <div className="bg-warning-light border border-warning-border rounded-xl p-4 text-sm">
+                  {pref === 'female_only' && <p className="text-warning-strong font-medium">👩 {t('womenOnlyNotice')}</p>}
+                  {pref === 'male_only' && <p className="text-warning-strong font-medium">👨 {t('menOnlyNotice')}</p>}
+                  <Link href={`/${locale}/profile/edit`} className="inline-block mt-2 text-xs text-warning-strong underline">{t('editProfileFirst')}</Link>
                 </div>
               ) : wasRemoved ? (
                 <div className="space-y-3">
-                  <div className="bg-danger-light border border-red-200 rounded-xl p-3 text-sm text-red-700">🚫 You were removed from this trip.</div>
-                  <ApplyButton postId={post.id} userId={user.id} locale={locale} alreadyApplied={false} wasRemoved={true} />
+                  <div className="bg-danger-light border border-danger-border rounded-xl p-3 text-sm text-danger-strong">🚫 {t('removedFromTrip')}</div>
+                  <ApplyButton postId={post.id} alreadyApplied={false} />
                 </div>
               ) : isFull ? (
                 <p className="text-center text-subtle text-sm py-3">{t('tripFull')}</p>
               ) : (
-                <ApplyButton postId={post.id} userId={user.id} locale={locale} alreadyApplied={alreadyApplied || false} />
+                <ApplyButton postId={post.id} alreadyApplied={alreadyApplied || false} />
               )}
             </div>
           )}
@@ -397,17 +419,17 @@ export default async function CompanionDetailPage({
           {/* 수락된 멤버 채팅 */}
           {!isOwner && isAccepted && (
             <div className="bg-brand-light border border-edge-brand rounded-2xl p-5">
-              <p className="font-bold text-blue-800 text-sm mb-1">{t('youreIn')}</p>
+              <p className="font-bold text-brand-strong text-sm mb-1">{t('youreIn')}</p>
               <p className="text-xs text-brand mb-3">
-                {acceptedCount >= 2 && groupChatId ? 'Join the group chat to coordinate.' : 'DM the host to coordinate.'}
+                {acceptedCount >= 2 && groupChatId ? t('joinGroupChatHint') : t('dmHostHint')}
               </p>
               {acceptedCount >= 2 && groupChatId ? (
                 <Link href={`/${locale}/messages/group/${groupChatId}`}>
-                  <Button className="w-full bg-brand hover:bg-brand-hover text-white rounded-xl">💬 Trip Group Chat</Button>
+                  <Button className="w-full bg-brand hover:bg-brand-hover text-white rounded-xl">💬 {t('tripGroupChat')}</Button>
                 </Link>
               ) : (
                 <Link href={`/${locale}/messages/${profile?.id}?postId=${post.id}`}>
-                  <Button className="w-full bg-brand hover:bg-brand-hover text-white rounded-xl">💬 DM Host</Button>
+                  <Button className="w-full bg-brand hover:bg-brand-hover text-white rounded-xl">💬 {t('dmHost')}</Button>
                 </Link>
               )}
             </div>
@@ -420,7 +442,7 @@ export default async function CompanionDetailPage({
               <div className="flex items-start gap-3">
                 <Link href={`/${locale}/users/${profile?.id}`} className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity overflow-hidden">
                   {(profile?.avatar_url as string) ? (
-                    <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover" />
+                    <Avatar src={profile.avatar_url as string} size={48} fill />
                   ) : <span className="text-hint text-lg">?</span>}
                 </Link>
                 <div className="flex-1 min-w-0">
@@ -433,8 +455,8 @@ export default async function CompanionDetailPage({
                     </span>
                   </div>
                   <div className="flex gap-1 mt-1 flex-wrap">
-                    {(profile?.email_verified as boolean) && <span className="text-xs bg-success-light text-success px-1.5 py-0.5 rounded-full">✓ Email</span>}
-                    {(profile?.phone_verified as boolean) && <span className="text-xs bg-brand-light text-brand px-1.5 py-0.5 rounded-full">✓ Phone</span>}
+                    {(profile?.email_verified as boolean) && <span className="text-xs bg-success-light text-success-strong px-1.5 py-0.5 rounded-full">✓ Email</span>}
+                    {(profile?.phone_verified as boolean) && <span className="text-xs bg-brand-light text-brand-strong px-1.5 py-0.5 rounded-full">✓ Phone</span>}
                   </div>
                   {(profile?.trust_score as number) > 0 && (
                     <p className="text-xs text-subtle mt-1">★ {Number(profile.trust_score).toFixed(1)} ({profile?.review_count as number} reviews)</p>
@@ -463,7 +485,7 @@ export default async function CompanionDetailPage({
                   </Button>
                 </Link>
                 <Link href={`/${locale}/reviews/write?userId=${profile?.id}`} className="block">
-                  <Button variant="outline" className="w-full rounded-xl py-5 text-base border-yellow-300 text-warning hover:bg-warning-light font-bold">
+                  <Button variant="outline" className="w-full rounded-xl py-5 text-base border-gold-border text-warning hover:bg-warning-light font-bold">
                     ★ {t('review')}
                   </Button>
                 </Link>
@@ -486,7 +508,7 @@ export default async function CompanionDetailPage({
 
           {/* Applications (owner) */}
           {isOwner && applications && (
-            <ApplicationsList applications={applications} postId={post.id} postTitle={post.title} groupChatId={groupChatId} locale={locale} />
+            <ApplicationsList applications={applications} postId={post.id} locale={locale} />
           )}
 
         </div>{/* 오른쪽 끝 */}

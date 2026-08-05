@@ -17,10 +17,10 @@ interface Props {
 
 const AVATAR_COLORS = [
   'bg-brand text-white',
-  'bg-gold text-white',
-  'bg-teal-500 text-white',
-  'bg-violet-500 text-white',
-  'bg-rose-500 text-white',
+  'bg-gold text-heading',
+  'bg-teal-strong text-white',
+  'bg-purple text-white',
+  'bg-challenge text-white',
 ]
 
 export default function TestimonialTabs({ title, items }: Props) {

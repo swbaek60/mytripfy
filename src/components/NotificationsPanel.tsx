@@ -25,16 +25,16 @@ interface Props {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  application: 'bg-brand-muted text-brand',
-  accepted: 'bg-success-light text-success',
+  application: 'bg-brand-muted text-brand-strong',
+  accepted: 'bg-success-light text-success-strong',
   rejected: 'bg-surface-sunken text-subtle',
-  review: 'bg-warning-light text-warning',
-  message: 'bg-indigo-100 text-indigo-600',
-  question: 'bg-warning-light text-warning',
-  answer: 'bg-teal-100 text-teal-600',
-  guide_match: 'bg-amber-100 text-amber-600',
-  guide_request_match: 'bg-amber-100 text-amber-600',
-  guide_application: 'bg-amber-100 text-amber-600',
+  review: 'bg-warning-light text-warning-strong',
+  message: 'bg-indigo-muted text-indigo-strong',
+  question: 'bg-warning-light text-warning-strong',
+  answer: 'bg-teal-muted text-teal-strong',
+  guide_match: 'bg-warning-muted text-warning-strong',
+  guide_request_match: 'bg-warning-muted text-warning-strong',
+  guide_application: 'bg-warning-muted text-warning-strong',
 }
 const TYPE_KEYS: Record<string, string> = {
   application: 'type_application',
@@ -81,6 +81,7 @@ function getHref(n: Pick<Notification, 'type' | 'reference_type' | 'reference_id
 
 export default function NotificationsPanel({ locale, unreadCount: initialCount, onCountChange }: Props) {
   const t = useTranslations('Notifications')
+  const tc = useTranslations('Common')
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [items, setItems] = useState<Notification[]>([])
@@ -188,7 +189,7 @@ export default function NotificationsPanel({ locale, unreadCount: initialCount, 
               <button
                 onClick={clearAll}
                 disabled={clearing}
-                className="flex items-center gap-1 text-xs text-danger hover:text-red-700 px-2 py-1 rounded-lg hover:bg-danger-light transition-colors disabled:opacity-50"
+                className="flex items-center gap-1 text-xs text-danger hover:text-danger-strong px-2 py-1 rounded-lg hover:bg-danger-light transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 {t('clearAll')}
@@ -204,6 +205,7 @@ export default function NotificationsPanel({ locale, unreadCount: initialCount, 
             </Link>
             <button
               onClick={() => setOpen(false)}
+              aria-label={tc('close')}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle transition-colors"
             >
               <X className="w-4 h-4" />
@@ -250,6 +252,7 @@ export default function NotificationsPanel({ locale, unreadCount: initialCount, 
                   <button
                     onClick={(e) => deleteOne(n.id, e)}
                     disabled={deletingId === n.id}
+                    aria-label={tc('delete')}
                     className="absolute top-2.5 right-2.5 w-6 h-6 flex items-center justify-center rounded-full text-hint hover:text-danger hover:bg-danger-light opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
                   >
                     <X className="w-3 h-3" />

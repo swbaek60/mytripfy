@@ -60,10 +60,10 @@ export const LANGUAGES: Language[] = [
 ]
 
 export const LANGUAGE_LEVELS: LanguageLevel[] = [
-  { code: 'native',       label: 'Native',       labelKo: '원어민',  color: 'bg-purple-600', bgColor: 'bg-purple-50',  textColor: 'text-purple-700', stars: 5 },
-  { code: 'fluent',       label: 'Fluent',        labelKo: '유창',   color: 'bg-blue-600',   bgColor: 'bg-blue-50',    textColor: 'text-blue-700',   stars: 4 },
-  { code: 'intermediate', label: 'Intermediate',  labelKo: '중급',   color: 'bg-green-600',  bgColor: 'bg-green-50',   textColor: 'text-green-700',  stars: 3 },
-  { code: 'basic',        label: 'Basic',         labelKo: '초급',   color: 'bg-gray-500',   bgColor: 'bg-gray-100',   textColor: 'text-gray-600',   stars: 2 },
+  { code: 'native',       label: 'Native',       labelKo: '원어민',  color: 'bg-purple',  bgColor: 'bg-purple-light',  textColor: 'text-purple-strong',  stars: 5 },
+  { code: 'fluent',       label: 'Fluent',        labelKo: '유창',   color: 'bg-brand',   bgColor: 'bg-brand-light',   textColor: 'text-brand-strong',   stars: 4 },
+  { code: 'intermediate', label: 'Intermediate',  labelKo: '중급',   color: 'bg-success', bgColor: 'bg-success-light', textColor: 'text-success-strong', stars: 3 },
+  { code: 'basic',        label: 'Basic',         labelKo: '초급',   color: 'bg-subtle',  bgColor: 'bg-surface-sunken', textColor: 'text-subtle',        stars: 2 },
 ]
 
 export function getLanguageByCode(code: string): Language | undefined {

@@ -9,11 +9,24 @@ import MyPostsSection from '@/components/dashboard/MyPostsSection'
 import DashboardCompletenessBanner from '@/components/dashboard/DashboardCompletenessBanner'
 import { getTranslations } from 'next-intl/server'
 
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/dashboard', namespace: 'Nav', titleKey: 'dashboard' })
+}
+
 export default async function DashboardPage({
   params,
 }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'Dashboard' })
+  const tTrips = await getTranslations({ locale, namespace: 'Trips' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -24,7 +37,6 @@ export default async function DashboardPage({
     { data: myApplications },
     { data: myGuideRequests },
     { data: myGuideApplications },
-    { data: bookmarks },
     { data: profile },
     { data: myTrips },
   ] = await Promise.all([
@@ -49,12 +61,6 @@ export default async function DashboardPage({
       .eq('guide_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
-      .from('bookmarks')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(5),
-    supabase
       .from('profiles')
       .select('travel_level, travel_count, trust_score, review_count, is_guide, challenge_points')
       .eq('id', user.id)
@@ -67,14 +73,14 @@ export default async function DashboardPage({
   ])
 
   const APP_STATUS_COLORS: Record<string, string> = {
-    pending: 'bg-warning-light text-warning',
-    accepted: 'bg-success-light text-success',
-    rejected: 'bg-danger-light text-danger',
+    pending: 'bg-warning-light text-warning-strong',
+    accepted: 'bg-success-light text-success-strong',
+    rejected: 'bg-danger-light text-danger-strong',
   }
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/dashboard" />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
         {/* Header */}
@@ -95,7 +101,7 @@ export default async function DashboardPage({
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           {[
             { label: t('myPosts'), value: myPosts?.length || 0, Icon: FileText, color: 'text-brand', link: false },
-            { label: t('applications'), value: myApplications?.length || 0, Icon: Send, color: 'text-indigo-600', link: false },
+            { label: t('applications'), value: myApplications?.length || 0, Icon: Send, color: 'text-indigo', link: false },
             { label: t('countries'), value: profile?.travel_count || 0, Icon: Globe, color: 'text-success', link: false },
             { label: t('challengePts'), value: profile?.challenge_points || 0, Icon: Trophy, color: 'text-purple', link: true },
             { label: t('avgRating'), value: profile?.trust_score ? Number(profile.trust_score).toFixed(1) : '—', Icon: Star, color: 'text-warning', link: false },
@@ -143,7 +149,7 @@ export default async function DashboardPage({
                         <span className="text-xl shrink-0">{country?.emoji || '🌍'}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-heading truncate text-sm">{(post?.title as string) || 'Trip'}</p>
-                          <p suppressHydrationWarning className="text-xs text-subtle">{post?.start_date ? new Date(post.start_date as string).toLocaleDateString('en-US') : ''}</p>
+                          <p suppressHydrationWarning className="text-xs text-subtle">{post?.start_date ? new Date(post.start_date as string).toLocaleDateString(locale) : ''}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${APP_STATUS_COLORS[app.status]}`}>
                           {app.status}
@@ -189,9 +195,9 @@ export default async function DashboardPage({
               </div>
             ) : (
               <div className="text-center py-8 text-hint">
-                <p className="text-sm">No guide applications yet.</p>
+                  <p className="text-sm">{t('noGuideApplicationsYet')}</p>
                 <Link href={`/${locale}/guides/requests`}>
-                  <Button variant="link" className="text-amber text-sm mt-1">Browse guide requests →</Button>
+                  <Button variant="link" className="text-warning text-sm mt-1">{t('browseGuideRequests')}</Button>
                 </Link>
               </div>
             )}
@@ -201,10 +207,10 @@ export default async function DashboardPage({
         {/* My Trip Plans (Itineraries) */}
         <div className="bg-surface rounded-2xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-heading">My Trip Plans ({myTrips?.length || 0})</h2>
+            <h2 className="font-bold text-heading">{t('myTripPlans')} ({myTrips?.length || 0})</h2>
             <Link href={`/${locale}/trips/new`}>
               <Button variant="outline" size="sm" className="rounded-full text-xs border-edge-strong text-brand">
-                + New Plan
+                + {tTrips('newPlan')}
               </Button>
             </Link>
           </div>
@@ -232,7 +238,7 @@ export default async function DashboardPage({
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${
                           trip.visibility === 'public'
-                            ? 'bg-success-light text-success'
+                            ? 'bg-success-light text-success-strong'
                             : 'bg-surface-sunken text-body'
                         }`}
                       >
@@ -245,9 +251,9 @@ export default async function DashboardPage({
             </div>
           ) : (
             <div className="text-center py-6 text-hint">
-              <p className="text-sm">No trip plans yet.</p>
+                <p className="text-sm">{t('noTripPlans')}</p>
               <Link href={`/${locale}/trips/new`}>
-                <Button variant="link" className="text-brand text-sm mt-1">Create your first plan →</Button>
+                <Button variant="link" className="text-brand text-sm mt-1">{t('createFirstPlan')}</Button>
               </Link>
             </div>
           )}

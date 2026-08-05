@@ -85,10 +85,10 @@ async function run() {
 
   try {
     await deleteAll('travel_personalities', 'travel_personalities')
-  } catch (_) {}
+  } catch {}
   try {
     await deleteAll('bucket_list', 'bucket_list')
-  } catch (_) {}
+  } catch {}
 
   console.log('\n2. profiles 삭제...')
   await deleteAll('profiles', 'profiles')

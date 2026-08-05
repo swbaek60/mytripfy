@@ -62,7 +62,6 @@ async function uploadVideo(accessToken, filePath, title, description) {
     status: { privacyStatus: 'public', selfDeclaredMadeForKids: false },
   }
 
-  const fileSize = fs.statSync(filePath).size
   const boundary = '-------boundary' + Date.now()
   const metaPart =
     `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +

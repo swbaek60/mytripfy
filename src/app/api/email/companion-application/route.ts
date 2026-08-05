@@ -1,41 +1,62 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/utils/supabase/server'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
 import { sendEmail } from '@/utils/email'
 import { companionApplicationEmail } from '@/utils/emailTemplates'
+import { adminDb, enforceRateLimit, parseJsonBody, requireUser } from '@/lib/api/guard'
+import { RATE_LIMITS } from '@/lib/api/rate-limit'
+import { apiError, apiFailure, apiOk } from '@/lib/api/respond'
 
+const bodySchema = z.object({
+  postId: z.string().uuid(),
+  message: z.string().max(2000).nullish(),
+})
+
+/**
+ * 동행 신청 알림 메일을 호스트에게 발송한다.
+ *
+ * 신청자는 요청 본문이 아니라 Clerk 세션에서 도출하므로 발신자를 위조할 수 없다.
+ * 실제로 해당 게시물에 신청한 사용자만 호출할 수 있다.
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { postId, applicantId, message } = await req.json()
-    if (!postId || !applicantId) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
+
+    const limited = enforceRateLimit(req, 'email:companion-application', auth.user.profileId, RATE_LIMITS.email)
+    if (limited) return limited.response
+
+    const parsed = await parseJsonBody(req, bodySchema)
+    if ('response' in parsed) return parsed.response
+    const { postId, message } = parsed.data
+
+    const db = adminDb()
+
+    const { data: application } = await db
+      .from('companion_applications')
+      .select('id')
+      .eq('post_id', postId)
+      .eq('applicant_id', auth.user.profileId)
+      .maybeSingle()
+
+    if (!application) {
+      return apiError('forbidden', 'You have not applied to this trip.')
     }
 
-    const admin = createAdminClient()
+    const { data: post } = await db
+      .from('companion_posts')
+      .select('title, user_id')
+      .eq('id', postId)
+      .maybeSingle()
 
-    const [{ data: post }, { data: applicant }] = await Promise.all([
-      admin
-        .from('companion_posts')
-        .select('title, user_id')
-        .eq('id', postId)
-        .single(),
-      admin
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', applicantId)
-        .single(),
+    if (!post) return apiError('not_found', 'Trip not found.')
+
+    const [{ data: applicant }, { data: host }] = await Promise.all([
+      db.from('profiles').select('full_name, avatar_url').eq('id', auth.user.profileId).maybeSingle(),
+      db.from('profiles').select('full_name, email').eq('id', post.user_id).maybeSingle(),
     ])
 
-    if (!post) return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    if (!host?.email) return apiOk({ sent: 0, reason: 'host_email_missing' })
 
-    const { data: host } = await admin
-      .from('profiles')
-      .select('full_name, email')
-      .eq('id', post.user_id)
-      .single()
-
-    if (!host?.email) return NextResponse.json({ error: 'Host email not found' }, { status: 404 })
-
-    const locale = process.env.DEFAULT_LOCALE || 'en'
     const { subject, html } = companionApplicationEmail({
       hostName: host.full_name || 'Host',
       applicantName: applicant?.full_name || 'A traveler',
@@ -43,13 +64,12 @@ export async function POST(req: NextRequest) {
       postTitle: post.title,
       postId,
       message: message || undefined,
-      locale,
+      locale: process.env.DEFAULT_LOCALE || 'en',
     })
 
     await sendEmail({ to: host.email, subject, html })
-    return NextResponse.json({ ok: true })
+    return apiOk({ sent: 1 })
   } catch (err) {
-    console.error('[email/companion-application]', err)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    return apiFailure('email/companion-application', err)
   }
 }

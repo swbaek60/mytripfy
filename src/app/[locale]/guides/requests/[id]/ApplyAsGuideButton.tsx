@@ -1,20 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 export default function ApplyAsGuideButton({
   requestId,
-  guideId,
-  locale,
   alreadyApplied,
 }: {
   requestId: string
-  guideId: string
-  locale: string
   alreadyApplied: boolean
 }) {
   const router = useRouter()
@@ -28,44 +24,41 @@ export default function ApplyAsGuideButton({
 
   const handleApply = async () => {
     setLoading(true)
-    const supabase = createClient()
-    await supabase.from('guide_applications').delete().eq('request_id', requestId).eq('guide_id', guideId)
-    const { error: insertError } = await supabase
-      .from('guide_applications')
-      .insert({ request_id: requestId, guide_id: guideId, message: message || null })
-    setLoading(false)
-    if (!insertError) {
+    try {
+      await api.post('/api/guide-applications', { requestId, message: message || null })
       setApplied(true)
       setShowForm(false)
-      // 요청 작성자에게 이메일 발송 (비동기)
-      fetch('/api/email/guide-application', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId, guideId }),
-      }).catch(console.error)
+      // 요청 작성자 알림 메일은 실패해도 지원 자체를 되돌리지 않는다.
+      api.post('/api/email/guide-application', { requestId }).catch(() => {})
       router.refresh()
-    } else {
-      alert('Application failed. Please try again.')
+    } catch (err) {
+      alert(errorMessage(err, 'Application failed. Please try again.'))
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleCancel = async () => {
     setLoading(true)
-    const supabase = createClient()
-    await supabase.from('guide_applications').delete().eq('request_id', requestId).eq('guide_id', guideId)
-    setLoading(false)
-    setApplied(false)
-    router.refresh()
+    try {
+      await api.del('/api/guide-applications', { requestId })
+      setApplied(false)
+      router.refresh()
+    } catch (err) {
+      alert(errorMessage(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (applied) {
     return (
       <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="flex-1 bg-success-light border border-green-200 rounded-xl p-4 text-center">
+        <div className="flex-1 bg-success-light border border-success-border rounded-xl p-4 text-center">
           <p className="text-success font-medium">{t('appliedGuide')}</p>
           <p className="text-success text-sm mt-1">{t('waitingTraveler')}</p>
         </div>
-        <Button variant="outline" onClick={handleCancel} disabled={loading} className="border-red-200 text-danger hover:bg-danger-light shrink-0">
+        <Button variant="outline" onClick={handleCancel} disabled={loading} className="border-danger-border text-danger hover:bg-danger-light shrink-0">
           {t('cancelApp')}
         </Button>
       </div>
@@ -79,12 +72,12 @@ export default function ApplyAsGuideButton({
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
-          placeholder="Introduce yourself and your guide experience..."
+          placeholder={tr('introduceYourselfPlaceholder')}
           rows={4}
           className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold"
         />
         <div className="flex gap-3">
-          <Button onClick={handleApply} disabled={loading} className="flex-1 bg-gold hover:brightness-110 rounded-xl text-white">
+          <Button onClick={handleApply} disabled={loading} className="flex-1 bg-gold hover:brightness-110 rounded-xl text-heading">
             {loading ? t('submitting') : t('submitApp')}
           </Button>
           <Button variant="outline" onClick={() => setShowForm(false)} className="rounded-xl">{tc('cancel')}</Button>
@@ -94,7 +87,7 @@ export default function ApplyAsGuideButton({
   }
 
   return (
-    <Button onClick={() => setShowForm(true)} className="w-full bg-gold hover:brightness-110 rounded-xl py-6 text-lg font-bold text-white">
+    <Button onClick={() => setShowForm(true)} className="w-full bg-gold hover:brightness-110 rounded-xl py-6 text-lg font-bold text-heading">
       {t('applyAsGuide')}
     </Button>
   )

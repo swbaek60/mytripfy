@@ -20,6 +20,7 @@ export default function SponsorsFilterBar({
   currentQ?: string
 }) {
   const t = useTranslations('Sponsors')
+  const tc = useTranslations('Common')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -55,12 +56,15 @@ export default function SponsorsFilterBar({
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  useEffect(() => {
-    if (countryOpen) {
+  // 열 때 검색어 초기화는 토글 시점에 처리한다 (effect 내 setState 회피).
+  const toggleCountry = () => {
+    const next = !countryOpen
+    setCountryOpen(next)
+    if (next) {
       setCountryQuery('')
       setTimeout(() => countryInputRef.current?.focus(), 50)
     }
-  }, [countryOpen])
+  }
 
   const selectedCountry = currentCountry ? getCountryByCode(currentCountry) : null
 
@@ -80,7 +84,7 @@ export default function SponsorsFilterBar({
       <div ref={countryRef} className="relative">
         <button
           type="button"
-          onClick={() => setCountryOpen(v => !v)}
+          onClick={toggleCountry}
           className="text-sm border border-edge rounded-xl px-3 py-2 bg-surface text-body flex items-center gap-2 min-w-[140px]"
         >
           {selectedCountry ? (
@@ -103,11 +107,12 @@ export default function SponsorsFilterBar({
                   type="text"
                   value={countryQuery}
                   onChange={e => setCountryQuery(e.target.value)}
-                  placeholder="Type to search (e.g. k, Korea)..."
+                  placeholder={tc('countrySearchPlaceholder')}
+                  aria-label={tc('countrySearchPlaceholder')}
                   className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-edge focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 {countryQuery && (
-                  <button type="button" onClick={() => setCountryQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-body">
+                  <button type="button" onClick={() => setCountryQuery('')} aria-label={tc('clear')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-body">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -117,7 +122,7 @@ export default function SponsorsFilterBar({
               <button
                 type="button"
                 onClick={() => { setFilter('country', null); setCountryOpen(false); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${!currentCountry ? 'bg-teal-light text-teal font-medium' : 'text-body'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${!currentCountry ? 'bg-teal-light text-teal-strong font-medium' : 'text-body'}`}
               >
                 <span className="w-5 h-[15px] flex items-center justify-center text-xs text-hint">—</span>
                 {t('filterCountry')} · {t('allTypes')}
@@ -128,14 +133,14 @@ export default function SponsorsFilterBar({
                     key={c.code}
                     type="button"
                     onClick={() => { setFilter('country', c.code); setCountryOpen(false); }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${currentCountry === c.code ? 'bg-teal-light text-teal font-medium' : 'text-body'}`}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-surface-hover text-left ${currentCountry === c.code ? 'bg-teal-light text-teal-strong font-medium' : 'text-body'}`}
                   >
                     <CountryFlag code={c.code} size="sm" />
                     <span className="truncate">{c.name}</span>
                   </button>
                 ))
               ) : (
-                <div className="px-4 py-3 text-sm text-hint text-center">No results</div>
+                  <div className="px-4 py-3 text-sm text-hint text-center">{tc('noResults')}</div>
               )}
             </div>
           </div>
@@ -145,7 +150,7 @@ export default function SponsorsFilterBar({
         <button
           type="button"
           onClick={() => setFilter('type', '')}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium ${!currentType ? 'bg-teal text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium ${!currentType ? 'bg-teal-strong text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'}`}
         >
           {t('allTypes')}
         </button>
@@ -154,7 +159,7 @@ export default function SponsorsFilterBar({
             key={tp}
             type="button"
             onClick={() => setFilter('type', currentType === tp ? '' : tp)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium ${currentType === tp ? 'bg-teal text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium ${currentType === tp ? 'bg-teal-strong text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'}`}
           >
             {t(tp)}
           </button>

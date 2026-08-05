@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CountryFlag from '@/components/CountryFlag'
 import BookmarkButton from '@/components/BookmarkButton'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface Props {
   avatar: string | null
@@ -32,6 +34,7 @@ export default function GuidePhotoCarousel({
   countryName,
   city,
 }: Props) {
+  const tc = useTranslations('Common')
   const slides: string[] = [
     ...(avatar ? [avatar] : []),
     ...photos.filter(p => p && p !== avatar),
@@ -52,7 +55,8 @@ export default function GuidePhotoCarousel({
   const onArrowClick = useCallback((e: React.MouseEvent, dir: 'prev' | 'next') => {
     e.preventDefault()
     e.stopPropagation()
-    dir === 'prev' ? goPrev() : goNext()
+    if (dir === 'prev') goPrev()
+    else goNext()
   }, [goPrev, goNext])
 
   // ── 터치 핸들러 ──
@@ -71,7 +75,8 @@ export default function GuidePhotoCarousel({
     const dx = touchDeltaX.current
     if (hasMultiple && Math.abs(dx) > 40) {
       didSwipe.current = true
-      dx > 0 ? goPrev() : goNext()
+      if (dx > 0) goPrev()
+      else goNext()
     }
     touchStartX.current = null
     touchDeltaX.current = 0
@@ -98,10 +103,14 @@ export default function GuidePhotoCarousel({
       {/* 슬라이드 이미지 */}
       {slides.length > 0 ? (
         slides.map((src, i) => (
-          <img
+          <SmartImage
             key={src}
             src={src}
             alt={i === 0 ? name : `${name} photo ${i + 1}`}
+            width={600}
+            height={600}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={i === 0}
             draggable={false}
             className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-300 select-none ${
               i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -124,7 +133,7 @@ export default function GuidePhotoCarousel({
         <button
           type="button"
           onClick={e => onArrowClick(e, 'prev')}
-          aria-label="Previous photo"
+          aria-label={tc('previousPhoto')}
           className="
             absolute left-2 top-1/2 -translate-y-1/2 z-20
             w-8 h-8 rounded-full bg-black/50 text-white
@@ -143,7 +152,7 @@ export default function GuidePhotoCarousel({
         <button
           type="button"
           onClick={e => onArrowClick(e, 'next')}
-          aria-label="Next photo"
+          aria-label={tc('nextPhoto')}
           className="
             absolute right-2 top-1/2 -translate-y-1/2 z-20
             w-8 h-8 rounded-full bg-black/50 text-white
@@ -190,7 +199,6 @@ export default function GuidePhotoCarousel({
       {userId && (
         <div className="absolute top-3 left-3 z-20">
           <BookmarkButton
-            userId={userId}
             type="guide"
             referenceId={guideId}
             isBookmarked={isBookmarked}

@@ -19,24 +19,6 @@ const admin = createClient(supabaseUrl, serviceRoleKey)
 
 const BUCKETS = ['avatars', 'photos', 'certifications', 'guide-media']
 
-async function listAllObjects(bucketId) {
-  const list = []
-  let offset = 0
-  const limit = 1000
-  while (true) {
-    const { data, error } = await admin.storage.from(bucketId).list('', { limit, offset })
-    if (error) throw error
-    if (!data?.length) break
-    for (const item of data) {
-      if (item.id) list.push(item.name)
-      else list.push(item.name + '/') // folder
-    }
-    offset += data.length
-    if (data.length < limit) break
-  }
-  return list
-}
-
 async function deleteRecursive(bucketId, prefix = '') {
   const { data: items, error: listErr } = await admin.storage.from(bucketId).list(prefix, { limit: 1000 })
   if (listErr) throw listErr

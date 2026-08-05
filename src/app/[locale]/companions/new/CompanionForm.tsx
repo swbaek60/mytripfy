@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,11 +39,9 @@ interface InitialData {
 }
 
 export default function CompanionForm({
-  userId,
   locale,
   initialData,
 }: {
-  userId: string
   locale: string
   initialData?: InitialData
 }) {
@@ -105,61 +103,30 @@ export default function CompanionForm({
     setSaving(true)
     setError('')
 
-    const supabase = createClient()
     const payload = {
       title,
-      destination_country: country,
-      destination_city: selectedCities.length > 0 ? selectedCities.join(', ') : null,
-      start_date: startDate,
-      end_date: endDate,
-      max_people: maxPeople,
-      gender_preference: genderPref,
+      destinationCountry: country,
+      destinationCity: selectedCities.length > 0 ? selectedCities.join(', ') : null,
+      startDate,
+      endDate,
+      maxPeople,
+      genderPreference: genderPref,
       purpose,
       description: description || null,
-      cover_image: coverImage || null,
+      coverImage: coverImage || null,
     }
 
-    if (isEdit && initialData) {
-      const { error: dbError } = await supabase
-        .from('companion_posts')
-        .update(payload)
-        .eq('id', initialData.id)
-        .eq('user_id', userId)
-
-      setSaving(false)
-      if (dbError) { setError('Failed to update. Please try again.'); return }
-      router.push(`/${locale}/companions/${initialData.id}`)
-    } else {
-      const { data, error: dbError } = await supabase
-        .from('companion_posts')
-        .insert({ ...payload, user_id: userId, status: 'open' })
-        .select()
-        .single()
-
-      if (dbError) { setSaving(false); setError('Failed to post. Please try again.'); return }
-
-      // 게시글 생성 시 그룹 채팅방 자동 생성 + 호스트 자동 입장
-      const { data: chatData } = await supabase
-        .from('chats')
-        .insert({
-          type: 'trip_group',
-          is_group: true,
-          name: payload.title,
-          reference_id: data.id,
-          created_by: userId,
-        })
-        .select()
-        .single()
-
-      if (chatData) {
-        // 호스트를 그룹 채팅 참여자로 추가
-        await supabase.from('chat_participants').insert({ chat_id: chatData.id, user_id: userId })
-        // 게시글에 group_chat_id 연결
-        await supabase.from('companion_posts').update({ group_chat_id: chatData.id }).eq('id', data.id)
+    try {
+      if (isEdit && initialData) {
+        await api.patch('/api/companions', { id: initialData.id, ...payload })
+        router.push(`/${locale}/companions/${initialData.id}`)
+      } else {
+        const { id } = await api.post<{ id: string }>('/api/companions', payload)
+        router.push(`/${locale}/companions/${id}`)
       }
-
+    } catch (err) {
+      setError(errorMessage(err, 'Failed to save. Please try again.'))
       setSaving(false)
-      router.push(`/${locale}/companions/${data.id}`)
     }
   }
 
@@ -167,14 +134,13 @@ export default function CompanionForm({
     if (!initialData) return
     if (!confirm('Are you sure you want to delete this trip post? This cannot be undone.')) return
     setDeleting(true)
-    const supabase = createClient()
-    await supabase
-      .from('companion_posts')
-      .delete()
-      .eq('id', initialData.id)
-      .eq('user_id', userId)
-    setDeleting(false)
-    router.push(`/${locale}/companions`)
+    try {
+      await api.del('/api/companions', { id: initialData.id })
+      router.push(`/${locale}/companions`)
+    } catch (err) {
+      setError(errorMessage(err, 'Failed to delete. Please try again.'))
+      setDeleting(false)
+    }
   }
 
   return (
@@ -182,10 +148,10 @@ export default function CompanionForm({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-heading">
-            {isEdit ? '✏️ Edit Trip' : '✈️ Post a Trip'}
+            {isEdit ? `✏️ ${t('editTripTitle')}` : `✈️ ${t('postTripTitle')}`}
           </h1>
           <p className="text-sm text-subtle mt-1">
-            {isEdit ? 'Update your trip details' : 'Find your perfect travel companion'}
+            {isEdit ? t('editTripSubtitle') : t('postTripSubtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -195,7 +161,7 @@ export default function CompanionForm({
               size="sm"
               onClick={handleDelete}
               disabled={deleting}
-              className="border-red-200 text-danger hover:bg-danger-light rounded-full text-xs"
+              className="border-danger-border text-danger hover:bg-danger-light rounded-full text-xs"
             >
               {deleting ? tc('deleting') : `🗑️ ${tc('delete')}`}
             </Button>
@@ -207,7 +173,7 @@ export default function CompanionForm({
       </div>
 
       {error && (
-        <div className="bg-danger-light border border-red-200 text-danger rounded-xl p-4 text-sm">
+        <div className="bg-danger-light border border-danger-border text-danger-strong rounded-xl p-4 text-sm">
           ❌ {error}
         </div>
       )}
@@ -219,7 +185,6 @@ export default function CompanionForm({
           <p className="text-xs text-hint mt-0.5">{t('coverPhotoHint')}</p>
         </div>
         <PostCoverUpload
-          userId={userId}
           currentUrl={coverImage}
           onUpload={url => setCoverImage(url)}
         />
@@ -230,31 +195,27 @@ export default function CompanionForm({
         <h2 className="font-bold text-heading border-b border-edge pb-3">{t('tripDetails')}</h2>
 
         <div className="space-y-1.5">
-          <Label>Post Title <span className="text-danger">*</span></Label>
+          <Label>{t('postTitle')} <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. Looking for companion for Japan trip in April!"
+            placeholder={t('titlePlaceholder')}
             maxLength={100}
           />
           <p className="text-xs text-hint text-right">{title.length}/100</p>
         </div>
 
         <div className="space-y-1.5">
-          <Label>Destination Country <span className="text-danger">*</span></Label>
-          <CountrySelect
-            value={country}
-            onChange={handleCountryChange}
-            placeholder="Select country"
-          />
+          <Label>{tc('destinationCountry')} <span className="text-danger">*</span></Label>
+          <CountrySelect value={country} onChange={handleCountryChange} />
         </div>
 
         {/* 도시 선택 (국가 선택 후 표시) */}
         {country && (
           <div className="space-y-2">
             <Label>
-              Cities to visit
-              <span className="text-hint font-normal text-xs ml-1">(multiple selections allowed)</span>
+              {t('citiesToVisit')}
+              <span className="text-hint font-normal text-xs ml-1">{tc('multipleSelectionsAllowed')}</span>
             </Label>
 
             {/* 선택된 도시 태그 */}
@@ -268,7 +229,8 @@ export default function CompanionForm({
                     📍 {city}
                     <button
                       onClick={() => toggleCity(city)}
-                      className="hover:text-blue-200 transition-colors ml-0.5"
+                      aria-label={`${tc('remove')} ${city}`}
+                      className="hover:text-edge-brand transition-colors ml-0.5"
                     >
                       ×
                     </button>
@@ -287,8 +249,8 @@ export default function CompanionForm({
                     onClick={() => toggleCity(city)}
                     className={`px-3 py-1.5 rounded-full text-sm transition-colors border ${
                       selectedCities.includes(city)
-                        ? 'bg-brand text-white border-blue-600'
-                        : 'bg-surface text-body border-edge hover:border-blue-400 hover:text-brand'
+                        ? 'bg-brand text-white border-brand'
+                        : 'bg-surface text-body border-edge hover:border-brand hover:text-brand'
                     }`}
                   >
                     {selectedCities.includes(city) ? '✓ ' : ''}{city}
@@ -311,9 +273,9 @@ export default function CompanionForm({
                 variant="outline"
                 onClick={addCustomCity}
                 disabled={!customCity.trim()}
-                className="shrink-0 border-blue-300 text-brand hover:bg-brand-light"
+                className="shrink-0 border-brand-border text-brand hover:bg-brand-light"
               >
-                + Add
+                + {tc('add')}
               </Button>
             </div>
             <p className="text-xs text-hint">{t('citySelectHint')}</p>
@@ -322,11 +284,11 @@ export default function CompanionForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-danger">*</span></Label>
+            <Label>{tc('startDate')} <span className="text-danger">*</span></Label>
             <Input type="date" value={startDate} min={today} onChange={e => setStartDate(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-danger">*</span></Label>
+            <Label>{tc('endDate')} <span className="text-danger">*</span></Label>
             <Input type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} />
           </div>
         </div>
@@ -345,8 +307,8 @@ export default function CompanionForm({
                 onClick={() => setPurpose(p.value)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                   purpose === p.value
-                    ? 'bg-brand text-white border-blue-600'
-                    : 'bg-surface text-body border-edge hover:border-blue-300'
+                    ? 'bg-brand text-white border-brand'
+                    : 'bg-surface text-body border-edge hover:border-brand-border'
                 }`}
               >
                 {p.label}
@@ -363,9 +325,9 @@ export default function CompanionForm({
               onChange={e => setGenderPref(e.target.value)}
               className="w-full h-10 rounded-md border border-edge px-3 text-sm bg-surface"
             >
-              <option value="any">👫 Anyone welcome</option>
-              <option value="male_only">👨 Male only</option>
-              <option value="female_only">👩 Female only</option>
+              <option value="any">👫 {t('genderAny')}</option>
+              <option value="male_only">👨 {t('genderMaleOnly')}</option>
+              <option value="female_only">👩 {t('genderFemaleOnly')}</option>
             </select>
           </div>
           <div className="space-y-1.5">
@@ -387,7 +349,7 @@ export default function CompanionForm({
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="Share your travel plan, budget range, preferred companion style, accommodation plans, etc."
+            placeholder={t('descriptionPlaceholder')}
             rows={5}
             className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
           />

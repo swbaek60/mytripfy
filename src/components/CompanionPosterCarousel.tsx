@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface Props {
   avatarUrl: string | null
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export default function CompanionPosterCarousel({ avatarUrl, photos, name, levelBadge, levelNum }: Props) {
+  const tc = useTranslations('Common')
   const slides: string[] = [
     ...(avatarUrl ? [avatarUrl] : []),
     ...photos.filter(p => p && p !== avatarUrl),
@@ -37,7 +40,10 @@ export default function CompanionPosterCarousel({ avatarUrl, photos, name, level
   }
   const onTouchEnd = () => {
     const dx = touchDeltaX.current
-    if (hasMultiple && Math.abs(dx) > 40) dx > 0 ? goPrev() : goNext()
+    if (hasMultiple && Math.abs(dx) > 40) {
+      if (dx > 0) goPrev()
+      else goNext()
+    }
     touchStartX.current = null
     touchDeltaX.current = 0
   }
@@ -51,10 +57,14 @@ export default function CompanionPosterCarousel({ avatarUrl, photos, name, level
     >
       {slides.length > 0 ? (
         slides.map((src, i) => (
-          <img
+          <SmartImage
             key={src}
             src={src}
             alt={i === 0 ? name : `${name} photo ${i + 1}`}
+            width={500}
+            height={600}
+            sizes="(max-width: 640px) 50vw, 400px"
+            priority={i === 0}
             draggable={false}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 select-none ${
               i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -76,7 +86,7 @@ export default function CompanionPosterCarousel({ avatarUrl, photos, name, level
         <button
           type="button"
           onClick={e => { e.preventDefault(); e.stopPropagation(); goPrev() }}
-          aria-label="Previous photo"
+          aria-label={tc('previousPhoto')}
           className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center transition-opacity duration-200 hover:bg-black/70 active:scale-95 opacity-100 md:opacity-0 md:group-hover/poster:opacity-100"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
@@ -88,7 +98,7 @@ export default function CompanionPosterCarousel({ avatarUrl, photos, name, level
         <button
           type="button"
           onClick={e => { e.preventDefault(); e.stopPropagation(); goNext() }}
-          aria-label="Next photo"
+          aria-label={tc('nextPhoto')}
           className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center transition-opacity duration-200 hover:bg-black/70 active:scale-95 opacity-100 md:opacity-0 md:group-hover/poster:opacity-100"
         >
           <ChevronRight className="w-3.5 h-3.5" />

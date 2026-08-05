@@ -14,6 +14,39 @@ import SponsorVisitList from '@/components/SponsorVisitList'
 import { getPersonalityDisplay } from '@/data/personalityTypes'
 import { getTranslations } from 'next-intl/server'
 import TranslatedText from '@/components/TranslatedText'
+import Avatar from '@/components/ui/Avatar'
+import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/seo/build-metadata'
+
+/**
+ * 회원 프로필은 색인하지 않는다. 가이드는 /guides/[id] 가 같은 내용을 담은 공개
+ * 페이지라서 둘 다 색인하면 중복이 되고, 가이드가 아닌 회원은 검색에 노출될 이유가 없다.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}): Promise<Metadata> {
+  const { locale, id } = await params
+  const supabase = await createClient()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, bio')
+    .eq('id', id)
+    .maybeSingle()
+
+  const t = await getTranslations({ locale, namespace: 'SeoPages' })
+  const tc = await getTranslations({ locale, namespace: 'Common' })
+  const name = (profile?.full_name as string | null) || tc('anonymous')
+
+  return buildPageMetadata({
+    locale,
+    path: `/users/${id}`,
+    title: t('userProfileTitle', { name }),
+    description: (profile?.bio as string | null)?.slice(0, 160) || t('userProfileTitle', { name }),
+    noindex: true,
+  })
+}
 
 export default async function UserProfilePage({
   params,
@@ -159,6 +192,8 @@ export default async function UserProfilePage({
   const t = await getTranslations({ locale, namespace: 'Profile' })
   const tUser = await getTranslations({ locale, namespace: 'UserProfile' })
   const tc = await getTranslations({ locale, namespace: 'Common' })
+  const tg = await getTranslations({ locale, namespace: 'GuideDetail' })
+  const tr = await getTranslations({ locale, namespace: 'Reviews' })
 
   const socialLinks = [
     { key: 'instagram_url', label: 'Instagram', icon: '📸', prefix: '' },
@@ -168,14 +203,14 @@ export default async function UserProfilePage({
   ]
 
   const badges = [
-    { key: 'email_verified', label: 'Email Verified', icon: '📧', color: 'bg-success-light text-success' },
+    { key: 'email_verified', label: 'Email Verified', icon: '📧', color: 'bg-success-light text-success-strong' },
     { key: 'phone_verified', label: 'Phone Verified', icon: '📱', color: 'bg-brand-muted text-brand-hover' },
-    { key: 'sns_verified', label: 'SNS Verified', icon: '✅', color: 'bg-purple-light text-purple' },
+    { key: 'sns_verified', label: 'SNS Verified', icon: '✅', color: 'bg-purple-light text-purple-strong' },
   ]
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={currentUser} locale={locale} />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
@@ -185,7 +220,7 @@ export default async function UserProfilePage({
             {/* Avatar */}
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-brand-light to-brand-muted flex items-center justify-center text-4xl shrink-0">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt={profile.full_name || ''} className="w-full h-full object-cover" />
+                <Avatar src={profile.avatar_url} name={profile.full_name} size={96} fill priority />
               ) : '👤'}
             </div>
 
@@ -202,8 +237,8 @@ export default async function UserProfilePage({
                   {levelInfo.badge} Lv.{levelInfo.level} {levelInfo.title}
                 </span>
                 {profile.is_guide && (
-                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-gold-light text-gold">
-                    🧭 Local Guide
+                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-gold-light text-gold-strong">
+                    🧭 {tc('localGuide')}
                   </span>
                 )}
               </div>
@@ -240,7 +275,7 @@ export default async function UserProfilePage({
               <div className="flex flex-col gap-2 shrink-0">
                 <Link href={`/${locale}/messages/${id}`}>
                   <Button className="w-full bg-brand hover:bg-brand-hover rounded-xl text-sm">
-                    💬 Message
+                    💬 {tc('message')}
                   </Button>
                 </Link>
               </div>
@@ -248,7 +283,7 @@ export default async function UserProfilePage({
             {isOwnProfile && (
               <Link href={`/${locale}/profile`}>
                 <Button variant="outline" className="rounded-xl text-sm border-edge-strong">
-                  ✏️ Edit Profile
+                  ✏️ {tc('editProfile')}
                 </Button>
               </Link>
             )}
@@ -259,17 +294,17 @@ export default async function UserProfilePage({
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
             <p className="text-3xl font-bold text-brand">{countriesCount}</p>
-            <p className="text-sm text-subtle mt-1">Countries</p>
+            <p className="text-sm text-subtle mt-1">{tUser('countries')}</p>
           </div>
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-amber flex items-center justify-center gap-1">
+            <p className="text-3xl font-bold text-warning flex items-center justify-center gap-1">
               <Trophy className="w-6 h-6" />
               {experiencePoints}
             </p>
             <p className="text-sm text-subtle mt-1">{tUser('experiencePts')} pts</p>
           </div>
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
-            <p className="text-3xl font-bold text-amber flex items-center justify-center gap-1">
+            <p className="text-3xl font-bold text-warning flex items-center justify-center gap-1">
               <Trophy className="w-6 h-6" />
               {contributionPoints}
             </p>
@@ -277,11 +312,11 @@ export default async function UserProfilePage({
           </div>
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
             <p className="text-3xl font-bold text-success">{companionPosts?.length || 0}</p>
-            <p className="text-sm text-subtle mt-1">Trip Posts</p>
+            <p className="text-sm text-subtle mt-1">{tUser('tripPosts')}</p>
           </div>
           <div className="bg-surface rounded-2xl shadow-sm p-5 text-center">
             <p className="text-3xl font-bold text-warning">{profile.review_count || 0}</p>
-            <p className="text-sm text-subtle mt-1">Reviews</p>
+            <p className="text-sm text-subtle mt-1">{t('reviews')}</p>
           </div>
         </div>
 
@@ -349,31 +384,31 @@ export default async function UserProfilePage({
           {/* Guide Info (전체 너비) */}
           {profile.is_guide && (
             <div className="md:col-span-2 bg-gradient-to-br from-gold-light to-gold-light border border-gold/20 rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-heading text-lg mb-4">🧭 Guide Info</h2>
+              <h2 className="font-bold text-heading text-lg mb-4">🧭 {tUser('guideInfo')}</h2>
               <div className="space-y-3">
                 {profile.guide_hourly_rate !== null && (
                   <div className="flex justify-between">
-                    <span className="text-body text-sm">Rate</span>
+                    <span className="text-body text-sm">{tUser('rate')}</span>
                     <span className="font-semibold text-sm">
-                      {profile.guide_hourly_rate === 0 ? 'Free / Negotiable' : `$${profile.guide_hourly_rate}/hr`}
+                      {profile.guide_hourly_rate === 0 ? tUser('rateNegotiable') : `$${profile.guide_hourly_rate}/hr`}
                     </span>
                   </div>
                 )}
                 {profile.guide_has_vehicle && (
                   <div className="flex justify-between">
-                    <span className="text-body text-sm">Transport</span>
-                    <span className="text-sm">🚗 {profile.guide_vehicle_info || 'Has vehicle'}</span>
+                    <span className="text-body text-sm">{tUser('transport')}</span>
+                    <span className="text-sm">🚗 {profile.guide_vehicle_info || tUser('hasVehicle')}</span>
                   </div>
                 )}
                 {profile.guide_has_accommodation && (
                   <div className="flex justify-between">
-                    <span className="text-body text-sm">Accommodation</span>
-                    <span className="text-sm">🏠 {profile.guide_accommodation_info || 'Available'}</span>
+                    <span className="text-body text-sm">{tUser('accommodation')}</span>
+                    <span className="text-sm">🏠 {profile.guide_accommodation_info || tUser('available')}</span>
                   </div>
                 )}
                 {profile.guide_regions && profile.guide_regions.length > 0 && (
                   <div>
-                    <span className="text-body text-sm block mb-1.5">Regions</span>
+                    <span className="text-body text-sm block mb-1.5">{tUser('regions')}</span>
                     <div className="flex flex-wrap gap-1.5">
                       {(profile.guide_regions as string[]).map((r: string) => {
                         const country = getCountryByCode(r)
@@ -388,7 +423,7 @@ export default async function UserProfilePage({
                 )}
                 {profile.spoken_languages && (profile.spoken_languages as LanguageSkill[]).length > 0 && (
                   <div>
-                    <span className="text-body text-sm block mb-1.5">Languages</span>
+                    <span className="text-body text-sm block mb-1.5">{tg('languages')}</span>
                     <div className="flex flex-wrap gap-1.5">
                       {(profile.spoken_languages as LanguageSkill[]).map((sl: LanguageSkill) => {
                         const lang = getLanguageByCode(sl.lang)
@@ -406,7 +441,7 @@ export default async function UserProfilePage({
                 {/* 가이드 활동 세부 지역 */}
                 {profile.guide_city_regions && (profile.guide_city_regions as GuideRegion[]).length > 0 && (
                   <div className="mt-2">
-                    <span className="text-body text-sm block mb-2">🗺️ Guide Areas</span>
+                    <span className="text-body text-sm block mb-2">🗺️ {tUser('guideAreas')}</span>
                     <div className="space-y-2">
                       {(profile.guide_city_regions as GuideRegion[]).map(region => {
                         const country = getCountryByCode(region.country)
@@ -419,7 +454,7 @@ export default async function UserProfilePage({
                             {region.cities.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {region.cities.map(city => (
-                                  <span key={city} className="text-xs bg-gold-light border border-gold/30 text-gold px-2 py-0.5 rounded-full">
+                                  <span key={city} className="text-xs bg-gold-light border border-gold/30 text-gold-strong px-2 py-0.5 rounded-full">
                                     📍 {city}
                                   </span>
                                 ))}
@@ -440,7 +475,7 @@ export default async function UserProfilePage({
           {/* Spoken Languages (non-guide users) */}
           {!profile.is_guide && profile.spoken_languages && (profile.spoken_languages as LanguageSkill[]).length > 0 && (
             <div className="bg-surface rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-heading text-lg mb-4">🗣️ Languages</h2>
+              <h2 className="font-bold text-heading text-lg mb-4">🗣️ {tg('languages')}</h2>
               <div className="flex flex-wrap gap-2">
                 {(profile.spoken_languages as LanguageSkill[]).map((sl: LanguageSkill) => {
                   const lang = getLanguageByCode(sl.lang)
@@ -487,7 +522,7 @@ export default async function UserProfilePage({
           {/* Social Links */}
           {socialLinks.some(s => profile[s.key as keyof typeof profile]) && (
             <div className="bg-surface rounded-2xl shadow-sm p-6">
-              <h2 className="font-bold text-heading text-lg mb-4">🔗 Social</h2>
+              <h2 className="font-bold text-heading text-lg mb-4">🔗 {tc('social')}</h2>
               <div className="space-y-3">
                 {socialLinks.map(s => {
                   const val = profile[s.key as keyof typeof profile] as string | null
@@ -524,12 +559,12 @@ export default async function UserProfilePage({
         {/* Companion Posts */}
         {companionPosts && companionPosts.length > 0 && (
           <div className="bg-surface rounded-2xl shadow-sm p-6">
-            <h2 className="font-bold text-heading text-lg mb-4">✈️ Trip Posts</h2>
+            <h2 className="font-bold text-heading text-lg mb-4">✈️ {tUser('tripPosts')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {companionPosts.map(post => {
                 const country = getCountryByCode(post.destination_country)
                 const statusColor = post.status === 'open'
-                  ? 'bg-success-light text-success'
+                  ? 'bg-success-light text-success-strong'
                   : post.status === 'closed'
                   ? 'bg-surface-sunken text-subtle'
                   : 'bg-brand-muted text-brand-hover'
@@ -612,13 +647,12 @@ export default async function UserProfilePage({
             <ReviewForm
               revieweeId={id}
               revieweeName={profile.full_name || profile.username || 'this user'}
-              locale={locale}
             />
           )}
           {currentUser && !isOwnProfile && alreadyReviewed && (
-            <div className="bg-success-light border border-green-200 rounded-xl p-4 text-sm text-success flex items-center justify-between gap-3">
-              <span>✅ You have already reviewed this user.</span>
-              <span className="text-xs text-success">You can edit or delete your review below.</span>
+            <div className="bg-success-light border border-success-border rounded-xl p-4 text-sm text-success-strong flex items-center justify-between gap-3">
+              <span>✅ {tr('alreadyReviewed')}</span>
+              <span className="text-xs text-success">{tr('canEditOrDelete')}</span>
             </div>
           )}
 
@@ -635,7 +669,7 @@ export default async function UserProfilePage({
                       <Link href={`/${locale}/users/${review.reviewer_id}`}>
                         <div className="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80">
                           {reviewer?.avatar_url ? (
-                            <img src={reviewer.avatar_url} alt="" className="w-full h-full object-cover" />
+                            <Avatar src={reviewer.avatar_url} name={reviewer.full_name} size={40} fill />
                           ) : '👤'}
                         </div>
                       </Link>
@@ -664,7 +698,7 @@ export default async function UserProfilePage({
                         {review.tags && review.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {(review.tags as string[]).map((tag: string) => (
-                              <span key={tag} className="text-xs bg-brand-light text-brand rounded-full px-2.5 py-0.5">
+                              <span key={tag} className="text-xs bg-brand-light text-brand-strong rounded-full px-2.5 py-0.5">
                                 {tag}
                               </span>
                             ))}
@@ -698,7 +732,7 @@ export default async function UserProfilePage({
           ) : (
             <div className="bg-surface rounded-2xl shadow-sm p-8 text-center">
               <MessageSquare className="w-10 h-10 text-edge mx-auto mb-3" />
-              <p className="text-subtle">No reviews yet.</p>
+                <p className="text-subtle">{tUser('noReviewsYet')}</p>
             </div>
           )}
         </div>

@@ -2,8 +2,10 @@ import type { MetadataRoute } from 'next'
 import { getAdminClientSafe } from '@/utils/supabase/server'
 import { SITE_URL, hreflangAlternates } from '@/lib/seo/site'
 import { CHALLENGE_CATEGORY_KEYS } from '@/data/challenge-category-keys'
+import { BLOG_SLUGS } from '@/data/blog-articles'
+import { BEACHHEAD_CITIES } from '@/lib/admin/beachhead-cities'
 
-const STATIC_PATHS = [
+const STATIC_PATHS: string[] = [
   '',
   '/companions',
   '/guides',
@@ -15,13 +17,15 @@ const STATIC_PATHS = [
   '/hall-of-fame',
   '/trips',
   '/how-it-works',
+  '/personality',
   '/blog',
-  '/blog/100-countries-challenge',
-  '/blog/find-travel-companion',
-  '/blog/become-local-guide',
+  ...BLOG_SLUGS.map((slug) => `/blog/${slug}`),
+  '/destinations',
+  // 도시 목록을 하드코딩하면 도시를 추가할 때 사이트맵에서 누락된다.
+  ...BEACHHEAD_CITIES.map((c) => `/destinations/${c.id}`),
   '/privacy',
   '/account-data-deletion',
-] as const
+]
 
 function entryForPath(
   path: string,

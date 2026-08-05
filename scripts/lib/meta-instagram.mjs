@@ -1,8 +1,7 @@
 /**
  * Instagram Graph API — 캐러셀 게시
  */
-import fs from 'fs'
-import { META_GRAPH, getEnv } from './sns-env.mjs'
+import { META_GRAPH } from './sns-env.mjs'
 
 export async function graphPost(path, params, accessToken) {
   const url = new URL(META_GRAPH + path)

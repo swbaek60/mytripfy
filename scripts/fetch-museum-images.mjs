@@ -92,7 +92,7 @@ async function fetchThumbnail(titleEn) {
       if (thumb && thumb.includes('upload.wikimedia.org')) {
         return thumb.replace(/\/\d+px-/, '/640px-')
       }
-    } catch (_) {}
+    } catch {}
   }
   return null
 }

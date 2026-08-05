@@ -1,9 +1,7 @@
 name: SNS Daily Campaign
 
+# 자동 스케줄 비활성화 — 필요할 때 Actions 탭에서 수동 실행한다.
 on:
-  schedule:
-    # 06:00 KST = 21:00 UTC (전날)
-    - cron: '0 21 * * *'
   workflow_dispatch:
     inputs:
       date:
@@ -24,27 +22,40 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Resolve publish flag
+        id: flags
+        run: |
+          PUBLISH="false"
+          if [ "${{ github.event.inputs.publish }}" = "true" ]; then PUBLISH="true"; fi
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+          echo "Resolved publish=$PUBLISH"
+
       - name: Generate daily content (auto)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SNS_CAMPAIGN_START: ${{ secrets.SNS_CAMPAIGN_START }}
-          SNS_AUTO_PUBLISH: ${{ github.event.inputs.publish && 'true' || 'false' }}
+          SNS_AUTO_PUBLISH: ${{ steps.flags.outputs.publish }}
+          SNS_SKIP_IMAGES: ${{ secrets.SNS_SKIP_IMAGES }}
+          SNS_USE_MANUAL_IMAGES: ${{ secrets.SNS_USE_MANUAL_IMAGES }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_SUA_USER_ID: ${{ secrets.INSTAGRAM_SUA_USER_ID }}
           INSTAGRAM_ETHAN_USER_ID: ${{ secrets.INSTAGRAM_ETHAN_USER_ID }}
           SNS_IMAGE_BASE_URL: ${{ secrets.SNS_IMAGE_BASE_URL }}
-          SNS_PUBLISH_DRY_RUN: ${{ github.event.inputs.publish && 'false' || 'true' }}
-        run: node scripts/sns-auto-daily.mjs ${{ github.event.inputs.publish && '--publish' || '' }}
-
-      - name: Publish to Instagram (optional)
-        if: github.event.inputs.publish == 'true'
-        env:
-          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
-          INSTAGRAM_SUA_USER_ID: ${{ secrets.INSTAGRAM_SUA_USER_ID }}
-          INSTAGRAM_ETHAN_USER_ID: ${{ secrets.INSTAGRAM_ETHAN_USER_ID }}
-          SNS_IMAGE_BASE_URL: ${{ secrets.SNS_IMAGE_BASE_URL }}
-          SNS_PUBLISH_DRY_RUN: 'false'
+          SNS_PUBLISH_DRY_RUN: ${{ steps.flags.outputs.publish == 'true' && 'false' || 'true' }}
         run: |
-          DATE="${{ github.event.inputs.date }}"
-          if [ -z "$DATE" ]; then DATE=$(date -u +%Y-%m-%d); fi
-          node scripts/publish-sns-daily.mjs --date="$DATE"
+          # sns-auto-daily.mjs --publish 가 내부적으로 publish-sns-daily.mjs 를 호출한다.
+          # 별도 publish step 을 두면 인스타그램에 이중 게시되므로 여기서만 실행한다.
+          if [ "${{ steps.flags.outputs.publish }}" = "true" ]; then
+            node scripts/sns-auto-daily.mjs --publish
+          else
+            node scripts/sns-auto-daily.mjs
+          fi
+
+      - name: Upload generated content
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sns-out-${{ github.run_id }}
+          path: scripts/out/
+          if-no-files-found: ignore

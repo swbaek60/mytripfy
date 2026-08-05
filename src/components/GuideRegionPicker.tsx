@@ -13,6 +13,8 @@ interface Props {
 
 export default function GuideRegionPicker({ value, onChange }: Props) {
   const t = useTranslations('GuideRegion')
+  const tg = useTranslations('Guides')
+  const tCommon = useTranslations('Common')
   const [countrySearch, setCountrySearch] = useState('')
   const [countryOpen, setCountryOpen] = useState(false)
   const [cityInputs, setCityInputs] = useState<Record<string, string>>({})
@@ -83,8 +85,9 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
           onChange={e => { setCountrySearch(e.target.value); setCountryOpen(true) }}
           onFocus={() => setCountryOpen(true)}
           onBlur={() => setTimeout(() => setCountryOpen(false), 150)}
-          placeholder="Type to search (e.g. k, Korea, Japan)..."
-          className="w-full rounded-xl border border-edge px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          placeholder={tg('typeToSearchRegion')}
+          aria-label={tg('typeToSearchRegion')}
+          className="w-full rounded-xl border border-edge px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-warning"
         />
         {countryOpen && (
           <div
@@ -97,7 +100,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                   key={c.code}
                   type="button"
                   onClick={() => addCountry(c.code)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-amber-50 flex items-center gap-2.5 text-sm"
+                  className="w-full text-left px-4 py-2.5 hover:bg-warning-light flex items-center gap-2.5 text-sm"
                 >
                   <CountryFlag code={c.code} size="sm" />
                   <span className="font-medium">{c.name}</span>
@@ -127,7 +130,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
           const cityInput = cityInputs[region.country] || ''
 
           return (
-            <div key={region.country} className="border border-amber-200 rounded-2xl p-4 bg-amber-50/40">
+            <div key={region.country} className="border border-warning-border rounded-2xl p-4 bg-warning-light/40">
               {/* 국가 헤더 */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -150,13 +153,14 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                   {region.cities.map(city => (
                     <span
                       key={city}
-                      className="inline-flex items-center gap-1 bg-surface border border-amber-300 text-amber-800 text-xs px-2.5 py-1 rounded-full"
+                      className="inline-flex items-center gap-1 bg-surface border border-warning-border text-warning-strong text-xs px-2.5 py-1 rounded-full"
                     >
                       📍 {city}
                       <button
                         type="button"
                         onClick={() => removeCity(region.country, city)}
-                        className="ml-0.5 text-amber-500 hover:text-red-500 leading-none"
+                        aria-label={`${tCommon('remove')} ${city}`}
+                        className="ml-0.5 text-warning hover:text-danger leading-none"
                       >
                         ×
                       </button>
@@ -186,12 +190,12 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                       }
                     }}
                     placeholder={t('cityPlaceholder')}
-                    className="flex-1 rounded-xl border border-edge bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                    className="flex-1 rounded-xl border border-edge bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-warning-border"
                   />
                   <button
                     type="button"
                     onClick={() => addCity(region.country, cityInput)}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm rounded-xl font-medium shrink-0"
+                    className="px-4 py-2 bg-warning-strong hover:bg-warning text-white text-sm rounded-xl font-medium shrink-0"
                   >
                     {t('add')}
                   </button>
@@ -208,16 +212,16 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
                         key={city}
                         type="button"
                         onClick={() => addCity(region.country, city)}
-                        className="w-full text-left px-4 py-2 hover:bg-amber-50 text-sm flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 hover:bg-warning-light text-sm flex items-center gap-2"
                       >
-                        <span className="text-amber-500">📍</span> {city}
+                        <span className="text-warning">📍</span> {city}
                       </button>
                     ))}
                     {cityInput.length > 0 && !suggestions.some(s => s.toLowerCase() === cityInput.toLowerCase()) && (
                       <button
                         type="button"
                         onClick={() => addCity(region.country, cityInput)}
-                        className="w-full text-left px-4 py-2 hover:bg-amber-50 text-sm text-amber-700 border-t border-edge flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 hover:bg-warning-light text-sm text-warning-strong border-t border-edge flex items-center gap-2"
                       >
                         <span>➕</span> &ldquo;{cityInput}&rdquo; {t('addCustom')}
                       </button>
@@ -227,7 +231,7 @@ export default function GuideRegionPicker({ value, onChange }: Props) {
               </div>
 
               {region.cities.length === 0 && (
-                <p className="text-xs text-amber-600 mt-2">
+                <p className="text-xs text-warning mt-2">
                   ⚠️ {t('addCityHint')}
                 </p>
               )}

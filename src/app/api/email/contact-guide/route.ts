@@ -1,90 +1,69 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/utils/supabase/server'
-import { auth } from '@clerk/nextjs/server'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
 import { sendEmail } from '@/utils/email'
 import { contactGuideEmail } from '@/utils/emailTemplates'
+import { adminDb, enforceRateLimit, parseJsonBody, requireUser } from '@/lib/api/guard'
+import { RATE_LIMITS } from '@/lib/api/rate-limit'
+import { apiError, apiFailure, apiOk } from '@/lib/api/respond'
 
-async function getProfileById(id: string) {
-  const admin = createAdminClient()
-  const { data } = await admin
-    .from('profiles')
-    .select('id, full_name, email')
-    .eq('id', id)
-    .single()
-  return data
-}
+const bodySchema = z.object({
+  guideId: z.string().uuid(),
+  message: z.string().trim().min(1).max(2000),
+})
 
-async function getProfileByClerkId(clerkId: string) {
-  const admin = createAdminClient()
-  const { data } = await admin
-    .from('profiles')
-    .select('id, full_name, email')
-    .eq('clerk_id', clerkId)
-    .maybeSingle()
-  return data
-}
-
+/** 가이드에게 문의 메일을 보낸다. 발신자는 Clerk 세션에서 도출한다. */
 export async function POST(req: NextRequest) {
   try {
-    const { guideId, message } = await req.json()
-    if (!guideId || !message?.trim()) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
+
+    const limited = enforceRateLimit(req, 'email:contact-guide', auth.user.profileId, RATE_LIMITS.email)
+    if (limited) return limited.response
+
+    const parsed = await parseJsonBody(req, bodySchema)
+    if ('response' in parsed) return parsed.response
+    const { guideId, message } = parsed.data
+
+    if (guideId === auth.user.profileId) {
+      return apiError('bad_request', 'You cannot contact yourself.')
     }
 
-    const { userId: clerkUserId } = await auth()
-    if (!clerkUserId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const db = adminDb()
 
-    const sender = await getProfileByClerkId(clerkUserId)
-    if (!sender) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 401 })
-    }
+    const [{ data: sender }, { data: guide }] = await Promise.all([
+      db.from('profiles').select('id, full_name, email').eq('id', auth.user.profileId).maybeSingle(),
+      db.from('profiles').select('id, full_name, email').eq('id', guideId).maybeSingle(),
+    ])
 
-    const guide = await getProfileById(guideId)
-    let guideEmail = guide?.email
+    if (!sender) return apiError('unauthorized')
+    if (!guide?.email) return apiError('not_found', 'This guide cannot be reached by email.')
 
-    if (!guideEmail) {
-      const admin = createAdminClient()
-      try {
-        const { data: authUser } = await admin.auth.admin.getUserById(guideId)
-        guideEmail = authUser?.user?.email ?? null
-      } catch { /* ignore */ }
-    }
-
-    if (!guideEmail) {
-      console.error('contact-guide: guide email not found for', guideId)
-      return NextResponse.json({ error: 'Guide email not found' }, { status: 404 })
-    }
-
-    const senderName = sender.full_name || sender.email || 'A traveler'
-    const guideName = guide?.full_name || 'Guide'
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://mytripfy.com'
     const locale = process.env.DEFAULT_LOCALE || 'en'
-    const messagesUrl = `${baseUrl}/${locale}/messages/${sender.id}`
 
     const { subject, html } = contactGuideEmail({
-      guideName,
-      senderName,
-      message: message.trim(),
-      messagesUrl,
+      guideName: guide.full_name || 'Guide',
+      senderName: sender.full_name || sender.email || 'A traveler',
+      message,
+      messagesUrl: `${baseUrl}/${locale}/messages/${sender.id}`,
       locale,
     })
 
     const result = await sendEmail({
-      to: guideEmail,
+      to: guide.email,
       subject,
       html,
       replyTo: sender.email ?? undefined,
     })
+
     if (!result.success) {
-      console.error('contact-guide: email send failed via', result.provider, result.error)
-      return NextResponse.json({ error: 'Email delivery failed' }, { status: 500 })
+      console.error('[api/email/contact-guide] delivery failed via', result.provider, result.error)
+      return apiError('unavailable', 'Email delivery failed. Please try again later.')
     }
 
-    return NextResponse.json({ ok: true })
+    return apiOk({ sent: 1 })
   } catch (err) {
-    console.error('contact-guide email error:', err)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    return apiFailure('email/contact-guide', err)
   }
 }

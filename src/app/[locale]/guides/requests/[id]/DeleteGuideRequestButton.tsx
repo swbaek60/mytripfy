@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
 
@@ -19,9 +19,13 @@ export default function DeleteGuideRequestButton({ requestId, locale }: Props) {
 
   const handleDelete = async () => {
     setDeleting(true)
-    const supabase = createClient()
-    await supabase.from('guide_requests').delete().eq('id', requestId)
-    router.push(`/${locale}/guides/requests`)
+    try {
+      await api.del('/api/guide-requests', { id: requestId })
+      router.push(`/${locale}/guides/requests`)
+    } catch (err) {
+      alert(errorMessage(err))
+      setDeleting(false)
+    }
   }
 
   if (confirm) {
@@ -32,7 +36,7 @@ export default function DeleteGuideRequestButton({ requestId, locale }: Props) {
           size="sm"
           onClick={handleDelete}
           disabled={deleting}
-          className="bg-danger hover:bg-red-700 text-white rounded-full text-xs px-4"
+          className="bg-danger hover:bg-danger-strong text-white rounded-full text-xs px-4"
         >
           {deleting ? tc('deleting') : tc('delete')}
         </Button>
@@ -54,7 +58,7 @@ export default function DeleteGuideRequestButton({ requestId, locale }: Props) {
       size="sm"
       variant="outline"
       onClick={() => setConfirm(true)}
-      className="rounded-full text-xs px-4 border-red-300 text-danger hover:bg-danger-light"
+      className="rounded-full text-xs px-4 border-danger-border text-danger hover:bg-danger-light"
     >
       🗑️ {tc('delete')}
     </Button>

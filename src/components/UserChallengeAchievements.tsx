@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Trophy, Siren, Trash2 } from 'lucide-react'
 import DisputeModal, { type DisputeTargetCert } from '@/components/DisputeModal'
+import SmartImage from '@/components/ui/SmartImage'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   countries: '🌍',
@@ -93,6 +94,7 @@ export default function UserChallengeAchievements({
   disputedKeys?: Set<string>
 }) {
   const t = useTranslations('UserProfile')
+  const tc = useTranslations('Common')
   const displayTitle = (c: CertificationItem) =>
     locale.startsWith('ko') && c.challenges?.title_ko ? c.challenges.title_ko : (c.challenges?.title_en ?? '')
 
@@ -156,28 +158,38 @@ export default function UserChallengeAchievements({
     const key = getKey(cert)
     const alreadyDisputed = localDisputedKeys.has(key)
     const dispStatus = cert.dispute_status || 'clean'
-    const showDisputeBtn = !isOwnProfile && !!cert.image_url && !alreadyDisputed && dispStatus !== 'reviewing' && dispStatus !== 'invalidated'
+    // 자격이 없는 사용자에게는 버튼 대신 아래 안내 문구를 보여준다 (클릭 후 alert 로 막지 않는다).
+    const showDisputeBtn =
+      (canDispute || !currentUserId) &&
+      !isOwnProfile &&
+      !!cert.image_url &&
+      !alreadyDisputed &&
+      dispStatus !== 'reviewing' &&
+      dispStatus !== 'invalidated'
 
     return (
       <div
         key={cert.id}
         className={`group relative rounded-xl overflow-hidden border-2 transition-all aspect-square bg-surface-sunken ${
           dispStatus === 'reviewing' ? 'border-edge-brand' :
-          dispStatus === 'flagged' ? 'border-amber-200' :
-          dispStatus === 'invalidated' ? 'border-red-200 opacity-60' :
-          'border-edge hover:border-amber-200 hover:shadow-md'
+          dispStatus === 'flagged' ? 'border-warning-border' :
+          dispStatus === 'invalidated' ? 'border-danger-border opacity-60' :
+          'border-edge hover:border-warning-border hover:shadow-md'
         }`}
         title={`${emoji} ${categoryLabel} · ${displayTitle(cert)}`}
       >
         {img ? (
-          <img
+          <SmartImage
             src={img}
             alt=""
+            width={400}
+            height={400}
+            sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, 17vw"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-zoom-in"
             onClick={() => setExpandedImg(img)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-amber-50 to-orange-50">
+          <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-warning-light to-sunset-light">
             {emoji}
           </div>
         )}
@@ -197,7 +209,7 @@ export default function UserChallengeAchievements({
         {dispStatus !== 'clean' && (
           <div className={`absolute top-1 left-1 text-[8px] font-bold px-1 py-0.5 rounded-full ${
             dispStatus === 'reviewing' ? 'bg-brand text-white' :
-            dispStatus === 'flagged' ? 'bg-amber-400 text-white' : 'bg-danger text-white'
+            dispStatus === 'flagged' ? 'bg-warning-strong text-white' : 'bg-danger text-white'
           }`}>
             {dispStatus === 'reviewing' ? '⚖️' : dispStatus === 'flagged' ? '🚨' : '❌'}
           </div>
@@ -211,7 +223,7 @@ export default function UserChallengeAchievements({
               deleteCert(cert.challenge_id)
             }}
             disabled={deletingCertId === cert.challenge_id}
-            className="absolute top-1 right-1 w-6 h-6 bg-surface-sunken0/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
+            className="absolute top-1 right-1 w-6 h-6 bg-subtle/90 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg disabled:opacity-50"
             title={t('cancelCert')}
           >
             <Trash2 className="w-3 h-3" />
@@ -223,7 +235,6 @@ export default function UserChallengeAchievements({
             onClick={(e) => {
               e.stopPropagation()
               if (!currentUserId) { router.push(`/${locale}/login?returnTo=${encodeURIComponent(window.location.pathname)}`); return }
-              if (myCertCount < 3) { alert(t('disputeRequires')); return }
               setDisputeTarget({
                 user_id: userId,
                 challenge_id: cert.challenge_id,
@@ -232,15 +243,15 @@ export default function UserChallengeAchievements({
                 challenge_title: displayTitle(cert),
               })
             }}
-            className="absolute top-1 right-1 w-6 h-6 bg-danger/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-            title="딴지걸기"
+            className="absolute top-1 right-1 w-6 h-6 bg-danger/80 hover:bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+            title={t('disputeTitle')}
           >
             <Siren className="w-3 h-3" />
           </button>
         )}
 
         {alreadyDisputed && (
-          <div className="absolute top-1 right-1 bg-surface-sunken0/80 text-white text-[8px] font-bold px-1 py-0.5 rounded-full">접수</div>
+          <div className="absolute top-1 right-1 bg-subtle/80 text-white text-[8px] font-bold px-1 py-0.5 rounded-full">{t('disputeSubmitted')}</div>
         )}
 
         {/* 배심원 링크 */}
@@ -260,22 +271,22 @@ export default function UserChallengeAchievements({
     <div className="bg-surface rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between gap-4 mb-4">
         <h2 className="font-bold text-heading text-lg flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-amber-500" />
+          <Trophy className="w-5 h-5 text-warning" />
           {t('challengeAchievements')}
         </h2>
         <div className="flex items-center gap-3 text-sm flex-wrap">
           {experiencePoints !== undefined && contributionPoints !== undefined ? (
             <>
-              <span className="font-bold text-amber flex items-center gap-1">
+              <span className="font-bold text-warning flex items-center gap-1">
                 <Trophy className="w-4 h-4" /> {t('experiencePoints')} {exp} {t('pointsShort')}
               </span>
               <span className="text-hint">·</span>
-              <span className="font-bold text-amber flex items-center gap-1">
+              <span className="font-bold text-warning flex items-center gap-1">
                 <Trophy className="w-4 h-4" /> {t('contributionPoints')} {contrib} {t('pointsShort')}
               </span>
             </>
           ) : (
-            <span className="font-bold text-amber">{challengePoints} {t('pointsShort')}</span>
+            <span className="font-bold text-warning">{challengePoints} {t('pointsShort')}</span>
           )}
           <span className="text-hint">·</span>
           <span className="text-body">{certifications.length} {t('certifiedShort')}</span>
@@ -283,7 +294,7 @@ export default function UserChallengeAchievements({
       </div>
 
       {currentUserId && !isOwnProfile && myCertCount < 3 && (
-        <p className="text-xs text-amber bg-amber-light border border-amber-200 rounded-lg px-3 py-1.5 mb-3 flex items-center gap-1">
+        <p className="text-xs text-warning-strong bg-warning-light border border-warning-border rounded-lg px-3 py-1.5 mb-3 flex items-center gap-1">
           <Siren className="w-3.5 h-3.5" /> {t('disputeRequires')}
         </p>
       )}
@@ -297,7 +308,7 @@ export default function UserChallengeAchievements({
                 type="button"
                 onClick={() => setCategoryFilter('')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  categoryFilter === '' ? 'bg-amber-light0 text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
+                  categoryFilter === '' ? 'bg-warning-strong text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
                 }`}
               >
                 {t('allCategory')} ({displayList.length})
@@ -312,7 +323,7 @@ export default function UserChallengeAchievements({
                     type="button"
                     onClick={() => setCategoryFilter(cat)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
-                      categoryFilter === cat ? 'bg-amber-light0 text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
+                      categoryFilter === cat ? 'bg-warning-strong text-white' : 'bg-surface-sunken text-body hover:bg-surface-hover'
                     }`}
                   >
                     <span>{emoji}</span>
@@ -342,7 +353,7 @@ export default function UserChallengeAchievements({
           })}
           <Link
             href={`/${locale}/challenges`}
-            className="inline-block mt-4 text-sm font-semibold text-amber hover:text-amber-700"
+            className="inline-block mt-4 text-sm font-semibold text-warning hover:text-warning-strong"
           >
             {t('viewAllChallenges')} →
           </Link>
@@ -350,7 +361,7 @@ export default function UserChallengeAchievements({
       ) : (
         <>
           <p className="text-subtle text-sm mb-2">{t('noCertificationsYet')}</p>
-          <Link href={`/${locale}/challenges`} className="text-sm font-semibold text-amber hover:text-amber-700">
+          <Link href={`/${locale}/challenges`} className="text-sm font-semibold text-warning hover:text-warning-strong">
             {t('viewAllChallenges')} →
           </Link>
         </>
@@ -359,8 +370,8 @@ export default function UserChallengeAchievements({
       {/* 이미지 확대 */}
       {expandedImg && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out" onClick={() => setExpandedImg(null)}>
-          <img src={expandedImg} alt="" className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain" onClick={e => e.stopPropagation()} />
-          <button onClick={() => setExpandedImg(null)} className="absolute top-4 right-4 w-10 h-10 bg-surface/20 text-white rounded-full flex items-center justify-center hover:bg-surface/30 text-xl">✕</button>
+          <SmartImage src={expandedImg} alt="" width={1600} height={1600} sizes="100vw" className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain" onClick={e => e.stopPropagation()} />
+          <button onClick={() => setExpandedImg(null)} aria-label={tc('close')} className="absolute top-4 right-4 w-10 h-10 bg-surface/20 text-white rounded-full flex items-center justify-center hover:bg-surface/30 text-xl">✕</button>
         </div>
       )}
 

@@ -356,12 +356,10 @@ export function companionApplicationAcceptedEmail({
 export function companionApplicationRejectedEmail({
   applicantName,
   postTitle,
-  postId,
   locale = DEFAULT_EMAIL_LOCALE,
 }: {
   applicantName: string
   postTitle: string
-  postId: string
   locale?: string
 }) {
   const subject = `Trip application update – ${postTitle}`
@@ -385,12 +383,10 @@ export function companionApplicationRejectedEmail({
 export function guideApplicationRejectedEmail({
   guideName,
   requestTitle,
-  requestId,
   locale = DEFAULT_EMAIL_LOCALE,
 }: {
   guideName: string
   requestTitle: string
-  requestId: string
   locale?: string
 }) {
   const subject = `Guide application update – ${requestTitle}`

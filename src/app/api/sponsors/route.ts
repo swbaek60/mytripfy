@@ -90,7 +90,9 @@ export async function POST(req: NextRequest) {
     let benefits: Array<{ title: string; title_en?: string; description?: string; terms?: string; benefit_type: string; value_num?: number; value_text?: string; currency?: string; start_date: string; end_date: string; country_code?: string; region?: string; max_redemptions?: number }> = []
     try {
       if (benefitsJson) benefits = JSON.parse(benefitsJson)
-    } catch (_) {}
+    } catch {
+      // 혜택 JSON 이 깨져도 스폰서 등록 자체는 진행한다.
+    }
     const today = new Date().toISOString().slice(0, 10)
     for (const b of benefits) {
       if (!b.title?.trim() || !b.benefit_type || !BENEFIT_TYPES.includes(b.benefit_type) || !b.start_date || !b.end_date) continue

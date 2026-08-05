@@ -4,18 +4,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown, ChevronRight, Compass, LogIn, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { activeHref } from '@/lib/nav-active'
 import type { MegaMenuGroup, NavPrimaryLink } from '@/components/explore/ExploreMegaMenu'
 
 const GROUP_ACCENT: Record<string, string> = {
   discover: 'bg-brand',
   play: 'bg-challenge',
-  community: 'bg-teal-500',
+  community: 'bg-teal',
   host: 'bg-gold',
 }
 
 const PRIMARY_META: Record<string, { icon: typeof Users; accent: string; iconBg: string }> = {
   '/companions': { icon: Users, accent: 'text-brand', iconBg: 'bg-brand-light' },
-  '/guides': { icon: Compass, accent: 'text-teal-600', iconBg: 'bg-teal-500/10' },
+  '/guides': { icon: Compass, accent: 'text-teal', iconBg: 'bg-teal/10' },
 }
 
 interface Props {
@@ -41,10 +42,12 @@ export default function MobileMegaMenu({
 }: Props) {
   const [openId, setOpenId] = useState<string | null>('discover')
 
-  const isLinkActive = (href: string) => {
-    const path = href.split('?')[0]
-    return pathname.includes(path)
-  }
+  // 후보를 한꺼번에 넘겨 가장 구체적인 링크 하나만 활성으로 표시한다.
+  const current = activeHref(pathname, locale, [
+    ...primaryLinks.map((l) => l.href),
+    ...groups.flatMap((g) => g.links.map((l) => l.href)),
+  ])
+  const isLinkActive = (href: string) => current === href
 
   return (
     <div className="px-4 py-4 space-y-5">

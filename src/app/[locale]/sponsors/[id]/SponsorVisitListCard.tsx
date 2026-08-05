@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
+import SmartImage from '@/components/ui/SmartImage'
 
 type Visit = {
   id: string
@@ -46,7 +47,14 @@ export default function SponsorVisitListCard({
   return (
     <div className="rounded-xl overflow-hidden border border-edge bg-surface-sunken relative group">
       <div className="aspect-square relative">
-        <img src={visit.photo_url} alt="" className="w-full h-full object-cover" />
+        <SmartImage
+          src={visit.photo_url}
+          alt=""
+          width={400}
+          height={400}
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+          className="w-full h-full object-cover"
+        />
         {canDelete && (
           <div className="absolute top-1 right-1">
             <Button
@@ -65,7 +73,7 @@ export default function SponsorVisitListCard({
       <div className="p-2">
         <p className="text-xs font-medium text-heading truncate" title={name}>{name}</p>
         <p className="text-[10px] text-subtle">{dateStr}</p>
-        <p className="text-[10px] text-emerald-600 font-medium">+{visit.points_granted} pt</p>
+        <p className="text-[10px] text-success font-medium">+{visit.points_granted} pt</p>
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import { getTranslationsForChallenges } from '@/utils/challengeTranslations'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import { relationOne, type ChallengeRef, type ProfileRef } from '@/lib/db/relation'
 
 export async function generateMetadata({
   params,
@@ -93,7 +94,8 @@ export default async function ChallengeFeedPage({
   const translations = await getTranslationsForChallenges(supabase, challengeIds, locale)
 
   const enrichedCerts = (certs || []).map(c => {
-    const ch = c.challenges as any
+    const ch = relationOne<ChallengeRef>(c.challenges)
+    const author = relationOne<ProfileRef>(c.profiles)
     const tr = translations.get(c.challenge_id)
     const title = tr?.title ?? ch?.title_en ?? ''
     return {
@@ -102,8 +104,8 @@ export default async function ChallengeFeedPage({
       image_url: c.image_url,
       created_at: c.created_at,
       dispute_status: c.dispute_status,
-      full_name: (c.profiles as any)?.full_name ?? 'Unknown',
-      avatar_url: (c.profiles as any)?.avatar_url ?? null,
+      full_name: author?.full_name ?? 'Unknown',
+      avatar_url: author?.avatar_url ?? null,
       title_en: ch?.title_en ?? '',
       title_ko: title,
       title,
@@ -117,7 +119,7 @@ export default async function ChallengeFeedPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/challenges" />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
@@ -131,7 +133,7 @@ export default async function ChallengeFeedPage({
           </div>
           <div className="flex gap-2">
             <Link href={`/${locale}/challenges/guide`}>
-              <button className="flex items-center gap-1.5 border border-amber-300 bg-amber-light text-amber-700 text-xs font-bold px-3 py-2 rounded-full hover:bg-amber transition-colors">
+              <button className="flex items-center gap-1.5 border border-warning-border bg-warning-light text-warning-strong text-xs font-bold px-3 py-2 rounded-full hover:bg-warning transition-colors">
                 🚩 {L.systemName}
               </button>
             </Link>
@@ -144,9 +146,9 @@ export default async function ChallengeFeedPage({
         </div>
 
         {/* 안내 배너 */}
-        <div className="bg-amber-light border border-amber-200 rounded-2xl px-5 py-3.5 mb-6 flex items-start gap-3">
+        <div className="bg-warning-light border border-warning-border rounded-2xl px-5 py-3.5 mb-6 flex items-start gap-3">
           <span className="text-xl shrink-0">💡</span>
-          <div className="text-sm text-amber-800">
+          <div className="text-sm text-warning-strong">
             <strong>{L.systemName}</strong>: {L.tagline}.&nbsp;
             <Link href={`/${locale}/challenges/guide`} className="underline font-semibold">{t('learnMore')}</Link>
           </div>

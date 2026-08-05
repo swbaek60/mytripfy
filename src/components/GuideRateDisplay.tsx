@@ -21,7 +21,7 @@ export default function GuideRateDisplay({ rate, rateCurrency = 'USD', size = 's
     const sizeClass = size === 'lg'
       ? 'text-base font-bold text-success'
       : 'text-xs font-semibold text-success'
-    return <span className={sizeClass}>FREE</span>
+    return <span className={sizeClass}>{tc('free')}</span>
   }
 
   const converted = formatPrice(rate!, fromCurrency)

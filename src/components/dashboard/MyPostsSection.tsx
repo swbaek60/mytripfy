@@ -25,9 +25,9 @@ type GuideRequest = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  open: 'bg-green-100 text-green-700',
+  open: 'bg-success-muted text-success-strong',
   closed: 'bg-surface-sunken text-body',
-  completed: 'bg-blue-100 text-blue-700',
+  completed: 'bg-brand-muted text-brand-hover',
 }
 
 export default function MyPostsSection({
@@ -40,13 +40,23 @@ export default function MyPostsSection({
   locale: string
 }) {
   const t = useTranslations('Dashboard')
+  const tc = useTranslations('Common')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  // DB 는 상태를 영어 코드로 저장한다. 화면에는 로케일 문구로 바꿔 보여준다.
+  const statusLabel = (status: string) =>
+    ({
+      open: tc('statusOpen'),
+      closed: tc('statusClosed'),
+      completed: tc('statusCompleted'),
+      ended: tc('statusEnded'),
+    })[status] ?? status
 
   const filterOptions = [
     { value: 'all', label: t('all') },
-    { value: 'open', label: 'Open' },
-    { value: 'closed', label: 'Closed' },
-    { value: 'completed', label: 'Completed' },
+    { value: 'open', label: tc('statusOpen') },
+    { value: 'closed', label: tc('statusClosed') },
+    { value: 'completed', label: tc('statusCompleted') },
   ]
 
   const posts = (myPosts || []).filter(
@@ -78,7 +88,7 @@ export default function MyPostsSection({
           </button>
         ))}
         <span className="text-xs text-hint ml-1">
-          ({totalShown} {t('items')})
+          ({tc('itemCount', { count: totalShown })})
         </span>
       </div>
 
@@ -91,7 +101,7 @@ export default function MyPostsSection({
             </h2>
             <Link href={`/${locale}/companions/new`}>
               <Button variant="outline" size="sm" className="rounded-full text-xs border-edge-brand text-brand">
-                + New
+                + {tc('new')}
               </Button>
             </Link>
           </div>
@@ -111,7 +121,7 @@ export default function MyPostsSection({
                         </p>
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[post.status] || 'bg-surface-sunken text-body'}`}>
-                        {post.status}
+                        {statusLabel(post.status)}
                       </span>
                     </div>
                   </Link>
@@ -137,8 +147,8 @@ export default function MyPostsSection({
               {t('myGuideRequestsTitle')} ({guideReqs.length})
             </h2>
             <Link href={`/${locale}/guides/requests/new`}>
-              <Button variant="outline" size="sm" className="rounded-full text-xs border-amber-300 text-amber">
-                + New
+              <Button variant="outline" size="sm" className="rounded-full text-xs border-warning-border text-warning">
+                + {tc('new')}
               </Button>
             </Link>
           </div>
@@ -159,11 +169,11 @@ export default function MyPostsSection({
                       </div>
                       {req.status && (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_COLORS[req.status] || 'bg-surface-sunken text-body'}`}>
-                          {req.status}
+                          {statusLabel(req.status)}
                         </span>
                       )}
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 bg-amber-100 text-amber-700">
-                        Guide
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 bg-warning-muted text-warning-strong">
+                        {tc('guide')}
                       </span>
                     </div>
                   </Link>
@@ -175,7 +185,7 @@ export default function MyPostsSection({
               {statusFilter === 'all' ? t('noGuideApps') : t('noGuideRequestsYetFilter')}
               {statusFilter === 'all' && (
                 <Link href={`/${locale}/guides/requests/new`}>
-                  <Button variant="link" className="text-amber text-sm mt-1 block">+ {t('postGuideRequest')}</Button>
+                  <Button variant="link" className="text-warning text-sm mt-1 block">+ {t('postGuideRequest')}</Button>
                 </Link>
               )}
             </div>

@@ -11,9 +11,13 @@ export const OOTD_GARMENT_SILHOUETTE_RULE =
 export const OOTD_BAG_SHAPE_RULE =
   'CRITICAL bag identity lock: exact same bag model in every slide — same roundness handle length weave pattern hardware — never swap tote for crossbody or clutch or different basket size'
 
-/** Generate 시 슬라이드 2~4: slide-1 png를 outfit+bag 레퍼런스로 추가 권장 */
+/** 접은 우산 vs 긴 우산 혼동 방지 — 캐러셀 4장 동일 소품 */
+export const OOTD_UMBRELLA_RULE =
+  'CRITICAL umbrella identity lock across all 4 slides: exact same compact folded travel umbrella only — short closed collapsed navy blue cylindrical folded umbrella about 25cm when closed with small curved handle, matte navy fabric, small travel size held at side or tucked in bag strap, NEVER open umbrella NEVER long stick umbrella NEVER golf umbrella NEVER transparent dome umbrella NEVER patio umbrella NEVER change umbrella shape length handle or fabric between slides'
+
+/** Generate 시 슬라이드 2~4: slide-1 png를 outfit+bag+umbrella 레퍼런스로 추가 권장 */
 export const CAROUSEL_OUTFIT_REFERENCE_NOTE =
-  'When generating slide 2 3 or 4, include slide-1 image as outfit and bag reference — match garment silhouette and bag design exactly to slide 1'
+  'When generating slide 2 3 or 4, include slide-1 image as outfit bag and umbrella reference — match garment silhouette bag design and compact folded umbrella exactly to slide 1'
 
 /**
  * @param {import('./sns-ootd-catalog.mjs').DayOutfit} o
@@ -73,9 +77,11 @@ export function buildOutfitDetailLock(o) {
   if (PRESETS[sig]) return PRESETS[sig]
 
   const acc = o.accessories.map((a) => `${a.item} (${a.colors})`).join(', ')
+  const hasUmbrella = o.accessories.some((a) => /umbrella/i.test(a.item))
+  const umbrellaBlock = hasUmbrella ? ` ${OOTD_UMBRELLA_RULE}.` : ''
   return {
-    en: `${OOTD_GARMENT_SILHOUETTE_RULE}. ${OOTD_BAG_SHAPE_RULE}. ${OOTD_HARDWARE_DETAIL_RULE}. Keep every visible button, buckle, bag shape, and garment cut identical to: ${acc}.`,
-    ko: `${OOTD_GARMENT_SILHOUETTE_RULE}. ${OOTD_BAG_SHAPE_RULE}. 단추·버클·가방 형태·옷 실루엣 동일: ${acc}.`,
+    en: `${OOTD_GARMENT_SILHOUETTE_RULE}. ${OOTD_BAG_SHAPE_RULE}. ${OOTD_HARDWARE_DETAIL_RULE}.${umbrellaBlock} Keep every visible button, buckle, bag shape${hasUmbrella ? ', umbrella' : ''}, and garment cut identical to: ${acc}.`,
+    ko: `${OOTD_GARMENT_SILHOUETTE_RULE}. ${OOTD_BAG_SHAPE_RULE}.${hasUmbrella ? ` ${OOTD_UMBRELLA_RULE}.` : ''} 단추·버클·가방${hasUmbrella ? '·우산' : ''} 형태·옷 실루엣 동일: ${acc}.`,
   }
 }
 

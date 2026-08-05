@@ -31,6 +31,7 @@ interface Props {
   locale: string
   title: string
   subtitle: string
+  badgeLabel: string
   viewAllLabel: string
   startLabel: string
   labels: Labels
@@ -40,6 +41,7 @@ export default function ChallengeCategoriesGrid({
   locale,
   title,
   subtitle,
+  badgeLabel,
   viewAllLabel,
   startLabel,
   labels,
@@ -50,8 +52,8 @@ export default function ChallengeCategoriesGrid({
     <div>
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-challenge-light text-challenge text-xs font-bold mb-3">
-            🏆 1,600+ Challenges
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-challenge-light text-challenge-strong text-xs font-bold mb-3">
+            🏆 {badgeLabel}
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-heading">{title}</h2>
           <p className="text-subtle mt-2 text-sm max-w-xl">{subtitle}</p>

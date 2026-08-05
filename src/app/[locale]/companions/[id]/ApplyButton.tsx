@@ -1,23 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { ApiError, api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 export default function ApplyButton({
   postId,
-  userId,
-  locale,
   alreadyApplied,
-  wasRemoved,
 }: {
   postId: string
-  userId: string
-  locale: string
   alreadyApplied: boolean
-  wasRemoved?: boolean
 }) {
   const router = useRouter()
   const t = useTranslations('CompanionDetail')
@@ -29,50 +23,36 @@ export default function ApplyButton({
 
   const handleApply = async () => {
     setLoading(true)
-    const res = await fetch('/api/companion/apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ postId, message: message || null }),
-    })
-    const data = res.ok ? null : await res.json().catch(() => ({}))
-    setLoading(false)
-
-    if (res.ok) {
+    try {
+      await api.post('/api/companion/apply', { postId, message: message || null })
       setApplied(true)
       setShowForm(false)
       router.refresh()
-      fetch('/api/email/companion-application', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId, applicantId: userId, message: message || null }),
-      }).catch(console.error)
-    } else {
-      if (res.status === 403) {
-        alert(data?.error || t('applyGenderRestrict'))
-      } else if (res.status === 404) {
-        alert(t('applyNotFound'))
-      } else {
-        alert(data?.error || t('applyFailed'))
-      }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) alert(t('applyNotFound'))
+      else alert(errorMessage(err, t('applyFailed')))
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleCancel = async () => {
     setLoading(true)
-    const supabase = createClient()
-    await supabase.from('companion_applications')
-      .delete()
-      .eq('post_id', postId)
-      .eq('applicant_id', userId)
-    setLoading(false)
-    setApplied(false)
-    router.refresh()
+    try {
+      await api.del('/api/companion/apply', { postId })
+      setApplied(false)
+      router.refresh()
+    } catch (err) {
+      alert(errorMessage(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (applied) {
     return (
       <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="flex-1 bg-success-light border border-green-200 rounded-xl p-4 text-center">
+        <div className="flex-1 bg-success-light border border-success-border rounded-xl p-4 text-center">
           <p className="text-success font-medium">{t('appliedTrip')}</p>
           <p className="text-success text-sm mt-1">{t('waitingHost')}</p>
         </div>
@@ -80,7 +60,7 @@ export default function ApplyButton({
           variant="outline"
           onClick={handleCancel}
           disabled={loading}
-          className="border-red-200 text-danger hover:bg-danger-light shrink-0"
+          className="border-danger-border text-danger hover:bg-danger-light shrink-0"
         >
           {t('cancelApp')}
         </Button>
@@ -95,7 +75,8 @@ export default function ApplyButton({
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
-          placeholder="Introduce yourself briefly — your travel style, experience, etc."
+          placeholder={t('applyMessagePlaceholder')}
+          aria-label={t('messageToHost')}
           rows={4}
           className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
         />

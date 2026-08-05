@@ -1,7 +1,23 @@
 # mytripfy 모바일 앱 (Capacitor)
 
 이 폴더는 mytripfy 웹사이트를 감싼 **Android / iOS 네이티브 앱** 프로젝트입니다.  
-앱은 `capacitor.config.ts`의 `server.url`(기본: https://mytripfy.com)을 웹뷰로 불러옵니다.
+앱은 `capacitor.config.ts`의 `server.url`(기본: https://www.mytripfy.com)을 웹뷰로 불러옵니다.
+
+## Push 알림 (동행 매칭)
+
+1. Firebase Cloud Messaging 프로젝트 생성 후 Android `google-services.json` / iOS APNs 설정
+2. 루트에서 `@capacitor/push-notifications` 설치됨 — `npm run cap:sync` 실행
+3. 서버 `.env.local`에 `FCM_SERVER_KEY=` 설정 (선택, 미설정 시 토큰만 저장)
+4. 앱 실행 시 `PushRegister` 컴포넌트가 `/api/push/register`에 디바이스 토큰 등록
+5. 동행 지원 시 호스트에게 인앱 알림 + FCM push 발송
+
+## 스토어 출시 체크리스트
+
+- [ ] `capacitor.config.ts` → `https://www.mytripfy.com`
+- [ ] Android: `npm run android:bundle` (루트 package.json)
+- [ ] iOS: Mac에서 `npm run ios` → Archive → App Store Connect
+- [ ] 스토어 설명에 **100 Countries Challenge · 동행 매칭** 키워드 포함
+- [ ] Push 권한 설명 문구 (Info.plist / AndroidManifest) 추가
 
 ## 요구 사항
 

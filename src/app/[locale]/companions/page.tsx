@@ -2,9 +2,8 @@ import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
-import { getCountryByCode, getCountryCodesMatchingQuery } from '@/data/countries'
+import { getCountryCodesMatchingQuery } from '@/data/countries'
 import { resolveAliasToEnglish } from '@/data/city-aliases'
-import { headers } from 'next/headers'
 import CompanionsCountryFilter from '@/app/[locale]/companions/CompanionsCountryFilter'
 import CompanionsDateFilter from '@/app/[locale]/companions/CompanionsDateFilter'
 import HeroSearch from '@/components/marketing/HeroSearch'
@@ -13,6 +12,8 @@ import RecentCompanionsBar from '@/components/explore/RecentCompanionsBar'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildItemListJsonLd } from '@/lib/seo/json-ld'
 
 export async function generateMetadata({
   params,
@@ -70,9 +71,6 @@ export default async function CompanionsPage({
   const t = await getTranslations({ locale, namespace: 'Companions' })
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
   const td = await getTranslations({ locale, namespace: 'CompanionDetail' })
-
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') || ''
 
   // 동행 게시글 조회 (프로필 join)
   // end_date: 오늘 이후 종료되는 여행만 표시
@@ -137,7 +135,7 @@ export default async function CompanionsPage({
 
   // 신청 수: companion_post_application_counts 뷰 사용 (schema-v35)
   // 뷰 미적용 시 0으로 표시
-  let appCountMap: Record<string, number> = {}
+  const appCountMap: Record<string, number> = {}
   if (posts && posts.length > 0) {
     const postIds = posts.map(p => p.id)
     const { data: counts } = await supabase
@@ -160,13 +158,21 @@ export default async function CompanionsPage({
 
   return (
     <div className="min-h-screen bg-surface-warm">
-      <Header user={user} locale={locale} currentPath="/companions" />
+      <JsonLdScript
+        data={buildItemListJsonLd(
+          locale,
+          tm('companionsHeroTitle'),
+          (posts ?? []).slice(0, 30).map(p => ({ name: p.title, path: `/companions/${p.id}` }))
+        )}
+      />
+      <Header locale={locale} />
 
       {/* Hero */}
-      <section className="relative bg-midnight text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">{tm('companionsHeroTitle')}</h1>
-          <p className="text-white/70 mb-8 max-w-xl">{tm('companionsHeroSubtitle')}</p>
+      <section className="relative bg-midnight text-white py-12 sm:py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight via-midnight to-brand-deep/30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{tm('companionsHeroTitle')}</h1>
+          <p className="text-white/70 mb-8 max-w-xl leading-relaxed">{tm('companionsHeroSubtitle')}</p>
           <HeroSearch locale={locale} variant="inline" />
         </div>
       </section>
@@ -182,11 +188,11 @@ export default async function CompanionsPage({
           </p>
           {user ? (
             <Link href={`/${locale}/companions/new`}>
-              <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0">+ {t('post')}</Button>
+              <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0 shadow-md shadow-brand/20">+ {t('post')}</Button>
             </Link>
           ) : (
             <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/companions`)}`}>
-              <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0">+ {t('post')}</Button>
+              <Button className="bg-brand hover:bg-brand-hover rounded-full px-6 shrink-0 shadow-md shadow-brand/20">+ {t('post')}</Button>
             </Link>
           )}
         </div>
@@ -215,7 +221,7 @@ export default async function CompanionsPage({
         />
 
         {/* Mood filter */}
-        <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap gap-2 items-center">
+        <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 p-4 mb-4 flex flex-wrap gap-2 items-center">
           <span className="text-sm text-subtle font-medium mr-1 shrink-0">{t('moodFilter')}</span>
           {(['relaxed', 'active', 'intense'] as const).map(m => {
             const params = new URLSearchParams()
@@ -236,7 +242,7 @@ export default async function CompanionsPage({
         </div>
 
         {/* Purpose filter */}
-        <div className="bg-surface rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-2 items-center">
+        <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 p-4 mb-6 flex flex-wrap gap-2 items-center">
           <span className="text-sm text-subtle font-medium mr-1 shrink-0">{t('filterByPurpose')}</span>
           <Link href={`/${locale}/companions${country || searchQuery ? `?${new URLSearchParams([...(country ? [['country', country]] : []), ...(searchQuery ? [['q', searchQuery]] : []), ...(from ? [['from', from]] : []), ...(effectiveMood ? [['mood', effectiveMood]] : [])]).toString()}` : ''}`}>
             <span className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!purpose ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>{t('allPurposes')}</span>
@@ -272,12 +278,12 @@ export default async function CompanionsPage({
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm border border-edge">
+          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm border border-edge/60">
             <div className="text-5xl mb-4">🌍</div>
-            <h3 className="text-xl font-bold text-body mb-2">{td('noTripsYet')}</h3>
-            <p className="text-subtle mb-6">{td('noTripsHint')}</p>
+            <h3 className="text-xl font-bold text-heading mb-2">{td('noTripsYet')}</h3>
+            <p className="text-subtle mb-6 max-w-sm mx-auto">{td('noTripsHint')}</p>
             <Link href={`/${locale}/companions/new`}>
-              <Button className="bg-brand hover:bg-brand-hover rounded-full px-8">+ {t('post')}</Button>
+              <Button className="bg-brand hover:bg-brand-hover rounded-full px-8 shadow-md shadow-brand/20">+ {t('post')}</Button>
             </Link>
           </div>
         )}

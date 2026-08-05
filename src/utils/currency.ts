@@ -91,27 +91,76 @@ export function formatCurrency(amount: number, currencyCode: string): string {
   }
 }
 
-// rates: { USD: 1, KRW: 1350, EUR: 0.92, ... } (모두 USD 기준)
+/**
+ * 금액을 다른 통화로 환산한다. `rates` 는 USD 기준 환율표다.
+ * (예: `{ USD: 1, KRW: 1350, EUR: 0.92 }`)
+ *
+ * 필요한 환율이 표에 없으면 환산할 수 없으므로 `null` 을 준다. 예전에는 없는 환율을
+ * 1 로 취급했는데, 그러면 환율을 아직 못 받아온 상태에서 ₩50,000 짜리 가이드 비용이
+ * "$50,000" 로 표시됐다. 값을 만들어 내는 것보다 모른다고 말하는 게 낫다.
+ */
 export function convertAmount(
   amount: number,
   fromCurrency: string,
   toCurrency: string,
   rates: Record<string, number>
-): number {
+): number | null {
   if (fromCurrency === toCurrency) return amount
-  const fromRate = rates[fromCurrency] ?? 1
-  const toRate   = rates[toCurrency]   ?? 1
+  const fromRate = rates[fromCurrency]
+  const toRate = rates[toCurrency]
+  if (!fromRate || !toRate) return null
   // fromCurrency → USD → toCurrency
   return (amount / fromRate) * toRate
 }
 
+/**
+ * 환산해서 표기한다. 환율을 모르면 원래 통화로 정직하게 보여 준다.
+ * 금액이 없을 때(null·undefined·NaN)만 '—' 다. 0 은 "무료" 라는 정보이므로 그대로 쓴다.
+ */
 export function formatConverted(
-  amount: number,
+  amount: number | null | undefined,
   fromCurrency: string,
   toCurrency: string,
   rates: Record<string, number>
 ): string {
-  if (!amount) return '—'
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) return '—'
   const converted = convertAmount(amount, fromCurrency, toCurrency, rates)
-  return formatCurrency(converted, toCurrency)
+  return converted === null
+    ? formatCurrency(amount, fromCurrency)
+    : formatCurrency(converted, toCurrency)
+}
+
+export interface CostEntry {
+  cost?: number | null
+  currency?: string | null
+}
+
+export interface ConvertedTotal {
+  /** 환산에 성공한 항목만 더한 합계. */
+  total: number
+  /** 환율을 몰라 합계에서 빠진 항목이 있으면 true. */
+  incomplete: boolean
+}
+
+/**
+ * 여러 통화로 적힌 비용을 한 통화로 합산한다.
+ *
+ * 환율을 모르는 항목은 빼고 더하되, 빠진 게 있으면 `incomplete` 로 알린다.
+ * 합계를 보여 주는 쪽에서 "대략" 표시를 붙일 수 있어야 실제보다 적은 금액을
+ * 확정된 총액처럼 내보이지 않는다.
+ */
+export function sumInCurrency(
+  entries: readonly CostEntry[],
+  toCurrency: string,
+  rates: Record<string, number>
+): ConvertedTotal {
+  let total = 0
+  let incomplete = false
+  for (const entry of entries) {
+    if (!entry.cost) continue
+    const converted = convertAmount(entry.cost, entry.currency || toCurrency, toCurrency, rates)
+    if (converted === null) incomplete = true
+    else total += converted
+  }
+  return { total, incomplete }
 }

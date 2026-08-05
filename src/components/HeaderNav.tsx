@@ -1,37 +1,37 @@
 'use client'
 
-import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import ExploreMegaMenu, { type MegaMenuGroup, type NavPrimaryLink } from '@/components/explore/ExploreMegaMenu'
 import MobileMegaMenu from '@/components/explore/MobileMegaMenu'
 import { MessageSquare, Menu, X, LogOut, User, LayoutDashboard, Bookmark, ChevronDown } from 'lucide-react'
-import { useClerk } from '@clerk/nextjs'
+import { useClerk, useUser } from '@clerk/nextjs'
+import { useTranslations } from 'next-intl'
 import LanguageSelector, { LocaleTriggerButton } from '@/components/LanguageSelector'
 import CurrencySelector from '@/components/CurrencySelector'
 import NotificationsPanel from '@/components/NotificationsPanel'
 import MessagesPanel from '@/components/MessagesPanel'
+import Avatar from '@/components/ui/Avatar'
+
+interface BadgePayload {
+  profile?: { id: string; avatar_url: string | null; full_name: string | null } | null
+  unreadNotifications?: number
+  unreadMessages?: number
+}
 
 interface Props {
   logoSlot: React.ReactNode
   locale: string
-  userId?: string
-  profileId?: string
-  userEmail?: string
-  avatarUrl?: string | null
-  fullName?: string | null
   primaryNavLinks: NavPrimaryLink[]
   megaMenuGroups: MegaMenuGroup[]
-  unreadCount: number
-  unreadMessageCount: number
   tDashboard: string
   tProfile: string
   tLogout: string
   tLogin: string
   tBookmarks: string
   tMessages: string
-  tNotifications: string
   tMenu: string
   tAccount: string
   tMobileMore: string
@@ -41,20 +41,50 @@ interface Props {
 
 export default function HeaderNav({
   logoSlot,
-  locale, userId, profileId, userEmail,
-  avatarUrl, fullName,
+  locale,
   primaryNavLinks,
   megaMenuGroups,
-  unreadCount, unreadMessageCount,
-  tDashboard, tProfile, tLogout, tLogin, tBookmarks, tMessages, tNotifications,
+  tDashboard, tProfile, tLogout, tLogin, tBookmarks, tMessages,
   tMenu, tAccount, tMobileMore, tLanguage, tCurrency,
 }: Props) {
+  const tc = useTranslations('Common')
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
+  const [badgeData, setBadgeData] = useState<BadgePayload | null>(null)
   const profileRef = useRef<HTMLDivElement>(null)
   const { signOut } = useClerk()
+  const { isSignedIn, user: clerkUser } = useUser()
+
+  // 로그아웃 시 상태를 지우는 대신 파생값에서 무시한다 (effect 내 setState 회피).
+  const badges = isSignedIn ? badgeData : null
+
+  const userId = isSignedIn ? clerkUser?.id : undefined
+  const userEmail = clerkUser?.emailAddresses?.[0]?.emailAddress
+  const avatarUrl = badges?.profile?.avatar_url ?? clerkUser?.imageUrl
+  const fullName = badges?.profile?.full_name ?? clerkUser?.fullName
+  const unreadCount = badges?.unreadNotifications ?? 0
+  const unreadMessageCount = badges?.unreadMessages ?? 0
+
+  useEffect(() => {
+    if (!isSignedIn) return
+    let cancelled = false
+    const load = () => {
+      fetch('/api/header/badges')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!cancelled && data?.signedIn) setBadgeData(data)
+        })
+        .catch(() => {})
+    }
+    load()
+    const interval = setInterval(load, 120000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [isSignedIn])
 
   // 프로필 드롭다운 외부 클릭 닫기 (mousedown 사용 시 언어·화폐 포털 모달 클릭이 선행되어 컴포넌트가 언마운트됨)
   useEffect(() => {
@@ -73,11 +103,6 @@ export default function HeaderNav({
     document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
-
-  // 아바타 이니셜 (fullName 또는 email 첫 글자)
-  const initials = fullName
-    ? fullName.slice(0, 1).toUpperCase()
-    : userEmail?.slice(0, 1).toUpperCase() ?? '?'
 
   const openLanguagePicker = () => {
     setProfileOpen(false)
@@ -150,14 +175,12 @@ export default function HeaderNav({
               <button
                 suppressHydrationWarning
                 onClick={() => setProfileOpen(v => !v)}
+                aria-label={tc('profileMenu')}
+                aria-expanded={profileOpen}
                 className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-surface-hover transition-colors"
               >
                 {/* 아바타 */}
-                <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
-                  {avatarUrl
-                    ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-                    : initials}
-                </div>
+                <Avatar src={avatarUrl} name={fullName ?? userEmail} size={28} fallbackClassName="bg-brand text-white" />
                 <ChevronDown className={`w-3.5 h-3.5 text-hint transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -247,11 +270,13 @@ export default function HeaderNav({
             <div className="flex items-center justify-between px-4 py-4 border-b border-edge/60 shrink-0">
               {userId ? (
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white text-sm font-bold overflow-hidden ring-2 ring-brand/20 shrink-0">
-                    {avatarUrl
-                      ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-                      : initials}
-                  </div>
+                  <Avatar
+                    src={avatarUrl}
+                    name={fullName ?? userEmail}
+                    size={40}
+                    fallbackClassName="bg-brand text-white"
+                    className="ring-2 ring-brand/20"
+                  />
                   <div className="min-w-0">
                     <p className="font-semibold text-heading text-sm truncate">{fullName || userEmail}</p>
                     {fullName && <p className="text-xs text-hint truncate mt-0.5">{userEmail}</p>}
@@ -264,6 +289,7 @@ export default function HeaderNav({
                 suppressHydrationWarning
                 type="button"
                 onClick={closeMobile}
+                aria-label={tc('closeMenu')}
                 className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover text-subtle transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />

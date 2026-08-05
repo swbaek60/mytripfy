@@ -8,6 +8,8 @@ import { SITE_URL } from '@/lib/seo/site'
 export default function robots(): MetadataRoute.Robots {
   const disallow = [
     '/api/',
+    '/*/admin',
+    '/*/admin/',
     '/sign-in',
     '/sign-up',
     '/sso-callback',
@@ -31,7 +33,8 @@ export default function robots(): MetadataRoute.Robots {
     '/*/sponsors/new',
     '/*/sponsors/*/edit',
     '/*/sponsors/mine',
-    '/*/personality',
+    // /personality 는 로그인 없이 볼 수 있는 성향 테스트다. 유입 경로라 색인을 허용한다.
+    // 사이트맵에도 들어 있으므로 여기서 막으면 서로 어긋난다.
     '/*/challenges/disputes/',
     '/*/users/',
   ]

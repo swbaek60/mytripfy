@@ -10,8 +10,8 @@ import CountrySelect from '@/components/CountrySelect'
 
 const BUSINESS_TYPES = ['restaurant', 'cafe', 'bar', 'shop', 'accommodation', 'experience', 'other'] as const
 const BENEFIT_TYPES = [
-  { value: 'discount_percent', needValue: true, valueLabel: '%' },
-  { value: 'discount_fixed', needValue: true, valueLabel: 'Amount' },
+  { value: 'discount_percent', needValue: true, valueUnit: 'percent' },
+  { value: 'discount_fixed', needValue: true, valueUnit: 'amount' },
   { value: 'free_item', needValue: false },
   { value: 'free_drink', needValue: false },
   { value: 'free_entry', needValue: false },
@@ -19,8 +19,9 @@ const BENEFIT_TYPES = [
   { value: 'other', needValue: false },
 ] as const
 
-export default function SponsorForm({ userId, locale }: { userId: string; locale: string }) {
+export default function SponsorForm({ locale }: { locale: string }) {
   const t = useTranslations('Sponsors')
+  const tc = useTranslations('Common')
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -115,11 +116,11 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
 
       const res = await fetch('/api/sponsors', { method: 'POST', body: form })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed')
+      if (!res.ok) throw new Error(data.error || t('createFailed'))
       router.push(`/${locale}/sponsors/${data.id}`)
       router.refresh()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create.')
+      setError(err instanceof Error ? err.message : t('createFailed'))
     } finally {
       setSaving(false)
     }
@@ -127,22 +128,26 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-surface rounded-2xl p-6 shadow-sm border border-edge">
-      {error && <p className="text-sm text-danger bg-danger-light p-3 rounded-xl">{error}</p>}
+      {error && <p className="text-sm text-danger-strong bg-danger-light p-3 rounded-xl">{error}</p>}
 
       <div>
-        <Label>Store name *</Label>
+        <Label>{t('storeNameRequired')}</Label>
         <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. My Café" className="mt-1" required />
       </div>
       <div>
-        <Label>Store name (English, optional)</Label>
+        <Label>{t('storeNameEn')}</Label>
         <Input value={nameEn} onChange={e => setNameEn(e.target.value)} placeholder="e.g. My Café" className="mt-1" />
       </div>
       <div>
-        <Label>Description (optional)</Label>
-        <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="About your store..." className="w-full mt-1 min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
+        <Label>{t('descriptionOptional')}</Label>
+        <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('aboutStorePlaceholder')} aria-label={t('descriptionOptional')} className="w-full mt-1 min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
       </div>
       <div>
-        <Label>Business type *</Label>
+        <Label>{t('descriptionEnOptional')}</Label>
+        <textarea value={descriptionEn} onChange={e => setDescriptionEn(e.target.value)} placeholder={t('aboutStoreEnPlaceholder')} aria-label={t('descriptionEnOptional')} className="w-full mt-1 min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <Label>{t('businessTypeLabel')}</Label>
         <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full mt-1 rounded-xl border border-edge px-3 py-2 text-sm" required>
           {BUSINESS_TYPES.map(tp => (
             <option key={tp} value={tp}>{t(tp)}</option>
@@ -150,24 +155,24 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
         </select>
       </div>
       <div>
-        <Label>Country *</Label>
+        <Label>{t('countryRequired')}</Label>
         <div className="mt-1">
-          <CountrySelect value={countryCode} onChange={setCountryCode} placeholder="Select country" className="rounded-xl" />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="rounded-xl" />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label>Region / State</Label>
-          <Input value={region} onChange={e => setRegion(e.target.value)} placeholder="e.g. California" className="mt-1" />
+          <Label>{t('regionState')}</Label>
+          <Input value={region} onChange={e => setRegion(e.target.value)} placeholder={t('regionPlaceholder')} className="mt-1" />
         </div>
         <div>
-          <Label>City</Label>
-          <Input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Seoul" className="mt-1" />
+          <Label>{tc('city')}</Label>
+          <Input value={city} onChange={e => setCity(e.target.value)} placeholder={t('cityPlaceholder')} className="mt-1" />
         </div>
       </div>
       <div>
-        <Label>Address (for map)</Label>
-        <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="Full address" className="mt-1" />
+        <Label>{t('addressForMap')}</Label>
+        <Input value={address} onChange={e => setAddress(e.target.value)} placeholder={t('fullAddress')} className="mt-1" />
       </div>
       <div>
         <Label>{t('website')}</Label>
@@ -187,42 +192,42 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
           <Input value={facebookUrl} onChange={e => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..." className="mt-1" />
         </div>
         <div>
-          <Label>Twitter / X</Label>
+          <Label>{t('twitterX')}</Label>
           <Input value={twitterUrl} onChange={e => setTwitterUrl(e.target.value)} placeholder="https://twitter.com/..." className="mt-1" />
         </div>
       </div>
       <div>
-        <Label>Logo image (optional)</Label>
-        <input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
+        <Label>{t('logoImage')}</Label>
+        <input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] || null)} aria-label={t('logoImage')} className="mt-1 block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-success-light file:text-success-strong" />
       </div>
       <div>
-        <Label>Cover image (optional)</Label>
-        <input type="file" accept="image/*" onChange={e => setCoverFile(e.target.files?.[0] || null)} className="mt-1 block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
+        <Label>{t('coverImage')}</Label>
+        <input type="file" accept="image/*" onChange={e => setCoverFile(e.target.files?.[0] || null)} aria-label={t('coverImage')} className="mt-1 block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-success-light file:text-success-strong" />
       </div>
 
       <hr className="border-edge" />
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-heading">{t('benefits')} (optional)</h3>
-        <Button type="button" variant="outline" size="sm" onClick={addBenefit} className="rounded-full text-emerald-600 border-emerald-300">
-          + Add benefit
+        <h3 className="font-bold text-heading">{t('benefitsOptional')}</h3>
+        <Button type="button" variant="outline" size="sm" onClick={addBenefit} className="rounded-full text-success border-success-border">
+          + {t('addBenefit')}
         </Button>
       </div>
       {benefits.map((benefit, index) => {
         const meta = BENEFIT_TYPES.find(b => b.value === benefit.benefit_type)
         return (
-          <div key={benefit.id} className="rounded-xl border border-edge p-4 bg-gray-50/50 space-y-3">
+          <div key={benefit.id} className="rounded-xl border border-edge p-4 bg-surface-sunken/50 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-body">Benefit #{index + 1}</span>
+              <span className="text-sm font-medium text-body">{t('benefitNumber', { number: index + 1 })}</span>
               <Button type="button" variant="ghost" size="sm" onClick={() => removeBenefit(benefit.id)} className="text-danger hover:text-danger hover:bg-danger-light">
-                Remove
+                {tc('remove')}
               </Button>
             </div>
             <div>
-              <Label>Benefit title</Label>
-              <Input value={benefit.title} onChange={e => updateBenefit(benefit.id, 'title', e.target.value)} placeholder="e.g. 10% off for mytripfy users" className="mt-1" />
+              <Label>{t('benefitTitle')}</Label>
+              <Input value={benefit.title} onChange={e => updateBenefit(benefit.id, 'title', e.target.value)} placeholder={t('benefitTitlePlaceholder')} className="mt-1" />
             </div>
             <div>
-              <Label>Benefit type</Label>
+              <Label>{t('benefitType')}</Label>
               <select value={benefit.benefit_type} onChange={e => updateBenefit(benefit.id, 'benefit_type', e.target.value)} className="w-full mt-1 rounded-xl border border-edge px-3 py-2 text-sm">
                 <option value="discount_percent">{t('discountPercent', { value: '' }).replace('{value}', '…')}</option>
                 <option value="discount_fixed">{t('discountFixed', { value: '' }).replace('{value}', '…')}</option>
@@ -236,25 +241,25 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
             {meta?.needValue && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Value {meta.valueLabel}</Label>
-                  <Input value={benefit.value_num} onChange={e => updateBenefit(benefit.id, 'value_num', e.target.value)} placeholder={meta.valueLabel === '%' ? '10' : '5'} type="text" className="mt-1" />
+                  <Label>{t('value')} {meta.valueUnit === 'percent' ? '%' : t('amount')}</Label>
+                  <Input value={benefit.value_num} onChange={e => updateBenefit(benefit.id, 'value_num', e.target.value)} placeholder={meta.valueUnit === 'percent' ? '10' : '5'} aria-label={t('value')} type="text" className="mt-1" />
                 </div>
                 {benefit.benefit_type === 'discount_fixed' && (
                   <div>
-                    <Label>Currency / text</Label>
-                    <Input value={benefit.value_text} onChange={e => updateBenefit(benefit.id, 'value_text', e.target.value)} placeholder="USD, EUR, or amount" className="mt-1" />
+                    <Label>{t('currencyOrValue')}</Label>
+                    <Input value={benefit.value_text} onChange={e => updateBenefit(benefit.id, 'value_text', e.target.value)} placeholder={t('currencyValuePlaceholder')} aria-label={t('currencyOrValue')} className="mt-1" />
                   </div>
                 )}
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Start date</Label>
-                <Input value={benefit.start_date} onChange={e => updateBenefit(benefit.id, 'start_date', e.target.value)} type="date" className="mt-1" />
+                <Label>{t('startDate')}</Label>
+                <Input value={benefit.start_date} onChange={e => updateBenefit(benefit.id, 'start_date', e.target.value)} type="date" aria-label={t('startDate')} className="mt-1" />
               </div>
               <div>
-                <Label>End date</Label>
-                <Input value={benefit.end_date} onChange={e => updateBenefit(benefit.id, 'end_date', e.target.value)} type="date" min={today} className="mt-1" />
+                <Label>{t('endDate')}</Label>
+                <Input value={benefit.end_date} onChange={e => updateBenefit(benefit.id, 'end_date', e.target.value)} type="date" min={today} aria-label={t('endDate')} className="mt-1" />
               </div>
             </div>
           </div>
@@ -262,10 +267,10 @@ export default function SponsorForm({ userId, locale }: { userId: string; locale
       })}
 
       <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 rounded-full">
-          {saving ? 'Saving...' : 'Create'}
+        <Button type="submit" disabled={saving} className="bg-success hover:bg-success-strong rounded-full">
+          {saving ? tc('saving') : tc('create')}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()} className="rounded-full">Cancel</Button>
+        <Button type="button" variant="outline" onClick={() => router.back()} className="rounded-full">{tc('cancel')}</Button>
       </div>
     </form>
   )

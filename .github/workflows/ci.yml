@@ -1,0 +1,68 @@
+name: CI
+
+# 코드가 올라올 때만 돈다. 정해진 시간에 도는 자동 작업이 아니다.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # 같은 브랜치에 연달아 푸시하면 이전 실행을 취소한다.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: 타입 검사
+        run: npx tsc --noEmit
+
+      - name: 린트
+        run: npm run lint -- --max-warnings=0
+
+      - name: 단위 테스트
+        run: npx jest --ci
+
+      - name: 내부 링크 검사
+        run: npm run check:links
+
+      - name: 색 토큰 검사 (기본 팔레트 직접 사용 금지)
+        run: npm run check:palette
+
+      - name: 명도 대비 검사 (WCAG AA)
+        run: npm run check:contrast
+
+      - name: 하드코딩 영어 문구 검사
+        run: npm run check:hardcoded
+
+      - name: 접근성 검사 (조작 요소 이름)
+        run: npm run check:a11y
+
+      - name: SEO 검사 (metadata·noindex·robots 충돌)
+        run: npm run check:seo
+
+      # 번역 누락은 아직 남아 있어 실패시키지 않는다. 현황만 로그로 남긴다.
+      - name: 번역 커버리지 (참고용)
+        run: npm run check:i18n
+        continue-on-error: true
+
+      - name: 프로덕션 빌드
+        run: npm run build
+        env:
+          # 빌드 시점에 참조되는 공개 값들. 비어 있어도 빌드는 통과해야 한다.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}

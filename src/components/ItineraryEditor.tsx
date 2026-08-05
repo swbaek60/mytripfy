@@ -1,33 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, MapPin, Clock, Utensils, Car, BedDouble, FileText, Activity } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, MapPin, Utensils, Car, BedDouble, FileText, Activity } from 'lucide-react'
 import { useCurrency } from '@/context/CurrencyContext'
-import { CURRENCIES, convertAmount, formatCurrency } from '@/utils/currency'
-
-type Category = 'transport' | 'accommodation' | 'meal' | 'activity' | 'note'
-
-interface TripActivity {
-  id: string
-  sort_order: number
-  time_label: string | null
-  category: Category
-  title: string
-  location: string | null
-  notes: string | null
-  cost: number | null
-  currency: string
-}
-
-interface TripDay {
-  id: string
-  day_number: number
-  date: string | null
-  title: string | null
-  notes: string | null
-  trip_activities: TripActivity[]
-}
+import { CURRENCIES, formatCurrency, sumInCurrency } from '@/utils/currency'
+import { api, errorMessage } from '@/lib/client/api'
+import type { ActivityCategory, TripActivity, TripDay } from '@/types/itinerary'
 
 interface Props {
   tripId?: string
@@ -36,13 +15,23 @@ interface Props {
   initialDays: TripDay[]
 }
 
-const CATEGORY_META: Record<Category, { label: string; icon: React.ReactNode; color: string }> = {
-  transport:     { label: 'Transport',     icon: <Car size={13} />,       color: 'bg-blue-100 text-blue-700' },
-  accommodation: { label: 'Accommodation', icon: <BedDouble size={13} />, color: 'bg-purple-100 text-purple-700' },
-  meal:          { label: 'Meal',          icon: <Utensils size={13} />,  color: 'bg-orange-100 text-orange-700' },
-  activity:      { label: 'Activity',      icon: <Activity size={13} />,  color: 'bg-green-100 text-green-700' },
-  note:          { label: 'Note',          icon: <FileText size={13} />,  color: 'bg-gray-100 text-body' },
+/** 라벨은 번역 키로 따로 받는다. 여기에는 색과 아이콘만 둔다. */
+const CATEGORY_META: Record<
+  ActivityCategory,
+  { labelKey: string; icon: React.ReactNode; color: string }
+> = {
+  transport:     { labelKey: 'catTransport',     icon: <Car size={13} />,       color: 'bg-brand-muted text-brand-hover' },
+  accommodation: { labelKey: 'catAccommodation', icon: <BedDouble size={13} />, color: 'bg-purple-muted text-purple-strong' },
+  meal:          { labelKey: 'catMeal',          icon: <Utensils size={13} />,  color: 'bg-sunset-muted text-sunset-strong' },
+  activity:      { labelKey: 'catActivity',      icon: <Activity size={13} />,  color: 'bg-success-muted text-success-strong' },
+  note:          { labelKey: 'catNote',          icon: <FileText size={13} />,  color: 'bg-surface-hover text-body' },
 }
+
+/**
+ * 새 활동의 기본 제목. 번역하지 않는다 — /api/trips/itinerary 의 zod 기본값과
+ * 같은 문자열이어야 하고, 사용자가 입력란을 누르면 이 값일 때만 비워 준다.
+ */
+const NEW_ACTIVITY_TITLE = 'New activity'
 
 function getDateForDay(startDate: string | null, dayNumber: number): string {
   if (!startDate) return ''
@@ -51,71 +40,116 @@ function getDateForDay(startDate: string | null, dayNumber: number): string {
   return d.toISOString().split('T')[0]
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return ''
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+/** 활동 필드명 → API 파라미터명 */
+const ACTIVITY_PARAM: Record<string, string> = {
+  time_label: 'timeLabel',
+  sort_order: 'sortOrder',
 }
 
 export default function ItineraryEditor({ tripId, postId, startDate, initialDays }: Props) {
+  const t = useTranslations('Itinerary')
+  const tc = useTranslations('Common')
+  const locale = useLocale()
   const [days, setDays] = useState<TripDay[]>(initialDays)
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set(initialDays.map(d => d.id)))
   const [saving, setSaving] = useState(false)
-  const supabase = createClient()
+  const [error, setError] = useState('')
   const { selectedCurrency, rates } = useCurrency()
 
-  const refField = tripId ? { trip_id: tripId } : { post_id: postId }
+  // 날짜는 보고 있는 로케일로 적는다 (예전에는 'en-US' 고정).
+  const formatDate = (dateStr: string | null): string => {
+    if (!dateStr) return ''
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString(locale, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    })
+  }
+
+  // 타이핑 중에는 마지막 입력만 저장한다 (필드별 디바운스).
+  const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  useEffect(() => {
+    const pending = timers.current
+    return () => {
+      pending.forEach(clearTimeout)
+      pending.clear()
+    }
+  }, [])
+
+  const queueSave = useCallback((key: string, body: Record<string, unknown>) => {
+    const pending = timers.current
+    const existing = pending.get(key)
+    if (existing) clearTimeout(existing)
+    pending.set(
+      key,
+      setTimeout(() => {
+        pending.delete(key)
+        api.patch('/api/trips/itinerary', body).catch(err => setError(errorMessage(err)))
+      }, 600)
+    )
+  }, [])
 
   const addDay = async () => {
     setSaving(true)
+    setError('')
     const nextNum = days.length + 1
     const date = getDateForDay(startDate, nextNum)
-    const { data, error } = await supabase
-      .from('trip_days')
-      .insert({ ...refField, day_number: nextNum, date: date || null, title: `Day ${nextNum}` })
-      .select()
-      .single()
-    if (!error && data) {
-      const newDay: TripDay = { ...data, trip_activities: [] }
-      setDays(prev => [...prev, newDay])
-      setExpandedDays(prev => new Set([...prev, data.id]))
+    try {
+      const { day } = await api.post<{ day: TripDay }>('/api/trips/itinerary', {
+        scope: 'day',
+        ...(tripId ? { tripId } : { postId }),
+        dayNumber: nextNum,
+        date: date || null,
+        title: t('dayLabel', { number: nextNum }),
+      })
+      setDays(prev => [...prev, { ...day, trip_activities: [] }])
+      setExpandedDays(prev => new Set([...prev, day.id]))
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const deleteDay = async (dayId: string) => {
     if (!confirm('Delete this day and all its activities?')) return
     setSaving(true)
-    await supabase.from('trip_days').delete().eq('id', dayId)
-    setDays(prev => prev.filter(d => d.id !== dayId))
-    setSaving(false)
+    try {
+      await api.del('/api/trips/itinerary', { scope: 'day', dayId })
+      setDays(prev => prev.filter(d => d.id !== dayId))
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const updateDayField = async (dayId: string, field: 'title' | 'notes', value: string) => {
+  const updateDayField = (dayId: string, field: 'title' | 'notes', value: string) => {
     setDays(prev => prev.map(d => d.id === dayId ? { ...d, [field]: value } : d))
-    await supabase.from('trip_days').update({ [field]: value }).eq('id', dayId)
+    queueSave(`day:${dayId}:${field}`, { scope: 'day', dayId, [field]: value })
   }
 
   const addActivity = async (dayId: string) => {
     setSaving(true)
-    const day = days.find(d => d.id === dayId)
-    const sortOrder = (day?.trip_activities.length ?? 0)
-    const { data, error } = await supabase
-      .from('trip_activities')
-      .insert({ day_id: dayId, sort_order: sortOrder, category: 'activity', title: 'New activity', currency: selectedCurrency })
-      .select()
-      .single()
-    if (!error && data) {
+    try {
+      const { activity } = await api.post<{ activity: TripActivity }>('/api/trips/itinerary', {
+        scope: 'activity',
+        dayId,
+        category: 'activity',
+        title: NEW_ACTIVITY_TITLE,
+        currency: selectedCurrency,
+      })
       setDays(prev => prev.map(d =>
-        d.id === dayId
-          ? { ...d, trip_activities: [...d.trip_activities, data] }
-          : d
+        d.id === dayId ? { ...d, trip_activities: [...d.trip_activities, activity] } : d
       ))
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
-  const updateActivity = async (
+  const updateActivity = (
     dayId: string,
     activityId: string,
     field: keyof TripActivity,
@@ -126,16 +160,21 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
         ? { ...d, trip_activities: d.trip_activities.map(a => a.id === activityId ? { ...a, [field]: value } : a) }
         : d
     ))
-    await supabase.from('trip_activities').update({ [field]: value }).eq('id', activityId)
+    const param = ACTIVITY_PARAM[field] ?? field
+    queueSave(`activity:${activityId}:${field}`, { scope: 'activity', activityId, [param]: value })
   }
 
   const deleteActivity = async (dayId: string, activityId: string) => {
-    await supabase.from('trip_activities').delete().eq('id', activityId)
-    setDays(prev => prev.map(d =>
-      d.id === dayId
-        ? { ...d, trip_activities: d.trip_activities.filter(a => a.id !== activityId) }
-        : d
-    ))
+    try {
+      await api.del('/api/trips/itinerary', { scope: 'activity', activityId })
+      setDays(prev => prev.map(d =>
+        d.id === dayId
+          ? { ...d, trip_activities: d.trip_activities.filter(a => a.id !== activityId) }
+          : d
+      ))
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   const toggleDay = (dayId: string) => {
@@ -147,22 +186,20 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
     })
   }
 
-  const totalConverted = days
-    .flatMap(d => d.trip_activities)
-    .reduce((sum, a) => {
-      if (!a.cost) return sum
-      return sum + convertAmount(a.cost, a.currency || selectedCurrency, selectedCurrency, rates)
-    }, 0)
+  const total = sumInCurrency(days.flatMap(d => d.trip_activities), selectedCurrency, rates)
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="bg-danger-light border border-danger-border text-danger-strong rounded-xl px-4 py-3 text-sm">
+          {error}
+        </div>
+      )}
+
       {days.map((day) => {
-        const dateLabel = day.date ? formatDate(day.date) : `Day ${day.day_number}`
+        const dateLabel = day.date ? formatDate(day.date) : t('dayLabel', { number: day.day_number })
         const isExpanded = expandedDays.has(day.id)
-        const dayConverted = day.trip_activities.reduce((sum, a) => {
-          if (!a.cost) return sum
-          return sum + convertAmount(a.cost, a.currency || selectedCurrency, selectedCurrency, rates)
-        }, 0)
+        const dayTotal = sumInCurrency(day.trip_activities, selectedCurrency, rates)
 
         return (
           <div key={day.id} className="bg-surface rounded-2xl shadow-sm border border-edge overflow-hidden">
@@ -175,17 +212,18 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
               </div>
               <div className="flex-1 min-w-0">
                 <input
-                  value={day.title ?? `Day ${day.day_number}`}
+                  value={day.title ?? t('dayLabel', { number: day.day_number })}
                   onChange={e => { e.stopPropagation(); updateDayField(day.id, 'title', e.target.value) }}
                   onClick={e => e.stopPropagation()}
+                  aria-label={tc('title')}
                   className="font-bold text-heading bg-transparent border-none outline-none w-full text-sm sm:text-base"
-                  placeholder={`Day ${day.day_number}`}
+                  placeholder={t('dayLabel', { number: day.day_number })}
                 />
                 <p className="text-xs text-hint">
                   {dateLabel} · {day.trip_activities.length} activities
-                  {dayConverted > 0 && (
+                  {dayTotal.total > 0 && (
                     <span className="text-brand font-medium ml-1">
-                      · {formatCurrency(dayConverted, selectedCurrency)}
+                      · {dayTotal.incomplete ? '~' : ''}{formatCurrency(dayTotal.total, selectedCurrency)}
                     </span>
                   )}
                 </p>
@@ -193,7 +231,8 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={e => { e.stopPropagation(); deleteDay(day.id) }}
-                  className="p-1.5 text-hint hover:text-red-500 transition-colors rounded-lg hover:bg-danger-light"
+                  aria-label={t('deleteDay')}
+                  className="p-1.5 text-hint hover:text-danger transition-colors rounded-lg hover:bg-danger-light"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -206,9 +245,9 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                 <textarea
                   value={day.notes ?? ''}
                   onChange={e => updateDayField(day.id, 'notes', e.target.value)}
-                  placeholder="Add notes for this day..."
+                  placeholder={tc('dayNotesPlaceholder')}
                   rows={2}
-                  className="w-full text-sm text-body placeholder-hint bg-surface-sunken rounded-xl px-3 py-2 resize-none border border-edge focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full text-sm text-body placeholder-hint bg-surface-sunken rounded-xl px-3 py-2 resize-none border border-edge focus:outline-none focus:ring-2 focus:ring-brand"
                 />
 
                 <div className="space-y-2">
@@ -229,25 +268,27 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                                 className={`text-xs font-medium px-2 py-1 rounded-full border-none outline-none cursor-pointer ${meta.color}`}
                               >
                                 {Object.entries(CATEGORY_META).map(([k, v]) => (
-                                  <option key={k} value={k}>{v.label}</option>
+                                  <option key={k} value={k}>{t(v.labelKey)}</option>
                                 ))}
                               </select>
                               <input
                                 value={act.time_label ?? ''}
                                 onChange={e => updateActivity(day.id, act.id, 'time_label', e.target.value)}
-                                placeholder="Time"
-                                className="w-20 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                placeholder={t('timePlaceholder')}
+                                aria-label={t('timePlaceholder')}
+                                className="w-20 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand"
                               />
                               <input
                                 value={act.title}
                                 onChange={e => updateActivity(day.id, act.id, 'title', e.target.value)}
                                 onFocus={e => {
-                                  if (e.target.value === 'New activity') {
+                                  if (e.target.value === NEW_ACTIVITY_TITLE) {
                                     updateActivity(day.id, act.id, 'title', '')
                                   }
                                 }}
-                                placeholder="Activity title"
-                                className="flex-1 text-sm font-medium text-heading bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 min-w-0"
+                                placeholder={tc('activityTitle')}
+                                aria-label={tc('activityTitle')}
+                                className="flex-1 text-sm font-medium text-heading bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand min-w-0"
                               />
                             </div>
                             <div className="flex flex-wrap gap-2 items-center">
@@ -256,15 +297,16 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                                 <input
                                   value={act.location ?? ''}
                                   onChange={e => updateActivity(day.id, act.id, 'location', e.target.value)}
-                                  placeholder="Location (optional)"
-                                  className="flex-1 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 min-w-0"
+                                  placeholder={t('locationPlaceholder')}
+                                  aria-label={t('locationPlaceholder')}
+                                  className="flex-1 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand min-w-0"
                                 />
                               </div>
                               <div className="flex items-center gap-1">
                                 <select
                                   value={act.currency || selectedCurrency}
                                   onChange={e => updateActivity(day.id, act.id, 'currency', e.target.value)}
-                                  className="text-xs text-subtle bg-surface border border-edge rounded-lg px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 max-w-[70px]"
+                                  className="text-xs text-subtle bg-surface border border-edge rounded-lg px-1 py-1 focus:outline-none focus:ring-1 focus:ring-brand max-w-[70px]"
                                 >
                                   {CURRENCIES.map(c => (
                                     <option key={c.code} value={c.code}>{c.code}</option>
@@ -275,20 +317,22 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                                   value={act.cost ?? ''}
                                   onChange={e => updateActivity(day.id, act.id, 'cost', e.target.value ? parseFloat(e.target.value) : null)}
                                   placeholder="0"
-                                  className="w-20 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                  className="w-20 text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand"
                                 />
                               </div>
                             </div>
                             <input
                               value={act.notes ?? ''}
                               onChange={e => updateActivity(day.id, act.id, 'notes', e.target.value)}
-                              placeholder="Notes (optional)"
-                              className="w-full text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              placeholder={t('notesPlaceholder')}
+                              aria-label={t('notesPlaceholder')}
+                              className="w-full text-xs text-subtle bg-surface border border-edge rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand"
                             />
                           </div>
                           <button
                             onClick={() => deleteActivity(day.id, act.id)}
-                            className="mt-2 p-1.5 text-hint hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                            aria-label={t('deleteActivity')}
+                            className="mt-2 p-1.5 text-hint hover:text-danger transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -301,7 +345,7 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
                   onClick={() => addActivity(day.id)}
                   className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm text-brand border-2 border-dashed border-edge-brand rounded-xl hover:bg-brand-light transition-colors font-medium"
                 >
-                  <Plus size={14} /> Add Activity
+                  <Plus size={14} /> {tc('addActivity')}
                 </button>
               </div>
             )}
@@ -314,14 +358,14 @@ export default function ItineraryEditor({ tripId, postId, startDate, initialDays
         disabled={saving}
         className="w-full flex items-center justify-center gap-2 py-4 text-sm font-semibold text-brand border-2 border-dashed border-edge-brand rounded-2xl hover:bg-brand-light transition-colors disabled:opacity-50"
       >
-        <Plus size={16} /> Add Day {days.length + 1}
+        <Plus size={16} /> {tc('addDay')} {days.length + 1}
       </button>
 
-      {totalConverted > 0 && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 flex items-center justify-between">
-          <span className="text-sm font-semibold text-body">Estimated Total Budget</span>
+      {total.total > 0 && (
+        <div className="bg-gradient-to-r from-brand-light to-indigo-light rounded-2xl p-4 flex items-center justify-between">
+          <span className="text-sm font-semibold text-body">{tc('estimatedTotalBudget')}</span>
           <span className="text-xl font-bold text-brand">
-            {formatCurrency(totalConverted, selectedCurrency)}
+            {total.incomplete ? '~' : ''}{formatCurrency(total.total, selectedCurrency)}
           </span>
         </div>
       )}

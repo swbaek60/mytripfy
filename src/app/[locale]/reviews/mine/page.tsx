@@ -5,6 +5,19 @@ import Link from 'next/link'
 import { MessageSquare, Star, ChevronRight } from 'lucide-react'
 import { getLevelInfo } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
+import Avatar from '@/components/ui/Avatar'
+
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/reviews/mine', namespace: 'SeoPages', titleKey: 'myReviewsTitle' })
+}
 
 export default async function MyReviewsPage({
   params,
@@ -37,7 +50,7 @@ export default async function MyReviewsPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-2xl font-bold text-heading mb-2 flex items-center gap-2">
           <MessageSquare className="w-6 h-6 text-purple" />
@@ -72,7 +85,7 @@ export default async function MyReviewsPage({
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 rounded-full bg-purple-light flex items-center justify-center overflow-hidden shrink-0">
                       {reviewee?.avatar_url ? (
-                        <img src={reviewee.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <Avatar src={reviewee.avatar_url} name={reviewee.full_name} size={48} fill />
                       ) : (
                         <span className="text-xl">👤</span>
                       )}
@@ -89,7 +102,7 @@ export default async function MyReviewsPage({
                           {levelInfo.badge} Lv.{levelInfo.level}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-yellow-500 text-sm">
+                      <div className="flex items-center gap-2 mt-1 text-gold text-sm">
                         <Star className="w-4 h-4 fill-current" />
                         <span>{review.rating}/5</span>
                       </div>

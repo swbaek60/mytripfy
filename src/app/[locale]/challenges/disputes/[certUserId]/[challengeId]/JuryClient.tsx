@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { api, errorMessage } from '@/lib/client/api'
 import type { DisputeLabels } from '@/data/dispute-labels'
 
 export default function JuryClient({
@@ -29,7 +30,7 @@ export default function JuryClient({
   const L = labels
   const router = useRouter()
   const td = useTranslations('Dispute')
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const [voting, setVoting] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -39,20 +40,18 @@ export default function JuryClient({
     setVoting(true)
     setError('')
     try {
-      const res = await fetch('/api/challenges/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cert_user_id: certUserId, cert_challenge_id: challengeId, vote }),
+      const data = await api.post<{ result: string }>('/api/challenges/vote', {
+        cert_user_id: certUserId,
+        cert_challenge_id: challengeId,
+        vote,
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || td('voteFailed'))
 
       setResult(data.result)
       setTimeout(() => {
         startTransition(() => router.refresh())
       }, 2500)
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e) {
+      setError(errorMessage(e, td('voteFailed')))
     } finally {
       setVoting(false)
     }
@@ -99,8 +98,8 @@ export default function JuryClient({
 
   if (isCertOwner) {
     return (
-      <div className="mt-5 bg-amber-light rounded-2xl p-4 text-center">
-        <p className="text-sm font-semibold text-amber">⚠️ {L.jury.ownerNote}</p>
+      <div className="mt-5 bg-warning-light rounded-2xl p-4 text-center">
+        <p className="text-sm font-semibold text-warning">⚠️ {L.jury.ownerNote}</p>
       </div>
     )
   }
@@ -142,14 +141,14 @@ export default function JuryClient({
       </p>
 
       {error && (
-        <div className="text-danger text-sm bg-danger-light p-3 rounded-xl mb-3">{error}</div>
+        <div className="text-danger-strong text-sm bg-danger-light p-3 rounded-xl mb-3">{error}</div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => handleVote('valid')}
           disabled={voting}
-          className="flex items-center justify-center gap-2 bg-success text-white font-bold py-3 rounded-xl hover:bg-success transition-colors disabled:opacity-40"
+          className="flex items-center justify-center gap-2 bg-success-strong text-white font-bold py-3 rounded-xl hover:bg-success transition-colors disabled:opacity-40"
         >
           {voting ? (
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

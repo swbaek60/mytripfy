@@ -1,68 +1,52 @@
 'use client'
 
+import { useLocale, useTranslations } from 'next-intl'
 import { MapPin, Car, BedDouble, Utensils, Activity, FileText, Clock } from 'lucide-react'
 import { useCurrency } from '@/context/CurrencyContext'
-import { convertAmount, formatCurrency } from '@/utils/currency'
-
-type Category = 'transport' | 'accommodation' | 'meal' | 'activity' | 'note'
-
-interface TripActivity {
-  id: string
-  sort_order: number
-  time_label: string | null
-  category: Category
-  title: string
-  location: string | null
-  notes: string | null
-  cost: number | null
-  currency: string
-}
-
-interface TripDay {
-  id: string
-  day_number: number
-  date: string | null
-  title: string | null
-  notes: string | null
-  trip_activities: TripActivity[]
-}
+import { formatCurrency, sumInCurrency } from '@/utils/currency'
+import type { ActivityCategory, TripDay } from '@/types/itinerary'
 
 interface Props {
   days: TripDay[]
 }
 
-const CATEGORY_META: Record<Category, { label: string; icon: React.ReactNode; color: string; dot: string }> = {
-  transport:     { label: 'Transport',     icon: <Car size={13} />,       color: 'bg-blue-100 text-blue-700',     dot: 'bg-blue-400' },
-  accommodation: { label: 'Accommodation', icon: <BedDouble size={13} />, color: 'bg-purple-100 text-purple-700', dot: 'bg-purple-400' },
-  meal:          { label: 'Meal',          icon: <Utensils size={13} />,  color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-400' },
-  activity:      { label: 'Activity',      icon: <Activity size={13} />,  color: 'bg-green-100 text-green-700',   dot: 'bg-green-400' },
-  note:          { label: 'Note',          icon: <FileText size={13} />,  color: 'bg-gray-100 text-body',     dot: 'bg-gray-400' },
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return ''
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+/** 라벨은 번역 키로 따로 받는다. 여기에는 색과 아이콘만 둔다. */
+const CATEGORY_META: Record<
+  ActivityCategory,
+  { labelKey: string; icon: React.ReactNode; color: string; dot: string }
+> = {
+  transport:     { labelKey: 'catTransport',     icon: <Car size={13} />,       color: 'bg-brand-muted text-brand-hover',     dot: 'bg-brand' },
+  accommodation: { labelKey: 'catAccommodation', icon: <BedDouble size={13} />, color: 'bg-purple-muted text-purple-strong', dot: 'bg-purple' },
+  meal:          { labelKey: 'catMeal',          icon: <Utensils size={13} />,  color: 'bg-sunset-muted text-sunset-strong', dot: 'bg-sunset' },
+  activity:      { labelKey: 'catActivity',      icon: <Activity size={13} />,  color: 'bg-success-muted text-success-strong',   dot: 'bg-success' },
+  note:          { labelKey: 'catNote',          icon: <FileText size={13} />,  color: 'bg-surface-hover text-body',     dot: 'bg-hint' },
 }
 
 export default function ItineraryView({ days }: Props) {
+  const t = useTranslations('Itinerary')
+  const tc = useTranslations('Common')
+  const locale = useLocale()
   const { formatPrice, selectedCurrency, rates } = useCurrency()
 
+  // 날짜는 보고 있는 로케일로 적는다. 예전에는 'en-US' 로 고정돼 있어
+  // 한국어 화면에서도 "Monday, March 3" 으로 나왔다.
+  const formatDate = (dateStr: string | null): string => {
+    if (!dateStr) return ''
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString(locale, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
+
   if (days.length === 0) {
-    return (
-      <p className="text-sm text-hint py-4 text-center">
-        No itinerary added yet.
-      </p>
-    )
+    return <p className="text-sm text-hint py-4 text-center">{t('empty')}</p>
   }
 
   // 총 비용: 각 activity를 선택 통화로 변환 후 합산
   const allActivities = days.flatMap(d => d.trip_activities)
   const hasCost = allActivities.some(a => a.cost && a.cost > 0)
-  const totalConverted = allActivities.reduce((sum, a) => {
-    if (!a.cost) return sum
-    return sum + convertAmount(a.cost, a.currency || selectedCurrency, selectedCurrency, rates)
-  }, 0)
+  const total = sumInCurrency(allActivities, selectedCurrency, rates)
 
   return (
     <div className="space-y-6">
@@ -78,7 +62,7 @@ export default function ItineraryView({ days }: Props) {
               </div>
               <div>
                 <p className="font-bold text-heading text-sm sm:text-base">
-                  {day.title || `Day ${day.day_number}`}
+                  {day.title || t('dayLabel', { number: day.day_number })}
                 </p>
                 {(day.date || hasDayCost) && (
                   <p className="text-xs text-hint">
@@ -114,7 +98,7 @@ export default function ItineraryView({ days }: Props) {
                               </span>
                             )}
                             <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${meta.color}`}>
-                              {meta.icon} {meta.label}
+                              {meta.icon} {t(meta.labelKey)}
                             </span>
                           </div>
                           <p className="font-semibold text-heading text-sm">{act.title}</p>
@@ -145,7 +129,7 @@ export default function ItineraryView({ days }: Props) {
                   })}
               </div>
             ) : (
-              <p className="text-xs text-hint ml-12 italic">No activities planned.</p>
+              <p className="text-xs text-hint ml-12 italic">{tc('noActivitiesPlanned')}</p>
             )}
           </div>
         )
@@ -153,9 +137,9 @@ export default function ItineraryView({ days }: Props) {
 
       {hasCost && (
         <div className="border-t border-edge pt-4 flex items-center justify-between">
-          <span className="text-sm font-semibold text-body">Estimated Total</span>
+          <span className="text-sm font-semibold text-body">{tc('estimatedTotal')}</span>
           <span className="text-lg font-bold text-brand">
-            {formatCurrency(totalConverted, selectedCurrency)}
+            {total.incomplete ? '~' : ''}{formatCurrency(total.total, selectedCurrency)}
           </span>
         </div>
       )}

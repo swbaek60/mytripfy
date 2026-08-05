@@ -44,12 +44,12 @@ export default function HomeSearch({ locale }: Props) {
         />
         <button
           type="submit"
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:opacity-90 text-white font-bold px-4 sm:px-6 py-3 rounded-lg sm:rounded-xl transition-all shadow-md shrink-0 text-sm sm:text-base min-h-[44px] touch-manipulation"
+          className="bg-gradient-to-r from-brand to-indigo hover:from-brand-hover hover:to-indigo-strong active:opacity-90 text-white font-bold px-4 sm:px-6 py-3 rounded-lg sm:rounded-xl transition-all shadow-md shrink-0 text-sm sm:text-base min-h-[44px] touch-manipulation"
         >
           {tCommon('search')}
         </button>
       </div>
-      <p className="text-blue-300/70 text-xs mt-2 sm:mt-2.5 text-center px-1">
+      <p className="text-brand-border/70 text-xs mt-2 sm:mt-2.5 text-center px-1">
         {tSection('searchHintPrefix')} Japan · Thailand · Italy · Seoul · London
       </p>
     </form>

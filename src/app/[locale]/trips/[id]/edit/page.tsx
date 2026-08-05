@@ -3,6 +3,18 @@ import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import TripForm from '../../TripForm'
 
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}): Promise<Metadata> {
+  const { locale, id } = await params
+  return buildPrivateMetadata({ locale, path: `/trips/${id}/edit`, namespace: 'SeoPages', titleKey: 'tripEditTitle' })
+}
+
 export default async function EditTripPage({
   params,
 }: {
@@ -25,10 +37,9 @@ export default async function EditTripPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/trips" />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <TripForm
-          userId={user.id}
           locale={locale}
           initialTrip={{
             id: trip.id,

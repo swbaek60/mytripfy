@@ -1,7 +1,19 @@
 import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Header from '@/components/Header'
-import GroupChatRoom from './GroupChatRoom'
+import GroupChatRoom, { type Member } from './GroupChatRoom'
+
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}): Promise<Metadata> {
+  const { locale, id } = await params
+  return buildPrivateMetadata({ locale, path: `/messages/group/${id}`, namespace: 'SeoPages', titleKey: 'groupChatTitle' })
+}
 
 export default async function GroupChatPage({
   params,
@@ -103,9 +115,9 @@ export default async function GroupChatPage({
       travel_level: row.travel_level ?? null,
     }
   }
-  const members = (participants ?? []).map(p => ({
-    user_id: p.user_id,
-    joined_at: p.joined_at,
+  const members: Member[] = (participants ?? []).map(p => ({
+    user_id: String(p.user_id),
+    joined_at: String(p.joined_at ?? ''),
     profiles: profileByUserId[norm(p.user_id)] ?? null,
   }))
   const seenSenderIds = new Set(participantIds.map(norm))
@@ -114,7 +126,7 @@ export default async function GroupChatPage({
     if (seenSenderIds.has(n)) continue
     seenSenderIds.add(n)
     members.push({
-      user_id: senderId,
+      user_id: String(senderId),
       joined_at: '',
       profiles: profileByUserId[n] ?? null,
     })
@@ -124,7 +136,7 @@ export default async function GroupChatPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken flex flex-col">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
       <GroupChatRoom
         chatId={chatId}
         chatName={chat.name || 'Trip Group Chat'}
@@ -132,7 +144,7 @@ export default async function GroupChatPage({
         currentUserId={user.id}
         hostId={chat.created_by ?? ''}
         initialMessages={messages ?? []}
-        initialMembers={(members ?? []) as any}
+        initialMembers={members}
         locale={locale}
       />
     </div>

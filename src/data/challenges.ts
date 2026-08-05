@@ -30,10 +30,10 @@ export const CATEGORY_LABELS: Record<ChallengeCategory, string> = {
 }
 
 export const DIFFICULTY_LABELS = {
-  easy:      { label: 'Easy',      color: 'bg-green-100 text-green-700',   stars: 1 },
-  medium:    { label: 'Medium',    color: 'bg-yellow-100 text-yellow-700', stars: 2 },
-  hard:      { label: 'Hard',      color: 'bg-orange-100 text-orange-700', stars: 3 },
-  legendary: { label: 'Legendary', color: 'bg-purple-100 text-purple-700', stars: 4 },
+  easy:      { label: 'Easy',      color: 'bg-success-muted text-success-strong', stars: 1 },
+  medium:    { label: 'Medium',    color: 'bg-gold-muted text-gold-strong',       stars: 2 },
+  hard:      { label: 'Hard',      color: 'bg-sunset-muted text-sunset-strong',   stars: 3 },
+  legendary: { label: 'Legendary', color: 'bg-purple-muted text-purple-strong',   stars: 4 },
 }
 
 export const CHALLENGES: Challenge[] = [

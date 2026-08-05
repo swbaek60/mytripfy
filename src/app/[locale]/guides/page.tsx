@@ -7,6 +7,8 @@ import { getLevelInfo, getCountryByCode } from '@/data/countries'
 import GuideRateDisplay from '@/components/GuideRateDisplay'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildItemListJsonLd } from '@/lib/seo/json-ld'
 import { getLanguageByCode, getLevelInfo as getLangLevel, type LanguageSkill } from '@/data/languages'
 import type { GuideRegion } from '@/data/cities'
 import GuidesFilterBar from './GuidesFilterBar'
@@ -145,15 +147,26 @@ export default async function GuidesPage({
 
   return (
     <div className="min-h-screen bg-surface-warm">
-      <Header user={user} locale={locale} currentPath="/guides" />
+      <JsonLdScript
+        data={buildItemListJsonLd(
+          locale,
+          tm('guidesHeroTitle'),
+          (guides ?? []).slice(0, 30).map(g => ({
+            name: (g.full_name as string | null) || t('anonymousGuide'),
+            path: `/guides/${g.id}`,
+          }))
+        )}
+      />
+      <Header locale={locale} />
 
-      <section className="relative bg-midnight text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">{tm('guidesHeroTitle')}</h1>
-          <p className="text-white/70 mb-6 max-w-xl">{tm('guidesHeroSubtitle')}</p>
+      <section className="relative bg-midnight text-white py-12 sm:py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight via-midnight to-gold-strong/25" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{tm('guidesHeroTitle')}</h1>
+          <p className="text-white/70 mb-6 max-w-xl leading-relaxed">{tm('guidesHeroSubtitle')}</p>
           <div className="flex flex-wrap gap-2">
             <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
-              <Button className="bg-gold hover:brightness-110 text-white rounded-full text-sm">{t('guideRequestsBtn')}</Button>
+              <Button className="bg-gold hover:brightness-110 text-heading rounded-full text-sm shadow-md shadow-gold/25">{t('guideRequestsBtn')}</Button>
             </Link>
             {user && (
               <Link href={`/${locale}/profile/edit`}>
@@ -189,7 +202,7 @@ export default async function GuidesPage({
         {/* ── 가이드 그리드 ── */}
         {displayedGuides.length > 0 ? (
           <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {displayedGuides.map(guide => {
               const levelInfo = getLevelInfo(guide.travel_level || 1)
               const nationalityCountry = guide.nationality ? getCountryByCode(guide.nationality) : null
@@ -205,7 +218,7 @@ export default async function GuidesPage({
                   href={`/${locale}/guides/${guide.id}`}
                   className="group block h-full"
                 >
-                  <article className="bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-edge/60 hover:border-gold/40 h-full flex flex-col overflow-hidden">
+                  <article className="bg-surface rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-edge/60 hover:border-gold/40 h-full flex flex-col overflow-hidden">
 
                     {/* 사진 캐러셀 — 직렬화 가능한 원시값만 전달 */}
                     <GuidePhotoCarousel
@@ -237,7 +250,7 @@ export default async function GuidesPage({
 
                       {guide.trust_score > 0 && (
                         <div className="flex items-center gap-1.5 mb-2">
-                          <span className="text-yellow-400 text-sm leading-none">
+                          <span className="text-gold text-sm leading-none">
                             {'★'.repeat(Math.round(guide.trust_score))}{'☆'.repeat(5 - Math.round(guide.trust_score))}
                           </span>
                           <span className="text-sm font-bold text-body">{Number(guide.trust_score).toFixed(1)}</span>
@@ -272,10 +285,10 @@ export default async function GuidesPage({
                       {(guide.guide_has_vehicle || guide.guide_has_accommodation) && (
                         <div className="flex flex-wrap gap-1.5 mb-3">
                           {guide.guide_has_vehicle && (
-                            <span className="text-xs bg-brand-light text-brand px-2 py-0.5 rounded-full">🚗 {t('badgeVehicle')}</span>
+                            <span className="text-xs bg-brand-light text-brand-strong px-2 py-0.5 rounded-full">🚗 {t('badgeVehicle')}</span>
                           )}
                           {guide.guide_has_accommodation && (
-                            <span className="text-xs bg-success-light text-success px-2 py-0.5 rounded-full">🏠 {t('badgeStay')}</span>
+                            <span className="text-xs bg-success-light text-success-strong px-2 py-0.5 rounded-full">🏠 {t('badgeStay')}</span>
                           )}
                         </div>
                       )}
@@ -318,12 +331,12 @@ export default async function GuidesPage({
           )}
           </>
         ) : (
-          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
+          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm border border-edge/60">
             <div className="text-5xl mb-4">🧭</div>
-            <h3 className="text-xl font-bold text-body mb-2">{t('noGuidesFound')}</h3>
-            <p className="text-subtle mb-6">{t('adjustFiltersOrRegister')}</p>
+            <h3 className="text-xl font-bold text-heading mb-2">{t('noGuidesFound')}</h3>
+            <p className="text-subtle mb-6 max-w-sm mx-auto">{t('adjustFiltersOrRegister')}</p>
             <Link href={user ? `/${locale}/profile/edit` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
-              <Button className="bg-gold hover:brightness-110 text-white rounded-full px-8">
+              <Button className="bg-gold hover:brightness-110 text-heading rounded-full px-8 shadow-md shadow-gold/25">
                 {t('registerAsGuideBtn')}
               </Button>
             </Link>
@@ -342,19 +355,19 @@ export default async function GuidesPage({
           </div>
           <p className="text-sm text-subtle mb-4">{t('travelersLookingForGuides')}</p>
           {guideRequests && guideRequests.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {guideRequests.map((req: { id: string; title: string; destination_country: string; destination_city?: string | null; start_date: string; end_date: string }) => {
                 const countryInfo = getCountryByCode(req.destination_country)
                 const startDate = new Date(req.start_date)
                 const endDate = new Date(req.end_date)
                 const nights = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
                 return (
-                  <Link key={req.id} href={`/${locale}/guides/requests/${req.id}`}>
-                    <div className="bg-surface rounded-xl shadow-sm hover:shadow-md border border-edge/60 hover:border-gold/40 p-4 transition-all h-full flex flex-col">
+                  <Link key={req.id} href={`/${locale}/guides/requests/${req.id}`} className="group block h-full">
+                    <div className="bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 border border-edge/60 hover:border-gold/40 p-4 transition-all duration-200 h-full flex flex-col">
                       <div className="flex items-start gap-2 mb-2">
                         <span className="text-lg shrink-0">{countryInfo?.emoji || '🌍'}</span>
                         <div className="min-w-0 flex-1">
-                          <TranslatedText text={req.title as string} locale={locale} as="div" className="font-semibold text-heading text-sm line-clamp-2" />
+                          <TranslatedText text={req.title as string} locale={locale} as="div" className="font-semibold text-heading text-sm line-clamp-2 group-hover:text-gold transition-colors" />
                           <div className="text-xs text-subtle mt-0.5">
                             {countryInfo?.name || req.destination_country}
                             {req.destination_city ? ` · ${req.destination_city}` : ''}
@@ -362,7 +375,7 @@ export default async function GuidesPage({
                         </div>
                       </div>
                       <div className="text-xs text-gold font-medium mt-auto pt-2 border-t border-edge/60">
-                        {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} · {nights}N
+                        {startDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – {endDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} · {t('nightsShort', { nights })}
                       </div>
                     </div>
                   </Link>
@@ -375,7 +388,7 @@ export default async function GuidesPage({
               <h3 className="font-bold text-heading mb-1">{t('noOpenGuideRequestsTitle')}</h3>
               <p className="text-subtle text-sm mb-4 max-w-sm mx-auto">{t('noOpenGuideRequests')}</p>
               <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides`)}`}>
-                <Button size="sm" className="rounded-full bg-gold hover:brightness-110 text-white px-6">
+                <Button size="sm" className="rounded-full bg-gold hover:brightness-110 text-heading px-6">
                   {t('postRequest')}
                 </Button>
               </Link>

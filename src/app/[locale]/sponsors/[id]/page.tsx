@@ -12,6 +12,9 @@ import SponsorMyVisitCard from './SponsorMyVisitCard'
 import SponsorVisitListSection from './SponsorVisitListSection'
 import CountryFlag from '@/components/CountryFlag'
 import TranslatedText from '@/components/TranslatedText'
+import SmartImage from '@/components/ui/SmartImage'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildLocalBusinessJsonLd } from '@/lib/seo/json-ld'
 
 const BUSINESS_TYPE_KEYS: Record<string, string> = {
   restaurant: 'restaurant',
@@ -73,6 +76,7 @@ export default async function SponsorDetailPage({
 }: { params: Promise<{ locale: string; id: string }> }) {
   const { locale, id } = await params
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
+  const tNav = await getTranslations({ locale, namespace: 'Nav' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -117,20 +121,48 @@ export default async function SponsorDetailPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/sponsors" />
+      <JsonLdScript
+        data={buildLocalBusinessJsonLd({
+          locale,
+          sponsorId: id,
+          name: displayName,
+          description: displayDesc,
+          image: (sponsor.logo_url as string | null) ?? (sponsor.cover_image_url as string | null),
+          city: sponsor.city,
+          region: sponsor.region,
+          countryCode: sponsor.country_code,
+          address: sponsor.address,
+          website: sponsor.website_url,
+        })}
+      />
+      <JsonLdScript
+        data={buildBreadcrumbJsonLd(locale, [
+          { name: tNav('sponsors'), path: '/sponsors' },
+          { name: displayName, path: `/sponsors/${id}` },
+        ])}
+      />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Cover + logo + name */}
         <div className="rounded-2xl overflow-hidden bg-surface shadow-sm border border-edge mb-6">
-          <div className="h-40 bg-gradient-to-r from-emerald-400 to-teal-500 relative">
+          <div className="h-40 bg-gradient-to-r from-success to-teal relative">
             {sponsor.cover_image_url && (
-              <img src={sponsor.cover_image_url} alt="" className="w-full h-full object-cover" />
+              <SmartImage
+                src={sponsor.cover_image_url}
+                alt=""
+                width={1280}
+                height={320}
+                sizes="100vw"
+                priority
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
           <div className="px-6 pb-6 pt-4 -mt-12 relative">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
               <div className="w-24 h-24 rounded-2xl bg-surface shadow-lg border border-edge overflow-hidden shrink-0 flex items-center justify-center text-4xl">
-                {sponsor.logo_url ? <img src={sponsor.logo_url} alt="" className="w-full h-full object-cover" /> : '🏪'}
+                {sponsor.logo_url ? <SmartImage src={sponsor.logo_url} alt="" width={192} height={192} className="w-full h-full object-cover" /> : '🏪'}
               </div>
               <div className="flex-1 min-h-[4.5rem] flex flex-col justify-end">
                 <h1 className="text-2xl font-bold text-heading">{displayName}</h1>
@@ -142,7 +174,7 @@ export default async function SponsorDetailPage({
                       {sponsor.city && ` · ${sponsor.city}`}
                     </span>
                   )}
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-success-muted text-success-strong">
                     {t(BUSINESS_TYPE_KEYS[sponsor.business_type] || 'other')}
                   </span>
                 </div>
@@ -159,7 +191,7 @@ export default async function SponsorDetailPage({
         {/* Description */}
         {displayDesc && (
           <div className="bg-surface rounded-2xl p-6 shadow-sm border border-edge mb-6">
-            <h2 className="font-bold text-heading mb-2">About</h2>
+            <h2 className="font-bold text-heading mb-2">{t('about')}</h2>
             <TranslatedText
               text={displayDesc}
               locale={locale}
@@ -172,27 +204,27 @@ export default async function SponsorDetailPage({
         {/* Links: Website, Phone, SNS, Directions */}
         <div className="flex flex-wrap gap-2 mb-6">
           {sponsor.website_url && (
-            <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
+            <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-edge text-body text-sm font-medium">
               🔗 {t('website')}
             </a>
           )}
           {sponsor.phone && (
-            <a href={`tel:${sponsor.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
+            <a href={`tel:${sponsor.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-edge text-body text-sm font-medium">
               📞 {sponsor.phone}
             </a>
           )}
           {sponsor.instagram_url && (
-            <a href={sponsor.instagram_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
+            <a href={sponsor.instagram_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-edge text-body text-sm font-medium">
               Instagram
             </a>
           )}
           {sponsor.facebook_url && (
-            <a href={sponsor.facebook_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-gray-200 text-body text-sm font-medium">
+            <a href={sponsor.facebook_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-sunken hover:bg-edge text-body text-sm font-medium">
               Facebook
             </a>
           )}
           {mapsUrl && (
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-medium">
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-success-muted hover:bg-success-border text-success-strong text-sm font-medium">
               🗺️ {t('directions')}
             </a>
           )}
@@ -212,7 +244,12 @@ export default async function SponsorDetailPage({
                 return (
                   <li key={b.id} className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-heading">{b.title_en || b.title}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-heading">{b.title_en || b.title}</p>
+                        <span className="rounded-full bg-success-light px-2 py-0.5 text-xs font-semibold text-success-strong">
+                          {benefitLabel}
+                        </span>
+                      </div>
                       {b.description && <p className="text-sm text-subtle mt-0.5">{b.description}</p>}
                       <p className="text-xs text-hint mt-1">
                         {t('validUntil', { date: new Date(b.end_date).toLocaleDateString(locale) })}
@@ -223,7 +260,6 @@ export default async function SponsorDetailPage({
                       sponsorId={id}
                       sponsorName={displayName}
                       benefit={b}
-                      benefitLabel={benefitLabel}
                       isOwner={sponsor.user_id === user?.id}
                     />
                   </li>
@@ -263,7 +299,6 @@ export default async function SponsorDetailPage({
                 sponsorId={id}
                 sponsorName={displayName}
                 benefit={null}
-                benefitLabel=""
                 isOwner={false}
                 visitOnly
                 pointsEarned={VISIT_POINTS}

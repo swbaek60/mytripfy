@@ -42,12 +42,11 @@ export default function CurrencySelector({
   const { selectedCurrency, setSelectedCurrency } = useCurrency()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [mounted, setMounted] = useState(false)
   const [justChanged, setJustChanged] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { setMounted(true) }, [])
-  useBodyScrollLock(open && mounted)
+  // 모달은 클릭으로만 열리므로 open 자체가 하이드레이션 이후를 뜻한다.
+  useBodyScrollLock(open)
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -86,7 +85,7 @@ export default function CurrencySelector({
   const groupedCodes = new Set(CURRENCY_GROUPS.flatMap(g => g.currencies))
   const others = CURRENCIES.filter(c => !groupedCodes.has(c.code))
 
-  const modal = open && mounted ? createPortal(
+  const modal = open ? createPortal(
     <ModalPortalShell onBackdropClick={() => setOpen(false)}>
       <div className="mx-auto flex h-full min-h-0 w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[min(88dvh,calc(100dvh-1.5rem))] sm:h-auto sm:max-h-[min(85vh,92dvh)]">
         <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
@@ -100,6 +99,7 @@ export default function CurrencySelector({
             <button
               type="button"
               onClick={() => setOpen(false)}
+              aria-label={tc('close')}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-hint hover:text-body"
             >
               ✕
@@ -113,7 +113,7 @@ export default function CurrencySelector({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+              className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-brand-border focus:border-transparent"
             />
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function CurrencySelector({
           {filtered.map(group => (
             <div key={group.regionKey}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="h-1 w-5 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500" />
+                <span className="h-1 w-5 rounded-full bg-gradient-to-r from-brand to-indigo" />
                 <span className="text-xs font-semibold text-hint uppercase tracking-wide">
                   {t(group.regionKey)}
                 </span>
@@ -139,7 +139,7 @@ export default function CurrencySelector({
                       style={{ touchAction: 'manipulation' }}
                           className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
                             isActive
-                              ? 'bg-brand text-white shadow-md shadow-blue-200'
+                              ? 'bg-brand text-white shadow-md shadow-edge-brand'
                               : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
                           }`}
                         >
@@ -150,7 +150,7 @@ export default function CurrencySelector({
                             <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
                               {c.code}
                             </div>
-                            <div className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-hint'}`}>
+                            <div className={`text-xs truncate ${isActive ? 'text-brand-muted' : 'text-hint'}`}>
                               {c.name}
                             </div>
                           </div>
@@ -166,7 +166,7 @@ export default function CurrencySelector({
               {!search && others.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="h-1 w-5 rounded-full bg-gradient-to-r from-gray-300 to-gray-400" />
+                    <span className="h-1 w-5 rounded-full bg-gradient-to-r from-edge-strong to-hint" />
                     <span className="text-xs font-semibold text-hint uppercase tracking-wide">{t('other')}</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -180,7 +180,7 @@ export default function CurrencySelector({
                           style={{ touchAction: 'manipulation' }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
                         isActive
-                          ? 'bg-brand text-white shadow-md shadow-blue-200'
+                          ? 'bg-brand text-white shadow-md shadow-edge-brand'
                           : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
                       }`}
                     >
@@ -189,7 +189,7 @@ export default function CurrencySelector({
                       </span>
                       <div className="min-w-0">
                         <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>{c.code}</div>
-                        <div className={`text-xs truncate ${isActive ? 'text-blue-100' : 'text-hint'}`}>{c.name}</div>
+                        <div className={`text-xs truncate ${isActive ? 'text-brand-muted' : 'text-hint'}`}>{c.name}</div>
                       </div>
                     </button>
                   )
@@ -223,8 +223,8 @@ export default function CurrencySelector({
         className={iconOnly
           ? "w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0 font-semibold text-sm"
           : compact
-            ? `flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-sm font-medium ${justChanged ? 'text-success bg-success-light' : 'hover:bg-surface-hover text-body'}`
-            : `flex items-center gap-1 text-sm font-medium px-2 py-1.5 rounded-lg transition-colors ${justChanged ? 'text-success bg-success-light' : 'text-subtle hover:text-heading hover:bg-surface-hover'}`
+            ? `flex items-center gap-1 px-2 py-1 rounded-lg transition-colors text-sm font-medium ${justChanged ? 'text-success-strong bg-success-light' : 'hover:bg-surface-hover text-body'}`
+            : `flex items-center gap-1 text-sm font-medium px-2 py-1.5 rounded-lg transition-colors ${justChanged ? 'text-success-strong bg-success-light' : 'text-subtle hover:text-heading hover:bg-surface-hover'}`
         }
         aria-label={t('ariaLabel')}
       >

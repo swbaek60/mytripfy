@@ -2,6 +2,18 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { SITE_URL } from '@/lib/seo/site'
 
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/login', namespace: 'SeoPages', titleKey: 'loginTitle', descriptionKey: 'loginDesc' })
+}
+
 async function requestOrigin(): Promise<string> {
   const h = await headers()
   const host = h.get('x-forwarded-host')?.split(',')[0]?.trim() || h.get('host') || ''

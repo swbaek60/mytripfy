@@ -17,3 +17,10 @@ export const routing = defineRouting({
 
 export const {Link, redirect, usePathname, useRouter, getPathname} =
   createNavigation(routing);
+
+export type AppLocale = (typeof routing.locales)[number];
+
+/** 임의의 문자열이 지원 로케일인지 좁혀 준다. */
+export function isAppLocale(value: string | undefined | null): value is AppLocale {
+  return !!value && (routing.locales as readonly string[]).includes(value);
+}

@@ -89,7 +89,7 @@ function NavigationProgressInner() {
 
   return (
     <div
-      className="fixed top-0 left-0 z-[9999] h-[3px] bg-gradient-to-r from-blue-500 via-violet-500 to-blue-400 shadow-[0_0_8px_rgba(99,102,241,0.7)] transition-[width] duration-300 ease-out"
+      className="fixed top-0 left-0 z-[9999] h-[3px] bg-gradient-to-r from-brand via-purple to-brand shadow-[0_0_8px_rgba(99,102,241,0.7)] transition-[width] duration-300 ease-out"
       style={{ width: `${barWidth}%` }}
     />
   )

@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { CACHE_PUBLIC_DAY } from '@/lib/http-cache'
 import { findAnimalImage, findArtGalleryImage, findFestivalImage, findNatureImage, findSkiingImage, findWikiImage } from '@/lib/wikiArtGalleryImage'
 
 /** Nature 등 Wikipedia/Commons 다수 시도 시 10초 기본 타임아웃에 걸리지 않도록 연장 (이 라우트만 적용) */
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
   const key = cacheKey(category, titleEn)
   const cached = serverImageCache.get(key)
   if (cached != null) {
-    return Response.json({ url: cached })
+    return Response.json({ url: cached }, { headers: { 'Cache-Control': CACHE_PUBLIC_DAY } })
   }
 
   const gap = MIN_GAP_MS[category] ?? 200
@@ -80,8 +81,8 @@ export async function GET(request: NextRequest) {
       url = await findWikiImage(titleEn, WIKI_HINT[category])
     }
     if (url) serverImageCache.set(key, url)
-    return Response.json({ url: url ?? null })
+    return Response.json({ url: url ?? null }, { headers: { 'Cache-Control': CACHE_PUBLIC_DAY } })
   } catch {
-    return Response.json({ url: null })
+    return Response.json({ url: null }, { headers: { 'Cache-Control': CACHE_PUBLIC_DAY } })
   }
 }

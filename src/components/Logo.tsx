@@ -52,6 +52,7 @@ export default function Logo({
   const intrinsicH = 25
   const intrinsicW = Math.round(intrinsicH * LOGO_WORDMARK_ASPECT)
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- SVG 워드마크는 최적화 대상이 아니고, onError 폰트 폴백이 필요하다.
     <img
       src={src}
       alt="mytripfy"

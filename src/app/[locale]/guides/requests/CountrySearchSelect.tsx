@@ -53,10 +53,10 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${open ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-dashed border-edge-strong text-subtle hover:border-amber-300 hover:text-amber-600 bg-surface'}`}
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${open ? 'border-warning bg-warning-light text-warning-strong' : 'border-dashed border-edge-strong text-subtle hover:border-warning-border hover:text-warning bg-surface'}`}
       >
         <Search className="w-3 h-3" />
-        More countries
+        {tc('moreCountries')}
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -71,11 +71,12 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Type to search (e.g. k, Korea)..."
-                className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-edge focus:outline-none focus:ring-2 focus:ring-amber-300"
+                placeholder={tc('countrySearchPlaceholder')}
+                aria-label={tc('countrySearchPlaceholder')}
+                className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg border border-edge focus:outline-none focus:ring-2 focus:ring-warning-border"
               />
               {query && (
-                <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-body">
+                <button onClick={() => setQuery('')} aria-label={tc('clear')} className="absolute right-2 top-1/2 -translate-y-1/2 text-hint hover:text-body">
                   <X className="w-3 h-3" />
                 </button>
               )}
@@ -88,11 +89,11 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
               <button
                 key={c.code}
                 onClick={() => select(c.code)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-amber-50 transition-colors text-left ${currentCountry === c.code ? 'bg-amber-50 text-amber-700 font-medium' : 'text-body'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-warning-light transition-colors text-left ${currentCountry === c.code ? 'bg-warning-light text-warning-strong font-medium' : 'text-body'}`}
               >
                 <CountryFlag code={c.code} size="sm" />
                 <span className="flex-1 truncate">{c.name}</span>
-                {currentCountry === c.code && <span className="text-amber-500 text-xs">✓</span>}
+                {currentCountry === c.code && <span className="text-warning text-xs">✓</span>}
               </button>
             )) : (
               <div className="px-4 py-3 text-sm text-hint text-center">{tc('noResults')}</div>
@@ -104,9 +105,9 @@ export default function CountrySearchSelect({ locale, currentCountry, currentMy 
             <div className="border-t border-edge p-2">
               <button
                 onClick={() => select('')}
-                className="w-full text-xs text-red-400 hover:text-danger py-1 flex items-center justify-center gap-1"
+                className="w-full text-xs text-danger hover:text-danger py-1 flex items-center justify-center gap-1"
               >
-                <X className="w-3 h-3" /> Clear country filter
+                <X className="w-3 h-3" /> {tc('clearCountryFilter')}
               </button>
             </div>
           )}

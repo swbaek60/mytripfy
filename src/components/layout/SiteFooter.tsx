@@ -1,24 +1,13 @@
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { getTranslations } from 'next-intl/server'
-import { auth } from '@clerk/nextjs/server'
+import FooterAccountLinks from '@/components/layout/FooterAccountLinks'
 
 interface Props {
   locale: string
-  isLoggedIn?: boolean
 }
 
-export default async function SiteFooter({ locale, isLoggedIn }: Props) {
-  let loggedIn = isLoggedIn
-  if (loggedIn === undefined) {
-    try {
-      const { userId } = await auth()
-      loggedIn = !!userId
-    } catch {
-      loggedIn = false
-    }
-  }
-
+export default async function SiteFooter({ locale }: Props) {
   const t = await getTranslations({ locale, namespace: 'Marketing' })
 
   return (
@@ -53,22 +42,20 @@ export default async function SiteFooter({ locale, isLoggedIn }: Props) {
             <div>
               <div className="text-footer-heading font-semibold mb-3">{t('footerAccount')}</div>
               <div className="space-y-2.5">
-                {loggedIn ? (
-                  <>
-                    <div><Link href={`/${locale}/dashboard`} className="hover:text-footer-heading transition-colors">{t('footerDashboard')}</Link></div>
-                    <div><Link href={`/${locale}/profile`} className="hover:text-footer-heading transition-colors">{t('footerProfile')}</Link></div>
-                    <div><Link href={`/${locale}/bookmarks`} className="hover:text-footer-heading transition-colors">{t('footerSaved')}</Link></div>
-                  </>
-                ) : (
-                  <div><Link href={`/${locale}/login`} className="hover:text-footer-heading transition-colors">{t('footerLogin')}</Link></div>
-                )}
+                <FooterAccountLinks
+                  locale={locale}
+                  tDashboard={t('footerDashboard')}
+                  tProfile={t('footerProfile')}
+                  tSaved={t('footerSaved')}
+                  tLogin={t('footerLogin')}
+                />
               </div>
             </div>
           </div>
         </div>
         <div className="border-t border-footer-border pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
           <div className="flex flex-col gap-0.5">
-            <span>© 2026 mytripfy.com · {t('footerRights')}</span>
+            <span>© {new Date().getFullYear()} mytripfy.com · {t('footerRights')}</span>
             <Link href={`/${locale}/privacy`} className="hover:text-footer-heading transition-colors underline underline-offset-2">
               {t('footerPrivacy')}
             </Link>

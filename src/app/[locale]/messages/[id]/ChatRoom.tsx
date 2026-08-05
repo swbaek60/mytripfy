@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { getLevelInfo } from '@/data/countries'
 import { PenLine, Check, CheckCheck } from 'lucide-react'
+import Avatar from '@/components/ui/Avatar'
 
 interface Message {
   id: string
@@ -63,133 +64,65 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
-  const [translating, setTranslating] = useState(false)
+  /** 번역 중인 메시지 id. 버튼에 진행 상태를 보여주려면 어느 메시지인지 알아야 한다. */
+  const [translatingId, setTranslatingId] = useState<string | null>(null)
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const supabase = createClient()
   const levelInfo = getLevelInfo(otherProfile.travel_level || 1)
 
-  // 입장 시 읽음 처리 → 배지 숫자 감소 (last_read_at + 메시지 알림 읽음)
-  useEffect(() => {
-    const now = new Date().toISOString()
-    Promise.all([
-      supabase
-        .from('chat_participants')
-        .update({ last_read_at: now })
-        .eq('chat_id', chatId)
-        .eq('user_id', currentUserId),
-      supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', currentUserId)
-        .eq('type', 'message')
-        .eq('reference_type', 'user')
-        .eq('reference_id', otherProfile.id),
-    ]).then(() => router.refresh())
-  }, [chatId, currentUserId, otherProfile.id, router])
+  /**
+   * 대화 내용을 서버에서 다시 읽어온다.
+   *
+   * 브라우저는 Supabase 에 직접 붙지 않고 이 엔드포인트만 폴링한다.
+   * 탭이 보일 때만 도는 5초 주기라서 실시간에 가깝게 느껴진다.
+   */
+  const sync = useCallback(async () => {
+    try {
+      const { messages: rows, participants } = await api.get<{
+        messages: { id: string; sender_id: string; content: string; created_at: string }[]
+        participants: { user_id: string; last_read_at: string | null }[]
+      }>(`/api/messages/sync?chatId=${encodeURIComponent(chatId)}`)
 
-  // 상대방 last_read_at 초기 로드
-  useEffect(() => {
-    const fetchReadStatus = async () => {
-      try {
-        const res = await fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`)
-        if (!res.ok) return
-        const { participants } = await res.json()
-        const other = participants?.find((p: { user_id: string; last_read_at: string | null }) => p.user_id === otherProfile.id)
-        if (other) setOtherLastReadAt(other.last_read_at)
-      } catch {}
+      setMessages(rows.map(m => ({
+        id: m.id,
+        chat_id: chatId,
+        sender_id: m.sender_id,
+        content: m.content,
+        created_at: m.created_at,
+        profiles: m.sender_id === otherProfile.id
+          ? { full_name: otherProfile.full_name, avatar_url: otherProfile.avatar_url }
+          : null,
+      })))
+
+      const other = participants.find(p => p.user_id === otherProfile.id)
+      if (other) setOtherLastReadAt(other.last_read_at)
+    } catch {
+      // 일시적인 네트워크 오류는 다음 주기에 자동으로 회복된다.
     }
-    fetchReadStatus()
-  }, [chatId, otherProfile.id])
+  }, [chatId, otherProfile.id, otherProfile.full_name, otherProfile.avatar_url])
 
-  // 상대방 last_read_at 실시간 구독 (Realtime)
+  // 입장 시 읽음 처리 → 헤더 배지 숫자 감소
   useEffect(() => {
-    const channel = supabase
-      .channel(`read-receipt:${chatId}:${otherProfile.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'chat_participants',
-        filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        const updated = payload.new as { user_id: string; last_read_at: string | null }
-        if (updated.user_id === otherProfile.id) {
-          setOtherLastReadAt(updated.last_read_at)
-        }
-      })
-      .subscribe()
+    api
+      .post('/api/messages/sync', { chatId, peerId: otherProfile.id })
+      .then(() => router.refresh())
+      .catch(() => {})
+  }, [chatId, otherProfile.id, router])
 
-    return () => { supabase.removeChannel(channel) }
-  }, [chatId, otherProfile.id])
-
-  // 실시간 메시지 구독 (Realtime 미동작 시 폴링으로 보완)
+  // 첫 화면은 서버에서 받은 initialMessages 를 쓰므로 마운트 직후 재조회하지 않는다.
   useEffect(() => {
-    const channel = supabase
-      .channel(`chat:${chatId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `chat_id=eq.${chatId}`,
-      }, async (payload) => {
-        const newMsg = payload.new as Message
-        if (newMsg.sender_id !== currentUserId) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url')
-            .eq('id', newMsg.sender_id)
-            .single()
-          setMessages(prev => [...prev, { ...newMsg, profiles: profileData }])
-        }
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [chatId, currentUserId])
-
-  // Realtime 미수신 시 보완: 탭 포커스·주기 재조회
-  useEffect(() => {
-    const refetch = async () => {
-      try {
-        const [msgRes, readRes] = await Promise.all([
-          fetch(`/api/group-chat/messages?chatId=${encodeURIComponent(chatId)}`),
-          fetch(`/api/messages/read-status?chatId=${encodeURIComponent(chatId)}`),
-        ])
-
-        if (msgRes.ok) {
-          const { messages: raw } = await msgRes.json()
-          if (Array.isArray(raw)) {
-            const next: Message[] = raw.map((m: { id: string; sender_id: string; content: string; created_at: string }) => ({
-              id: m.id,
-              chat_id: chatId,
-              sender_id: m.sender_id,
-              content: m.content,
-              created_at: m.created_at,
-              profiles: m.sender_id === otherProfile.id ? { full_name: otherProfile.full_name, avatar_url: otherProfile.avatar_url } : null,
-            }))
-            setMessages(next)
-          }
-        }
-
-        if (readRes.ok) {
-          const { participants } = await readRes.json()
-          const other = participants?.find((p: { user_id: string; last_read_at: string | null }) => p.user_id === otherProfile.id)
-          if (other) setOtherLastReadAt(other.last_read_at)
-        }
-      } catch {}
-    }
-    const onFocus = () => refetch()
+    const onFocus = () => sync()
     window.addEventListener('focus', onFocus)
     const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') refetch()
-    }, 4000)
+      if (document.visibilityState === 'visible') sync()
+    }, 5000)
     return () => {
       window.removeEventListener('focus', onFocus)
       clearInterval(interval)
     }
-  }, [chatId, otherProfile.id, otherProfile.full_name, otherProfile.avatar_url])
+  }, [sync])
 
   // 자동 스크롤
   useEffect(() => {
@@ -213,44 +146,34 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
     setMessages(prev => [...prev, optimisticMsg])
 
     try {
-      const res = await fetch('/api/group-chat/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId, content }),
-      })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        console.error('메시지 전송 실패:', body)
-        setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id))
-        setNewMessage(content)
-        alert(`${tm('sendFailed')} ${body?.error || tc('errorUnexpected')}`)
-      } else if (body.message) {
-        setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? { ...body.message, profiles: null } as Message : m))
+      const { message } = await api.post<{ message?: Message }>('/api/group-chat/send', { chatId, content })
+      if (message) {
+        setMessages(prev => prev.map(m => (m.id === optimisticMsg.id ? { ...message, profiles: null } : m)))
       }
-    } catch (e) {
-      console.error('메시지 전송 오류:', e)
+    } catch (err) {
       setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id))
       setNewMessage(content)
-      alert(tc('errorUnexpected'))
+      alert(`${tm('sendFailed')} ${errorMessage(err, tc('errorUnexpected'))}`)
     }
     setSending(false)
   }
 
-  // 무료 번역 (MyMemory API)
   const translateMessage = async (msgId: string, text: string) => {
     if (translations[msgId]) {
       setTranslations(prev => { const n = { ...prev }; delete n[msgId]; return n })
       return
     }
-    setTranslating(true)
+    setTranslatingId(msgId)
     try {
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|en`)
-      const data = await res.json()
-      if (data.responseStatus === 200) {
-        setTranslations(prev => ({ ...prev, [msgId]: data.responseData.translatedText }))
-      }
-    } catch {}
-    setTranslating(false)
+      const { translatedText } = await api.post<{ translatedText: string }>('/api/translate', {
+        text,
+        targetLang: locale,
+      })
+      setTranslations(prev => ({ ...prev, [msgId]: translatedText }))
+    } catch {
+      // 번역 실패 시 원문만 보여준다.
+    }
+    setTranslatingId(null)
   }
 
   return (
@@ -261,7 +184,7 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
         <Link href={`/${locale}/users/${otherProfile.id}`}>
           <div className="w-12 h-12 rounded-full bg-brand-muted flex items-center justify-center text-xl cursor-pointer hover:opacity-80 shrink-0">
             {otherProfile.avatar_url ? (
-              <img src={otherProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+              <Avatar src={otherProfile.avatar_url} fill size={48} />
             ) : '👤'}
           </div>
         </Link>
@@ -272,10 +195,10 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
               {levelInfo.badge} Lv.{otherProfile.travel_level || 1}
             </span>
             {otherProfile.is_guide && (
-              <span className="text-xs bg-warning-light text-warning px-2 py-0.5 rounded-full">🧭 Guide</span>
+              <span className="text-xs bg-warning-light text-warning-strong px-2 py-0.5 rounded-full">🧭 {tm('guideBadge')}</span>
             )}
           </div>
-          <p className="text-xs text-success font-medium">● Online</p>
+          <p className="text-xs text-success font-medium">● {tc('online')}</p>
         </div>
         <div className="ml-auto flex flex-col items-end gap-2">
           {trip && (
@@ -285,12 +208,12 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                 size="sm"
                 className="rounded-full text-xs border-edge-brand text-brand hover:bg-brand-light"
               >
-                🗺️ Trip Room
+                🗺️ {tm('tripRoom')}
               </Button>
             </Link>
           )}
           <Link href={`/${locale}/reviews/write?userId=${otherProfile.id}`}>
-            <Button variant="outline" size="sm" className="rounded-full text-xs border-purple-300 text-purple hover:bg-purple-light flex items-center gap-1">
+            <Button variant="outline" size="sm" className="rounded-full text-xs border-purple-border text-purple hover:bg-purple-light flex items-center gap-1">
               <PenLine className="w-3 h-3" />
               Write Review
             </Button>
@@ -303,8 +226,8 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-hint">
             <div className="text-4xl mb-3">💬</div>
-            <p className="text-sm">Start the conversation!</p>
-            <p className="text-xs mt-1">Messages are end-to-end encrypted</p>
+            <p className="text-sm">{tm('startConversation')}</p>
+            <p className="text-xs mt-1">{tm('endToEndEncrypted')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -315,7 +238,7 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                   {!isMe && (
                     <div className="w-7 h-7 rounded-full bg-brand-muted flex items-center justify-center text-sm shrink-0 mt-auto">
                       {otherProfile.avatar_url ? (
-                        <img src={otherProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                        <Avatar src={otherProfile.avatar_url} fill size={28} />
                       ) : '👤'}
                     </div>
                   )}
@@ -329,13 +252,13 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                     </div>
                     {/* Translation */}
                     {translations[msg.id] && (
-                      <div className="mt-1 px-4 py-2 bg-warning-light border border-yellow-200 rounded-xl text-xs text-body">
+                      <div className="mt-1 px-4 py-2 bg-warning-light border border-gold-border rounded-xl text-xs text-body">
                         🌐 {translations[msg.id]}
                       </div>
                     )}
                     <div className={`flex items-center gap-1.5 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <span className="text-xs text-hint">
-                        {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {/* 읽음 표시: 내가 보낸 메시지에만 표시 */}
                       {isMe && !msg.id.startsWith('temp-') && (
@@ -349,10 +272,12 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
                       {!isMe && (
                         <button
                           onClick={() => translateMessage(msg.id, msg.content)}
-                          className="text-xs text-hint hover:text-blue-500 transition-colors"
-                          title="Translate"
+                          disabled={translatingId === msg.id}
+                          className="text-xs text-hint hover:text-brand transition-colors disabled:opacity-50"
+                          title={translations[msg.id] ? tm('showOriginal') : tm('translate')}
+                          aria-label={translations[msg.id] ? tm('showOriginal') : tm('translate')}
                         >
-                          🌐
+                          {translatingId === msg.id ? '⏳' : '🌐'}
                         </button>
                       )}
                     </div>
@@ -371,12 +296,14 @@ export default function ChatRoom({ chatId, currentUserId, otherProfile, initialM
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
-          placeholder="Type a message... (Enter to send)"
+          placeholder={tm('typeMessagePlaceholder')}
+          aria-label={tm('typeMessagePlaceholder')}
           className="flex-1 border-0 bg-surface-sunken rounded-xl focus:ring-0"
         />
         <Button
           onClick={sendMessage}
           disabled={sending || !newMessage.trim()}
+          aria-label={tc('send')}
           className="bg-brand hover:bg-brand-hover rounded-xl px-4 shrink-0"
         >
           {sending ? '...' : '➤'}

@@ -1,66 +1,72 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/utils/supabase/server'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
 import { sendEmail } from '@/utils/email'
 import { guideApplicationEmail } from '@/utils/emailTemplates'
+import { adminDb, enforceRateLimit, parseJsonBody, requireUser } from '@/lib/api/guard'
+import { RATE_LIMITS } from '@/lib/api/rate-limit'
+import { apiError, apiFailure, apiOk } from '@/lib/api/respond'
 
+const bodySchema = z.object({
+  requestId: z.string().uuid(),
+})
+
+/**
+ * 가이드 지원 알림 메일을 요청 작성자에게 발송한다.
+ * 실제로 해당 요청에 지원한 가이드 본인만 호출할 수 있다.
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { requestId, guideId } = await req.json()
-    if (!requestId || !guideId) {
-      return NextResponse.json({ error: 'requestId and guideId required' }, { status: 400 })
-    }
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
 
-    const supabase = createAdminClient()
+    const limited = enforceRateLimit(req, 'email:guide-application', auth.user.profileId, RATE_LIMITS.email)
+    if (limited) return limited.response
 
-    // 요청 + 작성자 정보
-    const { data: request } = await supabase
-      .from('guide_requests')
-      .select('id, title, user_id, profiles(full_name, email)')
-      .eq('id', requestId)
-      .single()
+    const parsed = await parseJsonBody(req, bodySchema)
+    if ('response' in parsed) return parsed.response
+    const { requestId } = parsed.data
 
-    if (!request) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+    const db = adminDb()
 
-    // 신청한 가이드 정보
-    const { data: guide } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url')
-      .eq('id', guideId)
-      .single()
-
-    // 신청 메시지
-    const { data: application } = await supabase
+    const { data: application } = await db
       .from('guide_applications')
       .select('message')
       .eq('request_id', requestId)
-      .eq('guide_id', guideId)
-      .single()
+      .eq('guide_id', auth.user.profileId)
+      .maybeSingle()
 
-    const ownerRaw = request.profiles
-    const owner = (Array.isArray(ownerRaw) ? ownerRaw[0] : ownerRaw) as Record<string, unknown> | undefined
-    const ownerEmail = owner?.email as string
-    const ownerName = owner?.full_name as string || 'Traveler'
-
-    if (!ownerEmail) {
-      return NextResponse.json({ error: 'Owner email not found' }, { status: 404 })
+    if (!application) {
+      return apiError('forbidden', 'You have not applied to this request.')
     }
 
-    const locale = process.env.DEFAULT_LOCALE || 'en'
+    const { data: request } = await db
+      .from('guide_requests')
+      .select('id, title, user_id')
+      .eq('id', requestId)
+      .maybeSingle()
+
+    if (!request) return apiError('not_found', 'Request not found.')
+
+    const [{ data: owner }, { data: guide }] = await Promise.all([
+      db.from('profiles').select('full_name, email').eq('id', request.user_id).maybeSingle(),
+      db.from('profiles').select('full_name, avatar_url').eq('id', auth.user.profileId).maybeSingle(),
+    ])
+
+    if (!owner?.email) return apiOk({ sent: 0, reason: 'owner_email_missing' })
+
     const { subject, html } = guideApplicationEmail({
-      ownerName,
+      ownerName: owner.full_name || 'Traveler',
       guideName: guide?.full_name || 'A guide',
       guideAvatarUrl: guide?.avatar_url || undefined,
       requestTitle: request.title,
       requestId: request.id,
-      message: application?.message || undefined,
-      locale,
+      message: application.message || undefined,
+      locale: process.env.DEFAULT_LOCALE || 'en',
     })
 
-    const result = await sendEmail({ to: ownerEmail, subject, html })
-    return NextResponse.json(result)
-
-  } catch (error) {
-    console.error('[email/guide-application]', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    await sendEmail({ to: owner.email, subject, html })
+    return apiOk({ sent: 1 })
+  } catch (err) {
+    return apiFailure('email/guide-application', err)
   }
 }

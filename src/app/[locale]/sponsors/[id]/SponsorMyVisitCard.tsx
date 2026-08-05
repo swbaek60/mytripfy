@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import SmartImage from '@/components/ui/SmartImage'
 import { useTranslations } from 'next-intl'
 
 export default function SponsorMyVisitCard({
@@ -81,11 +82,11 @@ export default function SponsorMyVisitCard({
       </p>
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="rounded-xl overflow-hidden border border-edge bg-surface-sunken shrink-0" style={{ width: 160, height: 160 }}>
-          <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+          <SmartImage src={photoUrl} alt="" width={320} height={320} className="w-full h-full object-cover" />
         </div>
         <div className="flex flex-col justify-center gap-2">
           <p className="text-xs text-subtle">{dateStr}</p>
-          <p className="text-sm font-semibold text-emerald-600">+{pointsGranted} pt</p>
+          <p className="text-sm font-semibold text-success">+{pointsGranted} pt</p>
           <div className="flex flex-wrap gap-2 mt-1">
             <Button
               type="button"
@@ -93,7 +94,7 @@ export default function SponsorMyVisitCard({
               size="sm"
               onClick={() => setShowReplaceModal(true)}
               disabled={uploading}
-              className="rounded-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              className="rounded-full border-success-border text-success-strong hover:bg-success-light"
             >
               {t('changePhoto')}
             </Button>
@@ -103,7 +104,7 @@ export default function SponsorMyVisitCard({
               size="sm"
               onClick={handleDelete}
               disabled={deleting}
-              className="rounded-full border-red-200 text-danger hover:bg-danger-light"
+              className="rounded-full border-danger-border text-danger hover:bg-danger-light"
             >
               {deleting ? '...' : t('delete')}
             </Button>
@@ -116,10 +117,10 @@ export default function SponsorMyVisitCard({
           <div className="absolute inset-0 bg-black/60" onClick={() => !uploading && setShowReplaceModal(false)} />
           <div className="relative bg-surface rounded-2xl p-6 w-full max-w-sm shadow-xl">
             <h3 className="font-bold text-heading mb-2">{t('changePhoto')}</h3>
-            <label className="block border-2 border-dashed border-emerald-200 rounded-xl p-6 text-center cursor-pointer hover:bg-emerald-50/50 transition-colors">
+            <label className="block border-2 border-dashed border-success-border rounded-xl p-6 text-center cursor-pointer hover:bg-success-light/50 transition-colors">
               <input type="file" accept="image/*" className="hidden" onChange={handleReplacePhoto} disabled={uploading} />
               <span className="text-4xl block mb-2">📸</span>
-              <span className="text-sm font-medium text-emerald-700">
+              <span className="text-sm font-medium text-success-strong">
                 {uploading ? t('uploading') : t('selectNewPhoto')}
               </span>
             </label>

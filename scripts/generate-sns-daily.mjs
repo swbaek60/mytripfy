@@ -15,6 +15,9 @@ import {
   formatDayBundle,
   parseContentArgs,
   dayIndexFromStart,
+  buildChallengeDeepLink,
+  buildChallengeQrUrl,
+  formatStoryCtaBlock,
 } from './lib/sns-campaign-config.mjs'
 
 import {
@@ -130,6 +133,30 @@ async function main() {
     if (!fs.existsSync(dateDir)) fs.mkdirSync(dateDir, { recursive: true })
     fs.writeFileSync(path.join(dateDir, 'sua.txt'), bundle.suaTxt, 'utf8')
     fs.writeFileSync(path.join(dateDir, 'ethan.txt'), bundle.ethanTxt, 'utf8')
+    fs.writeFileSync(path.join(dateDir, 'sua-story.txt'), formatStoryCtaBlock('sua', bundle.suaCountry), 'utf8')
+    fs.writeFileSync(path.join(dateDir, 'ethan-story.txt'), formatStoryCtaBlock('ethan', bundle.ethanCountry), 'utf8')
+    fs.writeFileSync(
+      path.join(dateDir, 'links.json'),
+      JSON.stringify(
+        {
+          sua: {
+            account: 'sua',
+            deepLink: buildChallengeDeepLink(bundle.suaCountry.code),
+            qrUrl: buildChallengeQrUrl(buildChallengeDeepLink(bundle.suaCountry.code)),
+            country: bundle.suaCountry.code,
+          },
+          ethan: {
+            account: 'ethan',
+            deepLink: buildChallengeDeepLink(bundle.ethanCountry.code),
+            qrUrl: buildChallengeQrUrl(buildChallengeDeepLink(bundle.ethanCountry.code)),
+            country: bundle.ethanCountry.code,
+          },
+        },
+        null,
+        2
+      ),
+      'utf8'
+    )
     writeMetaJson(dateDir, bundle)
     dayResults.push({ dateDir, bundle })
   }

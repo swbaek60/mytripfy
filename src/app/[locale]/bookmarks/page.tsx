@@ -8,6 +8,19 @@ import BookmarkButton from '@/components/BookmarkButton'
 import { Bookmark } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import TranslatedText from '@/components/TranslatedText'
+import Avatar from '@/components/ui/Avatar'
+
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/bookmarks', namespace: 'Bookmarks', titleKey: 'title' })
+}
 
 export default async function BookmarksPage({
   params,
@@ -58,7 +71,7 @@ export default async function BookmarksPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* 헤더 */}
@@ -87,14 +100,14 @@ export default async function BookmarksPage({
         {totalCount === 0 ? (
           <div className="text-center py-24 bg-surface rounded-2xl shadow-sm">
             <Bookmark className="w-14 h-14 text-hint mx-auto mb-4" />
-            <p className="text-subtle font-medium text-lg">No bookmarks yet.</p>
-            <p className="text-hint text-sm mt-1 mb-6">Save trips and guides by tapping the bookmark icon.</p>
+          <p className="text-subtle font-medium text-lg">{t('noBookmarks')}</p>
+          <p className="text-hint text-sm mt-1 mb-6">{t('saveHint')}</p>
             <div className="flex gap-3 justify-center">
               <Link href={`/${locale}/companions`}>
-                <Button className="bg-brand hover:bg-brand-hover rounded-full px-6">✈️ Browse Trips</Button>
+                <Button className="bg-brand hover:bg-brand-hover rounded-full px-6">{t('browseTrips')}</Button>
               </Link>
               <Link href={`/${locale}/guides`}>
-                <Button className="bg-warning hover:bg-warning rounded-full px-6">🧭 Browse Guides</Button>
+                <Button className="bg-warning hover:bg-warning rounded-full px-6">{t('browseGuides')}</Button>
               </Link>
             </div>
           </div>
@@ -129,18 +142,17 @@ export default async function BookmarksPage({
                           <div className="flex items-center gap-1.5 mt-2">
                             <div className="w-5 h-5 rounded-full bg-brand-muted flex items-center justify-center text-xs overflow-hidden">
                               {(poster?.avatar_url as string) ? (
-                                <img src={poster.avatar_url as string} alt="" className="w-full h-full object-cover" />
+                                <Avatar src={poster.avatar_url as string} fill size={20} />
                               ) : '👤'}
                             </div>
                             <span className="text-xs text-hint truncate">{(poster?.full_name as string) || t('anonymous')}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-auto ${post.status === 'open' ? 'bg-success-light text-success' : 'bg-surface-sunken text-subtle'}`}>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-auto ${post.status === 'open' ? 'bg-success-light text-success-strong' : 'bg-surface-sunken text-subtle'}`}>
                               {post.status === 'open' ? t('open') : t('closed')}
                             </span>
                           </div>
                         </Link>
                         <div className="shrink-0">
                           <BookmarkButton
-                            userId={user.id}
                             type="companion_post"
                             referenceId={post.id}
                             isBookmarked={true}
@@ -158,7 +170,7 @@ export default async function BookmarksPage({
             {guides && guides.length > 0 && (
               <div>
                 <h2 className="text-base font-semibold text-body mb-3 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-yellow-400 rounded-full inline-block" />
+                  <span className="w-1 h-5 bg-gold rounded-full inline-block" />
                   {t('savedGuides', { count: guides.length })}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -171,7 +183,7 @@ export default async function BookmarksPage({
                         <Link href={`/${locale}/guides/${guide.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="w-12 h-12 rounded-full bg-warning-light flex items-center justify-center text-xl shrink-0 overflow-hidden">
                             {guide.avatar_url ? (
-                              <img src={guide.avatar_url} alt="" className="w-full h-full object-cover" />
+                              <Avatar src={guide.avatar_url} fill size={48} />
                             ) : '👤'}
                           </div>
                           <div className="min-w-0">
@@ -181,7 +193,7 @@ export default async function BookmarksPage({
                               <span className="text-xs font-bold px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: levelInfo.color }}>
                                 {levelInfo.badge} Lv.{levelInfo.level}
                               </span>
-                              {isFree && <span className="text-xs bg-success-light text-success font-semibold px-1.5 py-0.5 rounded-full">{t('free')}</span>}
+                              {isFree && <span className="text-xs bg-success-light text-success-strong font-semibold px-1.5 py-0.5 rounded-full">{t('free')}</span>}
                             </div>
                             {guide.trust_score > 0 && (
                               <div className="text-xs text-warning mt-0.5">
@@ -191,7 +203,6 @@ export default async function BookmarksPage({
                           </div>
                         </Link>
                         <BookmarkButton
-                          userId={user.id}
                           type="guide"
                           referenceId={guide.id}
                           isBookmarked={true}

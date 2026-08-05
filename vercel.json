@@ -1,4 +1,51 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "headers": [
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(ico|png|jpg|jpeg|gif|webp|svg|woff|woff2|ttf|eot)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/api/rates",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/api/image-proxy",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/api/challenge-image",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    }
+  ]
 }

@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { useTranslations } from 'next-intl'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import CountrySelect from '@/components/CountrySelect'
 
 interface TripFormProps {
-  userId: string
   locale: string
   initialTrip?: {
     id: string
@@ -22,8 +22,10 @@ interface TripFormProps {
   }
 }
 
-export default function TripForm({ userId, locale, initialTrip }: TripFormProps) {
+export default function TripForm({ locale, initialTrip }: TripFormProps) {
   const router = useRouter()
+  const t = useTranslations('Trips')
+  const tc = useTranslations('Common')
   const isEdit = !!initialTrip
   const [title, setTitle] = useState(initialTrip?.title ?? '')
   const [country, setCountry] = useState(initialTrip?.destination_country ?? '')
@@ -38,61 +40,37 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
 
   const handleSubmit = async () => {
     if (!title || !startDate || !endDate) {
-      setError('Please fill in all required fields.')
+      setError(t('fillRequiredFields'))
       return
     }
     if (endDate < startDate) {
-      setError('End date must be after start date.')
+      setError(t('endDateAfterStart'))
       return
     }
 
     setSaving(true)
     setError('')
 
-    const supabase = createClient()
+    const payload = {
+      title,
+      destinationCountry: country || null,
+      startDate,
+      endDate,
+      visibility,
+      description: description || null,
+    }
 
-    if (isEdit && initialTrip) {
-      const { error: dbError } = await supabase
-        .from('trips')
-        .update({
-          title,
-          destination_country: country || null,
-          start_date: startDate,
-          end_date: endDate,
-          visibility,
-          description: description || null,
-        })
-        .eq('id', initialTrip.id)
-        .eq('user_id', userId)
-
-      setSaving(false)
-      if (dbError) {
-        setError('Failed to update trip. Please try again.')
-        return
+    try {
+      if (isEdit && initialTrip) {
+        await api.patch('/api/trips', { id: initialTrip.id, ...payload })
+        router.push(`/${locale}/trips/${initialTrip.id}`)
+      } else {
+        const { id } = await api.post<{ id: string }>('/api/trips', payload)
+        router.push(`/${locale}/trips/${id}`)
       }
-      router.push(`/${locale}/trips/${initialTrip.id}`)
-    } else {
-      const { data, error: dbError } = await supabase
-        .from('trips')
-        .insert({
-          user_id: userId,
-          title,
-          destination_country: country || null,
-          start_date: startDate,
-          end_date: endDate,
-          visibility,
-          description: description || null,
-        })
-        .select()
-        .single()
-
+    } catch (err) {
+      setError(errorMessage(err, t('saveFailed')))
       setSaving(false)
-      if (dbError || !data) {
-        setError('Failed to save trip. Please try again.')
-        return
-      }
-
-      router.push(`/${locale}/trips/${data.id}`)
     }
   }
 
@@ -100,58 +78,54 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-heading">
-          {isEdit ? '✏️ Edit Trip Plan' : '🗺️ Create Trip Plan'}
+          {isEdit ? t('editTitle') : t('createTitle')}
         </h1>
         <p className="text-sm text-subtle mt-1">
-          {isEdit
-            ? 'Update your itinerary details.'
-            : 'Plan your own trip itinerary (private) or share it publicly later.'}
+          {isEdit ? t('editSubtitle') : t('createSubtitle')}
         </p>
       </div>
 
       {error && (
-        <div className="bg-danger-light border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+        <div className="bg-danger-light border border-danger-border text-danger-strong rounded-xl p-4 text-sm">
           ❌ {error}
         </div>
       )}
 
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
         <h2 className="font-bold text-heading border-b border-edge pb-3">
-          Basic Trip Info
+          {t('basicInfo')}
         </h2>
 
         <div className="space-y-1.5">
-          <Label>Trip Title <span className="text-danger">*</span></Label>
+          <Label>{t('tripTitle')} <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. 7 days in Italy (Rome · Florence · Venice)"
+            placeholder={t('titlePlaceholder')}
+            aria-label={t('tripTitle')}
             maxLength={120}
           />
           <p className="text-xs text-hint text-right">{title.length}/120</p>
         </div>
 
         <div className="space-y-1.5">
-          <Label>Destination Country (optional)</Label>
-          <CountrySelect
-            value={country}
-            onChange={setCountry}
-            placeholder="Select country"
-          />
+          <Label>{t('destinationCountryOptional')}</Label>
+          <CountrySelect value={country} onChange={setCountry} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-danger">*</span></Label>
+            <Label>{tc('startDate')} <span className="text-danger">*</span></Label>
             <Input
               type="date"
               value={startDate}
               min={today}
+              aria-label={tc('startDate')}
               onChange={e => setStartDate(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-danger">*</span></Label>
+            <Label>{tc('endDate')} <span className="text-danger">*</span></Label>
             <Input
               type="date"
               value={endDate}
@@ -162,7 +136,7 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
         </div>
 
         <div className="space-y-1.5">
-          <Label>Visibility</Label>
+          <Label>{tc('visibility')}</Label>
           <div className="flex gap-2">
             <button
               type="button"
@@ -170,10 +144,10 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 visibility === 'private'
                   ? 'bg-brand text-white border-brand'
-                  : 'bg-surface text-body border-edge-strong hover:border-blue-400'
+                  : 'bg-surface text-body border-edge-strong hover:border-brand'
               }`}
             >
-              🔒 Private
+              🔒 {t('private')}
             </button>
             <button
               type="button"
@@ -181,28 +155,27 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 visibility === 'public'
                   ? 'bg-brand text-white border-brand'
-                  : 'bg-surface text-body border-edge-strong hover:border-blue-400'
+                  : 'bg-surface text-body border-edge-strong hover:border-brand'
               }`}
             >
-              🌍 Public
+              🌍 {t('public')}
             </button>
           </div>
-          <p className="text-xs text-hint">
-            Private trips are only visible to you. Public trips can be shared and discovered by others.
-          </p>
+          <p className="text-xs text-hint">{t('visibilityHint')}</p>
         </div>
       </div>
 
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
         <h2 className="font-bold text-heading border-b border-edge pb-3">
-          Notes / Itinerary (optional)
+          {t('notesOptional')}
         </h2>
         <textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
           rows={6}
           className="w-full rounded-xl border border-edge-strong px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand"
-          placeholder="Rough plan for each day, must-visit spots, activities, restaurants, budget notes, etc."
+          placeholder={t('descriptionPlaceholder')}
+          aria-label={t('notesOptional')}
         />
       </div>
 
@@ -212,8 +185,8 @@ export default function TripForm({ userId, locale, initialTrip }: TripFormProps)
         className="w-full bg-brand hover:bg-brand-hover py-6 text-lg rounded-xl"
       >
         {saving
-          ? (isEdit ? 'Saving changes...' : 'Saving trip...')
-          : (isEdit ? '💾 Save Changes' : '🚀 Save Trip Plan')}
+          ? tc('saving')
+          : (isEdit ? t('saveChanges') : t('saveTripPlan'))}
       </Button>
     </div>
   )

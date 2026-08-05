@@ -4,6 +4,18 @@ import { getTranslations } from 'next-intl/server'
 import Header from '@/components/Header'
 import ChatRoom from './ChatRoom'
 
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}): Promise<Metadata> {
+  const { locale, id } = await params
+  return buildPrivateMetadata({ locale, path: `/messages/${id}`, namespace: 'Nav', titleKey: 'messages' })
+}
+
 export default async function MessagePage({
   params,
   searchParams,
@@ -79,55 +91,25 @@ export default async function MessagePage({
   }
 
   if (!chatId) {
-    // 내가 속한 채팅방 중 상대방이 없는 1:1 채팅방이 있으면 재사용 (참여자 누락 복구)
-    if (myChatIds.length > 0) {
-      const { data: myDirectChats } = await admin
-        .from('chats')
-        .select('id, created_at')
-        .in('id', myChatIds)
-        .or('is_group.is.null,is_group.eq.false')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    // 두 사람 간 공유 채팅방이 없으면 항상 새 방 생성 (절대로 기존 방을 재사용하지 않음)
+    const { data: newChat, error: chatError } = await admin
+      .from('chats')
+      .insert({ type: 'direct', is_group: false })
+      .select('id')
+      .single()
 
-      if (myDirectChats?.id) {
-        chatId = myDirectChats.id
-        // 상대방이 참여자에 없으면 추가
-        await admin
-          .from('chat_participants')
-          .upsert({ chat_id: chatId, user_id: otherUserId }, { onConflict: 'chat_id,user_id', ignoreDuplicates: true })
-      }
+    if (!newChat || chatError) {
+      console.error('Failed to create chat', chatError)
+      const tc = await getTranslations({ locale, namespace: 'Common' })
+      throw new Error(tc('errorOccurred'))
     }
 
-    if (!chatId) {
-      // 새 1:1 채팅방 생성 (항상 direct 타입)
-      const { data: newChat, error: chatError } = await admin
-        .from('chats')
-        .insert({ type: 'direct', is_group: false })
-        .select('id')
-        .single()
+    chatId = newChat.id
 
-      if (!newChat || chatError) {
-        console.error('Failed to create chat', chatError)
-        const tc = await getTranslations({ locale, namespace: 'Common' })
-        throw new Error(tc('errorOccurred'))
-      }
-
-      chatId = newChat.id
-
-      await admin.from('chat_participants').insert([
-        { chat_id: chatId, user_id: user.id },
-        { chat_id: chatId, user_id: otherUserId },
-      ])
-    }
-  } else {
-    // 기존 채팅방이 있어도 상대방이 참여자에 없으면 추가 (누락 복구)
-    await admin
-      .from('chat_participants')
-      .upsert({ chat_id: chatId, user_id: otherUserId }, { onConflict: 'chat_id,user_id', ignoreDuplicates: true })
-    await admin
-      .from('chat_participants')
-      .upsert({ chat_id: chatId, user_id: user.id }, { onConflict: 'chat_id,user_id', ignoreDuplicates: true })
+    await admin.from('chat_participants').insert([
+      { chat_id: chatId, user_id: user.id },
+      { chat_id: chatId, user_id: otherUserId },
+    ])
   }
 
   // 채팅방 입장 시 읽음 처리 (배지 숫자 즉시 0으로 반영되도록 서버에서 처리)
@@ -175,8 +157,9 @@ export default async function MessagePage({
 
   return (
     <div className="min-h-screen bg-surface-sunken flex flex-col">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
       <ChatRoom
+        key={chatId}
         chatId={chatId!}
         currentUserId={user.id}
         otherProfile={otherProfile}

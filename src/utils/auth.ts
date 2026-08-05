@@ -4,6 +4,7 @@
  */
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { createAdminClient } from '@/utils/supabase/server'
+import { isNextControlFlowError } from '@/lib/next-control-flow'
 import { redirect } from 'next/navigation'
 
 export interface UserProfile {
@@ -15,6 +16,8 @@ export interface UserProfile {
   fullName: string | null
   avatarUrl: string | null
   preferredLocale: string | null
+  referralCode?: string | null
+  referralCount?: number
 }
 
 /**
@@ -29,7 +32,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     const admin = createAdminClient()
     const { data } = await admin
       .from('profiles')
-      .select('id, clerk_id, email, full_name, avatar_url, preferred_locale')
+      .select('id, clerk_id, email, full_name, avatar_url, preferred_locale, referral_code, referral_count')
       .eq('clerk_id', userId)
       .maybeSingle()
 
@@ -38,6 +41,26 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       const clerk = await currentUser()
       if (!clerk) return null
       const email = clerk.emailAddresses?.[0]?.emailAddress ?? ''
+
+      let referredBy: string | null = null
+      let referralCode: string | null = null
+      try {
+        const { cookies } = await import('next/headers')
+        const { REFERRAL_COOKIE, normalizeReferralCode } = await import('@/lib/referral')
+        const jar = await cookies()
+        const code = normalizeReferralCode(jar.get(REFERRAL_COOKIE)?.value)
+        if (code) {
+          const { data: referrer } = await admin
+            .from('profiles')
+            .select('id')
+            .eq('referral_code', code)
+            .maybeSingle()
+          if (referrer?.id) referredBy = referrer.id
+        }
+      } catch {
+        /* cookie optional outside request */
+      }
+
       const { data: created } = await admin
         .from('profiles')
         .insert({
@@ -45,10 +68,32 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
           email,
           full_name: clerk.fullName ?? null,
           avatar_url: clerk.imageUrl ?? null,
+          referred_by: referredBy,
         })
-        .select('id, clerk_id, email, full_name, avatar_url, preferred_locale')
+        .select('id, clerk_id, email, full_name, avatar_url, preferred_locale, referral_code, referral_count')
         .single()
       if (!created) return null
+
+      // Ensure referral_code exists + bump referrer count
+      if (!created.referral_code) {
+        const code = created.id.replace(/-/g, '').slice(0, 8).toLowerCase()
+        await admin.from('profiles').update({ referral_code: code }).eq('id', created.id)
+        referralCode = code
+      } else {
+        referralCode = created.referral_code
+      }
+      if (referredBy) {
+        const { data: refRow } = await admin
+          .from('profiles')
+          .select('referral_count')
+          .eq('id', referredBy)
+          .maybeSingle()
+        await admin
+          .from('profiles')
+          .update({ referral_count: (refRow?.referral_count ?? 0) + 1 })
+          .eq('id', referredBy)
+      }
+
       return {
         id: created.id,
         clerkId: created.clerk_id,
@@ -56,7 +101,15 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
         fullName: created.full_name,
         avatarUrl: created.avatar_url,
         preferredLocale: created.preferred_locale,
+        referralCode,
+        referralCount: created.referral_count ?? 0,
       }
+    }
+
+    let referralCode = data.referral_code as string | null
+    if (!referralCode) {
+      referralCode = data.id.replace(/-/g, '').slice(0, 8).toLowerCase()
+      await admin.from('profiles').update({ referral_code: referralCode }).eq('id', data.id)
     }
 
     return {
@@ -66,8 +119,13 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       fullName: data.full_name,
       avatarUrl: data.avatar_url,
       preferredLocale: data.preferred_locale,
+      referralCode,
+      referralCount: (data as { referral_count?: number }).referral_count ?? 0,
     }
-  } catch {
+  } catch (e) {
+    // 동적 렌더링 신호·리다이렉트는 삼키면 안 된다.
+    if (isNextControlFlowError(e)) throw e
+    console.error('[getCurrentUserProfile] failed:', e)
     return null
   }
 }

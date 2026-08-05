@@ -8,13 +8,13 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-surface-sunken text-subtle px-2 py-0.5",
-        brand: "bg-brand-light text-brand px-2 py-0.5",
-        success: "bg-success-light text-success px-2 py-0.5",
-        warning: "bg-warning-light text-warning px-2 py-0.5",
-        danger: "bg-danger-light text-danger px-2 py-0.5",
+        brand: "bg-brand-light text-brand-strong px-2 py-0.5",
+        success: "bg-success-light text-success-strong px-2 py-0.5",
+        warning: "bg-warning-light text-warning-strong px-2 py-0.5",
+        danger: "bg-danger-light text-danger-strong px-2 py-0.5",
         info: "bg-info-light text-info px-2 py-0.5",
-        amber: "bg-amber-light text-amber px-2 py-0.5",
-        purple: "bg-purple-light text-purple px-2 py-0.5",
+        gold: "bg-gold-light text-gold-strong px-2 py-0.5",
+        purple: "bg-purple-light text-purple-strong px-2 py-0.5",
         outline: "border border-edge text-subtle px-2 py-0.5",
       },
       size: {

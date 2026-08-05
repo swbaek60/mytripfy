@@ -1,7 +1,6 @@
 import { createClient, getAuthUser } from '@/utils/supabase/server'
 import Header from '@/components/Header'
 import Link from 'next/link'
-import { getLevelInfo, getCountryByCode } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -30,6 +29,7 @@ import {
   getContributionTierForPoints,
   getNextContributionTier,
   CONTRIBUTION_TIERS,
+  type TierKey,
 } from '@/data/challengeTiers'
 
 const PAGE_SIZE = 100
@@ -245,17 +245,31 @@ export default async function HallOfFamePage({
   const tiers = tab === 'contribution' ? CONTRIBUTION_TIERS : CHALLENGE_TIERS
   const nextTier = user ? getNext(currentUserPoints) : null
 
+  // 등급 라벨은 서버에서 한 번만 번역해서 서버 JSX 와 클라이언트 목록이 함께 쓴다.
+  const tierLabels = {
+    beginner: t('tier_beginner'),
+    apprentice: t('tier_apprentice'),
+    trainee: t('tier_trainee'),
+    intermediate: t('tier_intermediate'),
+    advanced: t('tier_advanced'),
+    expert: t('tier_expert'),
+    master: t('tier_master'),
+    grandmaster: t('tier_grandmaster'),
+    legend: t('tier_legend'),
+  } satisfies Record<TierKey, string>
+
   const tabExperienceHref = `/${locale}/hall-of-fame?tab=experience`
   const tabContributionHref = `/${locale}/hall-of-fame?tab=contribution`
   const tabOverallHref = `/${locale}/hall-of-fame?tab=overall`
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/hall-of-fame" />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-gold-light via-gold to-gold rounded-2xl p-8 text-white shadow-xl">
+        {/* 흰 글자를 얹으므로 그라데이션 양끝 모두 어두워야 한다. 밝은 금색에서 시작하면 제목이 사라진다. */}
+        <div className="bg-gradient-to-br from-midnight via-midnight to-gold-strong rounded-2xl p-8 text-white shadow-xl">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="w-10 h-10" />
             <h1 className="text-2xl sm:text-3xl font-extrabold">{t('title')}</h1>
@@ -266,21 +280,21 @@ export default async function HallOfFamePage({
           <div className="mt-4 flex flex-wrap gap-2 p-1 bg-surface/15 rounded-xl w-fit">
             <Link
               href={tabOverallHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'overall' ? 'bg-surface text-gold' : 'text-white/90 hover:bg-surface/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'overall' ? 'bg-surface text-gold-strong' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <LayoutList className="w-4 h-4" />
               {t('tabOverall')}
             </Link>
             <Link
               href={tabExperienceHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'experience' ? 'bg-surface text-gold' : 'text-white/90 hover:bg-surface/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'experience' ? 'bg-surface text-gold-strong' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <Compass className="w-4 h-4" />
               {t('tabExperience')}
             </Link>
             <Link
               href={tabContributionHref}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'contribution' ? 'bg-surface text-gold' : 'text-white/90 hover:bg-surface/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'contribution' ? 'bg-surface text-gold-strong' : 'text-white/90 hover:bg-surface/10'}`}
             >
               <Users className="w-4 h-4" />
               {t('tabContribution')}
@@ -305,7 +319,7 @@ export default async function HallOfFamePage({
                 <span className="font-bold text-white/95">{currentUserPoints} pts</span>
                 {(() => {
                   const tier = getTier(currentUserPoints)
-                  const label = t(`tier_${tier.key}` as any)
+                  const label = tierLabels[tier.key]
                   return (
                     <span
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold text-white"
@@ -334,7 +348,7 @@ export default async function HallOfFamePage({
             {user && (
               <Link
                 href={`/${locale}/users/${user.id}`}
-                className="inline-flex items-center gap-1.5 bg-surface text-gold hover:bg-gold-light text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+                className="inline-flex items-center gap-1.5 bg-surface text-gold-strong hover:bg-gold-light text-sm font-semibold px-4 py-2 rounded-full transition-colors"
               >
                 {t('myProfile')}
               </Link>
@@ -374,17 +388,7 @@ export default async function HallOfFamePage({
                 currentUserId={user?.id ?? null}
                 myCertCount={myCertCount}
                 myDisputedKeys={myDisputedKeys}
-                tierLabels={{
-                  beginner: t('tier_beginner'),
-                  apprentice: t('tier_apprentice'),
-                  trainee: t('tier_trainee'),
-                  intermediate: t('tier_intermediate'),
-                  advanced: t('tier_advanced'),
-                  expert: t('tier_expert'),
-                  master: t('tier_master'),
-                  grandmaster: t('tier_grandmaster'),
-                  legend: t('tier_legend'),
-                }}
+                tierLabels={tierLabels}
                 anonymousLabel={t('anonymous')}
                 pointsLabel={t('points')}
               />
@@ -398,7 +402,7 @@ export default async function HallOfFamePage({
               <p className="text-sm text-subtle mb-4">{t('rankTiersIntro')}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
                 {tiers.map((tier) => {
-                  const label = t(`tier_${tier.key}` as any)
+                  const label = tierLabels[tier.key]
                   const range =
                     tier.maxPoints != null
                       ? t('pointsRange', { min: tier.minPoints, max: tier.maxPoints })

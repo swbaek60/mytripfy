@@ -1,0 +1,38 @@
+name: Marketing AI Weekly
+
+# 자동 스케줄 비활성화 — 필요할 때 Actions 탭에서 수동 실행한다.
+on:
+  workflow_dispatch:
+    inputs:
+      blog_limit:
+        description: 'Blog drafts to generate'
+        default: '1'
+      community:
+        description: 'Community drafts'
+        default: '3'
+
+jobs:
+  marketing-weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run weekly blog + community
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          node scripts/marketing-agent/run-weekly.mjs \
+            --blog-limit=${{ github.event.inputs.blog_limit || '1' }} \
+            --community=${{ github.event.inputs.community || '3' }}
+
+      - name: Upload drafts
+        uses: actions/upload-artifact@v4
+        with:
+          name: marketing-weekly-${{ github.run_id }}
+          path: scripts/out/marketing/
+          if-no-files-found: ignore

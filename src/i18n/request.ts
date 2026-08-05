@@ -1,5 +1,5 @@
 import {getRequestConfig} from 'next-intl/server';
-import {routing} from './routing';
+import {isAppLocale, routing} from './routing';
 
 /** next-intl 메시지 — 값은 string 또는 중첩 객체(예: Blog 글) */
 export type MessageTree = Record<string, unknown>
@@ -18,11 +18,8 @@ function mergeMessages(en: Messages, locale: Messages | null): Messages {
 }
 
 export default getRequestConfig(async ({requestLocale}) => {
-  let locale = await requestLocale;
-
-  if (!locale || !routing.locales.includes(locale as any)) {
-    locale = routing.defaultLocale;
-  }
+  const requested = await requestLocale;
+  const locale = isAppLocale(requested) ? requested : routing.defaultLocale;
 
   const enMessages = (await import('../../messages/en.json')).default as Messages;
   let messages = enMessages;

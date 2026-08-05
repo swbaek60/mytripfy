@@ -1,21 +1,25 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { useTranslations } from 'next-intl'
 import { optimizeImage, formatFileSize } from '@/utils/imageOptimizer'
+import { api, errorMessage, uploadImage } from '@/lib/client/api'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface Props {
-  userId: string
   initialPhotos: string[]
   onUpdate: (photos: string[]) => void
 }
 
 const MAX_PHOTOS = 5
 
-export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props) {
+export default function ProfilePhotos({ initialPhotos, onUpdate }: Props) {
+  const tc = useTranslations('Common')
+  const tp = useTranslations('ProfileEdit')
   const [photos, setPhotos] = useState<string[]>(initialPhotos)
   const [uploading, setUploading] = useState(false)
   const [uploadInfo, setUploadInfo] = useState('')
+  const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,59 +28,48 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
 
     const remaining = MAX_PHOTOS - photos.length
     if (remaining <= 0) {
-      alert(`Maximum ${MAX_PHOTOS} photos allowed. Please remove one first.`)
+      setError(tp('photosMaxReached', { count: MAX_PHOTOS }))
       return
     }
 
     const toUpload = files.slice(0, remaining)
     setUploading(true)
     setUploadInfo('')
+    setError('')
 
-    const supabase = createClient()
     const newUrls: string[] = []
     let totalOriginal = 0
     let totalCompressed = 0
+    let failed = 0
 
     for (const file of toUpload) {
-      if (file.size > 20 * 1024 * 1024) {
-        alert(`${file.name} is too large (max 20MB)`)
-        continue
-      }
-
       try {
         totalOriginal += file.size
         const optimized = await optimizeImage(file, 'photo')
         totalCompressed += optimized.size
-
-        const ext = optimized.name.split('.').pop()
-        const path = `${userId}/photo-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-
-        const { error } = await supabase.storage
-          .from('photos')
-          .upload(path, optimized, { contentType: optimized.type })
-
-        if (error) throw error
-
-        const { data } = supabase.storage.from('photos').getPublicUrl(path)
-        newUrls.push(data.publicUrl)
-      } catch (err: any) {
-        console.error('Upload error:', err)
+        const { url } = await uploadImage('photos', optimized)
+        newUrls.push(url)
+      } catch (err) {
+        failed += 1
+        setError(errorMessage(err, tp('somePhotosFailed')))
       }
     }
 
     if (newUrls.length > 0) {
       const updated = [...photos, ...newUrls]
-      setPhotos(updated)
-      setUploadInfo(
-        `${newUrls.length} photo${newUrls.length > 1 ? 's' : ''} added · ` +
-        `${formatFileSize(totalOriginal)} → ${formatFileSize(totalCompressed)}`
-      )
-      // DB 저장
-      await supabase
-        .from('profiles')
-        .update({ profile_photos: updated })
-        .eq('id', userId)
-      onUpdate(updated)
+      try {
+        await api.put('/api/profile/photos', { photos: updated })
+        setPhotos(updated)
+        onUpdate(updated)
+        setUploadInfo(
+          `${tp('photosAdded', { count: newUrls.length })} · ` +
+          `${formatFileSize(totalOriginal)} → ${formatFileSize(totalCompressed)}`
+        )
+      } catch (err) {
+        setError(errorMessage(err))
+      }
+    } else if (!failed) {
+      setError(tp('noPhotosUploaded'))
     }
 
     setUploading(false)
@@ -84,27 +77,15 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
   }
 
   const handleRemove = async (url: string) => {
-    if (!confirm('Remove this photo?')) return
+    if (!confirm(tp('removePhotoConfirm'))) return
     const updated = photos.filter(p => p !== url)
-    setPhotos(updated)
-
-    const supabase = createClient()
-    await supabase
-      .from('profiles')
-      .update({ profile_photos: updated })
-      .eq('id', userId)
-
-    // Storage에서도 삭제 (경로 추출)
     try {
-      const pathMatch = url.match(/photos\/(.+)$/)
-      if (pathMatch) {
-        await supabase.storage.from('photos').remove([pathMatch[1]])
-      }
-    } catch {
-      // 스토리지 삭제 실패해도 DB는 이미 업데이트됨
+      await api.put('/api/profile/photos', { photos: updated })
+      setPhotos(updated)
+      onUpdate(updated)
+    } catch (err) {
+      setError(errorMessage(err))
     }
-
-    onUpdate(updated)
   }
 
   return (
@@ -112,23 +93,21 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="font-semibold text-heading text-sm">
-            📸 Profile Photos
+            📸 {tp('profilePhotos')}
             <span className="ml-2 text-xs font-normal text-hint">
               ({photos.length}/{MAX_PHOTOS})
             </span>
           </h3>
-          <p className="text-xs text-hint mt-0.5">
-            Show travelers what you look like on the road
-          </p>
+          <p className="text-xs text-hint mt-0.5">{tp('profilePhotosHint')}</p>
         </div>
         {photos.length < MAX_PHOTOS && (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="text-xs bg-brand-light hover:bg-brand-muted text-brand font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            className="text-xs bg-brand-light hover:bg-brand-muted text-brand-strong font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
           >
-            {uploading ? '⏳ Uploading...' : '+ Add Photos'}
+            {uploading ? `⏳ ${tp('uploading')}` : `+ ${tp('addPhotos')}`}
           </button>
         )}
       </div>
@@ -138,15 +117,19 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
           {photos.map((url, i) => (
             <div key={i} className="relative group aspect-square rounded-xl overflow-hidden bg-surface-sunken">
-              <img
+              <SmartImage
                 src={url}
-                alt={`Photo ${i + 1}`}
+                alt={`${tc('photo')} ${i + 1}`}
+                width={320}
+                height={320}
+                sizes="(max-width: 640px) 33vw, 20vw"
                 className="w-full h-full object-cover"
               />
               <button
                 type="button"
                 onClick={() => handleRemove(url)}
-                className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-red-500 text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                aria-label={tc('remove')}
+                className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-danger text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
               >
                 ✕
               </button>
@@ -160,7 +143,8 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="aspect-square rounded-xl border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light flex items-center justify-center text-hint hover:text-blue-400 text-2xl transition-all disabled:opacity-50"
+              aria-label={tp('addPhotos')}
+              className="aspect-square rounded-xl border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light flex items-center justify-center text-hint hover:text-brand text-2xl transition-all disabled:opacity-50"
             >
               +
             </button>
@@ -174,14 +158,20 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
           className="w-full border-2 border-dashed border-edge hover:border-edge-brand hover:bg-brand-light rounded-xl py-8 text-center transition-all disabled:opacity-50 mb-3"
         >
           <div className="text-3xl mb-1">📸</div>
-          <div className="text-sm font-medium text-subtle">Upload up to 5 photos</div>
-          <div className="text-xs text-hint mt-1">Auto-compressed · Storage optimized</div>
+          <div className="text-sm font-medium text-subtle">{tc('uploadUpToPhotos', { count: MAX_PHOTOS })}</div>
+          <div className="text-xs text-hint mt-1">{tp('autoCompressed')}</div>
         </button>
       )}
 
       {uploadInfo && (
-        <p className="text-xs text-success font-medium bg-success-light px-3 py-1.5 rounded-lg">
+        <p className="text-xs text-success-strong font-medium bg-success-light px-3 py-1.5 rounded-lg">
           ✅ {uploadInfo}
+        </p>
+      )}
+
+      {error && (
+        <p className="text-xs text-danger-strong font-medium bg-danger-light px-3 py-1.5 rounded-lg mt-2">
+          {error}
         </p>
       )}
 
@@ -190,6 +180,7 @@ export default function ProfilePhotos({ userId, initialPhotos, onUpdate }: Props
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic"
         multiple
+        aria-label={tc('selectPhoto')}
         className="hidden"
         onChange={handleUpload}
       />

@@ -12,6 +12,24 @@ import TranslatedText from '@/components/TranslatedText'
 import GuidesTabBar from '@/components/explore/GuidesTabBar'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import Avatar from '@/components/ui/Avatar'
+import SmartImage from '@/components/ui/SmartImage'
+import { relationOne, type ProfileRef } from '@/lib/db/relation'
+
+interface GuideRequestCard {
+  id: string
+  user_id: string
+  title: string
+  destination_country: string
+  destination_city: string | null
+  start_date: string
+  end_date: string
+  cover_image: string | null
+  preferred_languages: string[] | null
+  profiles?: ProfileRef | ProfileRef[] | null
+  /** `guide_applications (count)` 임베드. */
+  guide_applications?: { count: number }[] | null
+}
 
 export async function generateMetadata({
   params,
@@ -43,6 +61,7 @@ export default async function GuideRequestsPage({
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
   const th = await getTranslations({ locale, namespace: 'HomeSection' })
   const tc = await getTranslations({ locale, namespace: 'Companions' })
+  const tg = await getTranslations({ locale, namespace: 'Guides' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -78,12 +97,13 @@ export default async function GuideRequestsPage({
 
   return (
     <div className="min-h-screen bg-surface-warm">
-      <Header user={user} locale={locale} currentPath="/guides" />
+      <Header locale={locale} />
 
-      <section className="relative bg-midnight text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2">{tm('guidesTabRequests')}</h1>
-          <p className="text-white/70 max-w-xl">{th('guideRequestsSubtitle')}</p>
+      <section className="relative bg-midnight text-white py-12 sm:py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight via-midnight to-gold-strong/25" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{tm('guidesTabRequests')}</h1>
+          <p className="text-white/70 max-w-xl leading-relaxed">{th('guideRequestsSubtitle')}</p>
         </div>
       </section>
 
@@ -101,14 +121,14 @@ export default async function GuideRequestsPage({
             {totalCount > 0 && <span className="text-gold font-semibold">{th('openRequestsCount', { count: totalCount })}</span>}
           </p>
           <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests`)}`}>
-            <Button className="bg-gold hover:brightness-95 rounded-full px-5 shrink-0 text-white flex items-center gap-1.5">
+            <Button className="bg-gold hover:brightness-95 rounded-full px-5 shrink-0 text-heading flex items-center gap-1.5 shadow-md shadow-gold/25">
               <Plus className="w-4 h-4" /> {th('postRequest')}
             </Button>
           </Link>
         </div>
 
         {/* ── 필터 바 ── */}
-        <div className="bg-surface rounded-2xl shadow-sm mb-6">
+        <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 mb-6">
 
           {/* 탭 (로그인 시) */}
           {user && (
@@ -139,12 +159,12 @@ export default async function GuideRequestsPage({
               <span className="text-xs font-semibold text-hint uppercase tracking-wide">{th('destination')}</span>
               {selectedCountry && (
                 <Link href={my ? `/${locale}/guides/requests?my=${my}` : `/${locale}/guides/requests`}
-                  className="ml-auto text-xs text-red-400 hover:text-danger">✕ {th('clearFilter')}</Link>
+                  className="ml-auto text-xs text-danger hover:text-danger">✕ {th('clearFilter')}</Link>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5 items-center">
               {!country ? (
-                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gold text-white">🌍 {th('allCountriesFilter')}</span>
+                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gold text-heading">🌍 {th('allCountriesFilter')}</span>
               ) : (
                 <Link href={my ? `/${locale}/guides/requests?my=${my}` : `/${locale}/guides/requests`}>
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-surface-sunken text-body hover:bg-surface-hover">🌍 {th('allCountriesFilter')}</span>
@@ -157,7 +177,7 @@ export default async function GuideRequestsPage({
                   : (my ? `/${locale}/guides/requests?country=${c.code}&my=${my}` : `/${locale}/guides/requests?country=${c.code}`)
                 return (
                   <Link key={c.code} href={href}>
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${isSelected ? 'bg-gold text-white' : 'bg-surface-sunken text-body hover:bg-gold-light'}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${isSelected ? 'bg-gold text-heading' : 'bg-surface-sunken text-body hover:bg-gold-light'}`}>
                       <CountryFlag code={c.code} size="xs" />
                       {c.name}
                     </span>
@@ -169,7 +189,7 @@ export default async function GuideRequestsPage({
             </div>
             {/* 선택된 국가가 인기 목록에 없을 때 표시 */}
             {selectedCountry && !popularCountries.find(c => c.code === country) && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-gold bg-gold-light border border-gold/30 rounded-lg px-3 py-1.5 w-fit">
+              <div className="mt-2 flex items-center gap-2 text-xs text-gold-strong bg-gold-light border border-gold/30 rounded-lg px-3 py-1.5 w-fit">
                 <CountryFlag code={selectedCountry.code} size="xs" />
                 <span className="font-semibold">{selectedCountry.name}</span>
                 <span className="text-gold">· {th('activeFilter')}</span>
@@ -181,10 +201,10 @@ export default async function GuideRequestsPage({
         {/* ── 요청 목록 ── */}
         {requests && requests.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {requests.map((req: any) => {
+            {requests.map((req: GuideRequestCard) => {
               const countryInfo = getCountryByCode(req.destination_country)
-              const profile = req.profiles as Record<string, unknown>
-              const appCount = (req.guide_applications as { count: number }[])?.[0]?.count || 0
+              const profile = relationOne<ProfileRef>(req.profiles)
+              const appCount = req.guide_applications?.[0]?.count || 0
               const startDate = new Date(req.start_date)
               const endDate = new Date(req.end_date)
               const nights = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
@@ -193,12 +213,12 @@ export default async function GuideRequestsPage({
 
               return (
                 <Link key={req.id} href={`/${locale}/guides/requests/${req.id}`}>
-                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-gold/30 h-full flex flex-col overflow-hidden group">
+                  <div className="bg-surface rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 border border-edge/60 hover:border-gold/30 h-full flex flex-col overflow-hidden group">
 
                     {/* 커버 */}
                     {req.cover_image ? (
                       <div className="w-full overflow-hidden" style={{ aspectRatio: '16/7' }}>
-                        <img src={req.cover_image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <SmartImage src={req.cover_image} alt="" width={800} height={350} sizes="(max-width: 768px) 100vw, 50vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>
                     ) : (
                       <div className="w-full h-20 flex items-center justify-between px-5 bg-gradient-to-br from-gold to-gold/85">
@@ -208,7 +228,7 @@ export default async function GuideRequestsPage({
                             <div className="text-gold-light text-xs mt-0.5">📍 {req.destination_city}</div>
                           )}
                         </div>
-                        <span className="text-white/80 text-2xl font-bold">{nights}N</span>
+                        <span className="text-white/80 text-2xl font-bold">{tg('nightsShort', { nights })}</span>
                       </div>
                     )}
 
@@ -223,25 +243,25 @@ export default async function GuideRequestsPage({
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 ml-auto">
-                          {isOwn && <span className="text-[10px] bg-brand-muted text-brand px-1.5 py-0.5 rounded-full font-medium">{th('mineBadge')}</span>}
+                          {isOwn && <span className="text-[10px] bg-brand-muted text-brand-strong px-1.5 py-0.5 rounded-full font-medium">{th('mineBadge')}</span>}
                           {isExpired
                             ? <span className="text-[10px] bg-surface-sunken text-subtle px-1.5 py-0.5 rounded-full font-medium">{th('expiredBadge')}</span>
-                            : <span className="text-[10px] bg-success-light text-success px-1.5 py-0.5 rounded-full font-medium">{th('openStatus')}</span>
+                            : <span className="text-[10px] bg-success-light text-success-strong px-1.5 py-0.5 rounded-full font-medium">{th('openStatus')}</span>
                           }
-                          <span className="text-[10px] bg-gold-light text-gold border border-gold/25 px-1.5 py-0.5 rounded-full font-medium">{tc('nightsDays', { nights, days: nights + 1 })}</span>
+                          <span className="text-[10px] bg-gold-light text-gold-strong border border-gold/25 px-1.5 py-0.5 rounded-full font-medium">{tc('nightsDays', { nights, days: nights + 1 })}</span>
                         </div>
                       </div>
 
                       {/* 제목 */}
-                      <TranslatedText text={req.title as string} locale={locale} as="h3" className="font-bold text-heading mb-2 line-clamp-2 leading-snug text-sm" />
+                      <TranslatedText text={req.title} locale={locale} as="h3" className="font-bold text-heading mb-2 line-clamp-2 leading-snug text-sm" />
 
                       {/* 언어 */}
-                      {req.preferred_languages && (req.preferred_languages as string[]).length > 0 && (
+                      {req.preferred_languages && req.preferred_languages.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
-                          {(req.preferred_languages as string[]).map((code: string) => {
+                          {req.preferred_languages.map((code) => {
                             const lang = getLanguageByCode(code)
                             return lang ? (
-                              <span key={code} className="text-[10px] bg-purple-light text-purple border border-purple-light px-1.5 py-0.5 rounded-full">
+                              <span key={code} className="text-[10px] bg-purple-light text-purple-strong border border-purple-light px-1.5 py-0.5 rounded-full">
                                 {lang.emoji} {lang.name}
                               </span>
                             ) : null
@@ -260,13 +280,14 @@ export default async function GuideRequestsPage({
                       {/* 하단: 작성자 + 지원자 수 */}
                       <div className="flex items-center justify-between mt-auto pt-3 border-t border-edge">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gold-light flex items-center justify-center overflow-hidden shrink-0">
-                            {(profile?.avatar_url as string)
-                              ? <img src={profile.avatar_url as string} alt="" className="w-full h-full object-cover" />
-                              : <span className="text-[10px] text-gold font-bold">?</span>}
-                          </div>
+                          <Avatar
+                            src={profile?.avatar_url}
+                            name={profile?.full_name}
+                            size={24}
+                            fallbackClassName="bg-gold-light text-gold-strong"
+                          />
                           <span className="text-xs text-body font-medium truncate max-w-[100px]">
-                            {(profile?.full_name as string) || th('traveler')}
+                            {profile?.full_name || th('traveler')}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs">
@@ -296,7 +317,7 @@ export default async function GuideRequestsPage({
             </p>
             {!my && (
               <Link href={user ? `/${locale}/guides/requests/new` : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests`)}`}>
-                <Button className="bg-gold hover:brightness-95 text-white rounded-full px-8">
+                <Button className="bg-gold hover:brightness-95 text-heading rounded-full px-8">
                   {th('postGuideRequestBtn')}
                 </Button>
               </Link>

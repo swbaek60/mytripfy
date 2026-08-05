@@ -90,7 +90,7 @@ async function fetchThumbnail(titleEn) {
         // 640px로 통일 (API 기본 320px → 더 선명하게)
         return thumb.replace(/\/\d+px-/, '/640px-')
       }
-    } catch (_) {}
+    } catch {}
   }
   return null
 }

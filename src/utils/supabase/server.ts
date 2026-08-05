@@ -10,9 +10,9 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import type { User } from '@supabase/supabase-js'
+import { isNextControlFlowError } from '@/lib/next-control-flow'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export function createAdminClient() {
@@ -153,6 +153,7 @@ export async function getAuthUser(): Promise<{
     const result = await auth()
     clerkUserId = result.userId ?? null
   } catch (e) {
+    if (isNextControlFlowError(e)) throw e
     console.error('[getAuthUser] auth() failed:', e)
     return null
   }
@@ -173,8 +174,10 @@ export async function getAuthUser(): Promise<{
  * 매 호출마다 Clerk auth()로 직접 인증 확인 (React.cache 사용 안 함).
  */
 export async function createClient() {
-  const serviceKey = supabaseServiceKey ?? supabaseAnonKey
-  const supabase = createSupabaseClient(supabaseUrl, serviceKey, {
+  // anon 키는 RLS 잠금 이후 아무 것도 읽을 수 없다. 조용히 폴백하면
+  // 원인 파악이 어려운 빈 화면이 되므로 여기서 바로 실패시킨다.
+  if (!supabaseServiceKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is required')
+  const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
@@ -182,7 +185,8 @@ export async function createClient() {
   try {
     const result = await auth()
     clerkUserId = result.userId ?? null
-  } catch {
+  } catch (e) {
+    if (isNextControlFlowError(e)) throw e
     clerkUserId = null
   }
 

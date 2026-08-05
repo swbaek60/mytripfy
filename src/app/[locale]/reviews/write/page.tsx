@@ -1,8 +1,21 @@
 import { createClient, getAuthUser } from '@/utils/supabase/server'
+import { getTranslations } from 'next-intl/server'
 import { redirect, notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import ReviewForm from './ReviewForm'
 import { PenLine } from 'lucide-react'
+
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/reviews/write', namespace: 'Reviews', titleKey: 'writeAReview' })
+}
 
 export default async function WriteReviewPage({
   params,
@@ -30,6 +43,8 @@ export default async function WriteReviewPage({
 
   if (!targetProfile) notFound()
 
+  const t = await getTranslations({ locale, namespace: 'Reviews' })
+
   // 기존 리뷰 조회 (수정 지원)
   const { data: existingReview } = await supabase
     .from('reviews')
@@ -40,14 +55,13 @@ export default async function WriteReviewPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-2xl font-bold text-heading mb-6 flex items-center gap-2">
           <PenLine className="w-6 h-6 text-purple" />
-          {existingReview ? 'Edit My Review' : 'Write a Review'}
+          {existingReview ? t('editMyReview') : t('writeAReview')}
         </h1>
         <ReviewForm
-          user={user}
           targetProfile={targetProfile}
           locale={locale}
           existingReview={existingReview ?? null}

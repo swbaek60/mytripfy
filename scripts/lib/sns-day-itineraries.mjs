@@ -1,8 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { getDayInCountryVisit } from './sns-daily-rotation.mjs'
-
 import { ROTATION_POLICY } from './sns-rotation-policy.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -490,7 +488,7 @@ export const ITINERARY_VARIANTS = {
             place: 'CN Tower',
             activity: 'morning waterfront and tower base',
             expression: 'curious soft smile looking away at skyline',
-            pose: 'standing one foot on step hand on hip holding coffee cup, 3/4 front full body showing long legs',
+            pose: 'standing one foot on step one hand in pocket other hand holding folded umbrella, looking at skyline, 3/4 front full body showing long legs, no coffee no drink',
             promptScene: 'CN Tower Toronto waterfront morning overcast full body',
           },
           {

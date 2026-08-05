@@ -2,8 +2,32 @@
  * 챌린지 점수 구간별 등급 (게임 랭킹처럼 단계 상승)
  * 명예의 전당·프로필 등에서 사용
  */
+/** 등급 키. 번역 키 `tier_<key>` 와 1:1 로 대응한다. */
+export type TierKey =
+  | 'beginner'
+  | 'apprentice'
+  | 'trainee'
+  | 'intermediate'
+  | 'advanced'
+  | 'expert'
+  | 'master'
+  | 'grandmaster'
+  | 'legend'
+
+export const TIER_KEYS: readonly TierKey[] = [
+  'beginner',
+  'apprentice',
+  'trainee',
+  'intermediate',
+  'advanced',
+  'expert',
+  'master',
+  'grandmaster',
+  'legend',
+]
+
 export type ChallengeTier = {
-  key: string
+  key: TierKey
   minPoints: number
   maxPoints: number | null // null = 무제한
   emoji: string

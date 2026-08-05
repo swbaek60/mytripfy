@@ -56,11 +56,11 @@ function main() {
 
   const profile = `수아 @${ACCOUNTS.sua.handle}
 ${AI_DISCLOSURE.profileKo}
-링크: ${BRAND.siteUrlUtmSua}
+링크: ${BRAND.siteUrlUtm}
 
 이든 @${ACCOUNTS.ethan.handle}
 ${AI_DISCLOSURE.profileEn}
-링크: ${BRAND.siteUrlUtmEthan}
+링크: ${BRAND.siteUrlUtm}
 `
   fs.writeFileSync(path.join(OUT, 'profile-bios.txt'), profile, 'utf8')
   console.log('저장됨:', OUT)

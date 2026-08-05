@@ -1,7 +1,7 @@
 /**
  * SNS 100 Countries 캠페인 공통 설정 (generate / publish 스크립트 공유)
  */
-import { getDayOutfit, formatOutfitTxt, OOTD_SAME_DAY_RULE } from './sns-ootd-catalog.mjs'
+import { getDayOutfit, formatOutfitTxt } from './sns-ootd-catalog.mjs'
 import {
   resolveCity,
   fetchCityWeather,
@@ -12,11 +12,12 @@ import { getItineraryVariant, pickVariantIndex } from './sns-day-itineraries.mjs
 import { getDayInCountryVisit } from './sns-daily-rotation.mjs'
 import {
   getSubjectFramingBlock,
-  ETHAN_POSE_PRESETS,
-  SUA_POSE_PRESETS,
+  getEthanPosePreset,
+  getSuaPosePreset,
+  stripUmbrellaFromPose,
 } from './sns-body-framing.mjs'
 
-export { getSubjectFramingBlock, SUBJECT_FRAMING } from './sns-body-framing.mjs'
+export { getSubjectFramingBlock, SUBJECT_FRAMING, getEthanPosePreset, getSuaPosePreset, getEthanPosePresets, getSuaPosePresets, stripUmbrellaFromPose } from './sns-body-framing.mjs'
 
 export {
   getDayOutfit,
@@ -92,9 +93,46 @@ export function wrapTravelPhotoPrompt(scene) {
 
 export const BRAND = {
   siteUrl: 'https://www.mytripfy.com',
-  siteUrlUtmSua: 'https://www.mytripfy.com?utm_source=instagram&utm_medium=social&utm_campaign=100countries_sua',
-  siteUrlUtmEthan: 'https://www.mytripfy.com?utm_source=instagram&utm_medium=social&utm_campaign=100countries_ethan',
+  /** 웹 랜딩 URL — 캐릭터명(수아/이든) 미포함 (인스타 전용 페르소나) */
+  siteUrlUtm: 'https://www.mytripfy.com?utm_source=instagram&utm_medium=social&utm_campaign=100countries',
+  /** @deprecated scripts 내부 호환 — 웹 노출 금지, siteUrlUtm 사용 */
+  siteUrlUtmSua: 'https://www.mytripfy.com?utm_source=instagram&utm_medium=social&utm_campaign=100countries',
+  siteUrlUtmEthan: 'https://www.mytripfy.com?utm_source=instagram&utm_medium=social&utm_campaign=100countries',
   hashtags: '#mytripfy #100CountriesChallenge',
+}
+
+/** Country code → challenge deep link (countries category). No character names in URL. */
+export function buildChallengeDeepLink(countryCode) {
+  const cc = (countryCode || '').toLowerCase()
+  return `${BRAND.siteUrl}/en/challenges/countries?utm_source=instagram&utm_medium=social&utm_campaign=100countries&country=${cc}`
+}
+
+/** QR image URL for story/post (no extra dependency) */
+export function buildChallengeQrUrl(deepLink) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(deepLink)}`
+}
+
+/** Standard story CTA block for Instagram (account label is operator-only, not on web) */
+export function formatStoryCtaBlock(accountKey, country) {
+  const deepLink = buildChallengeDeepLink(country.code)
+  const qrUrl = buildChallengeQrUrl(deepLink)
+  const countryTag = (country.nameKo || country.name).replace(/\s/g, '')
+  if (accountKey === 'sua') {
+    return (
+      `[Story · 오늘의 퀘스트 CTA · ${accountKey}]\n` +
+      `👉 ${deepLink}\n` +
+      `QR 이미지: ${qrUrl}\n` +
+      `스토리 텍스트: "오늘 ${country.nameKo || country.name} 퀘스트 — mytripfy에서 인증하고 포인트 받기 👇"\n` +
+      `${BRAND.hashtags} #${countryTag}`
+    )
+  }
+  return (
+    `[Story · today's quest CTA · ${accountKey}]\n` +
+    `👉 ${deepLink}\n` +
+    `QR image: ${qrUrl}\n` +
+    `Story text: "Today's quest in ${country.name} — stamp it on mytripfy 👇"\n` +
+    `${BRAND.hashtags} #${countryTag}`
+  )
 }
 
 /**
@@ -210,19 +248,6 @@ export function getChallengeHint(day1Based) {
   return CHALLENGE_CATEGORIES[(day1Based - 1) % CHALLENGE_CATEGORIES.length]
 }
 
-const SUA_CAPTION_TEMPLATES = [
-  (c) => `${c.nameKo}에서 하루 ✈️ 맛집·OOTD·저녁 뷰까지. ${c.visitNumber}/100! 버킷리스트는 mytripfy 👇`,
-  (c) => `Day ${c.visitNumber} — ${c.nameKo} 🇰🇷✨ 오늘도 새 나라. 나만의 100개국은 mytripfy에서`,
-  (c) => `${c.nameKo} 여행 일기 📸 ${c.visitNumber}/100 완료! 다음 나라가 기대돼요`,
-  (c) => `혼자서도 재밌는 ${c.nameKo} 🌸 ${c.visitNumber}/100 챌린지 중 — mytripfy 링크 프로필에`,
-  (c) => `${c.nameKo} 맛집 투어 끝 💕 ${c.visitNumber}/100. 여러분은 몇 개국 가봤어요?`,
-  (c) => `오늘의 OOTD는 ${c.nameKo} 거리에서 📷 ${c.visitNumber}/100`,
-  (c) => `${c.nameKo}에서 만난 하루, ${c.visitNumber}/100 ✈️ mytripfy로 기록 중`,
-  (c) => `100개국 중 ${c.visitNumber}번째: ${c.nameKo}! 저장해두고 싶은 하루`,
-  (c) => `${c.nameKo} 카페 → 쇼핑 → 야경 🌙 ${c.visitNumber}/100`,
-  (c) => `챌린지 ${c.visitNumber}/100 — ${c.nameKo}. 같이 여행할 사람 mytripfy에서 찾아요 👇`,
-]
-
 /**
  * 슬라이드별 장소·활동·표정 (캡션 일기 + 이미지 프롬프트 공유)
  * @typedef {{ place: string, placeKo?: string, activity: string, activityKo?: string, expression: string, promptScene: string }} DayStop
@@ -273,7 +298,6 @@ function buildGenericStops(character, country, day1Based) {
       },
     ]
   }
-  const presets = ETHAN_POSE_PRESETS
   const bases = [
     {
       place: `landmark in ${loc}`,
@@ -300,7 +324,7 @@ function buildGenericStops(character, country, day1Based) {
       promptScene: `evening viewpoint in ${loc}, low angle hero shot tall silhouette`,
     },
   ]
-  return bases.map((b, i) => ({ ...b, pose: presets[i % presets.length] }))
+  return bases
 }
 
 /** @returns {DayStop[]} */
@@ -327,12 +351,14 @@ function formatSuaDiaryCaption(country, stops, day1Based) {
     return `${i + 1}. ${where} — ${what}`
   })
   const themeLine = theme ? `오늘 테마: ${theme}\n` : ''
+  const deepLink = buildChallengeDeepLink(country.code)
   return (
     `오늘 ${country.nameKo}에서 ${visit}/100 일차 ✈️\n` +
     themeLine +
     `같은 OOTD로 하루 종일 돌았어요 — 사진마다 표정은 조금씩 달라요.\n\n` +
     `📍 오늘 한 일\n${lines.join('\n')}\n\n` +
-    `버킷리스트는 mytripfy에서 기록 중 👇\n${tags}`
+    `👉 오늘의 퀘스트 인증하기\n${deepLink}\n\n` +
+    `${tags}`
   )
 }
 
@@ -344,8 +370,6 @@ function formatEthanCaption(day1Based, country, stops) {
   const tags = `${BRAND.hashtags} ${ACCOUNT_PERSONA.ethan.hashtagsExtra} #${locTag} ${visit}/100`
   const theme = getDayTheme('ethan', country, day1Based)
   const themeBit = theme ? ` (${theme})` : ''
-
-  const [s1, s2, s3, s4] = stops
 
   /** @type {((visit: number, loc: string, stops: DayStop[], tags: string, themeBit: string) => string)[]} */
   const styles = [
@@ -450,7 +474,9 @@ function formatEthanCaption(day1Based, country, stops) {
   const CAPTION_STYLE_BY_VARIANT = [0, 3, 9, 6]
   const variantIdx = pickVariantIndex('ethan', country.code, day1Based)
   const idx = CAPTION_STYLE_BY_VARIANT[variantIdx % CAPTION_STYLE_BY_VARIANT.length]
-  return styles[idx](visit, loc, stops, tags, themeBit)
+  const body = styles[idx](visit, loc, stops, tags, themeBit)
+  const deepLink = buildChallengeDeepLink(country.code)
+  return `${body.replace(/\n\n${tags}$/, '')}\n\n👉 Stamp today's quest\n${deepLink}\n\n${tags}`
 }
 
 export function getSuaCaption(day1Based, country) {
@@ -469,27 +495,39 @@ export function buildSuaImagePrompts(day1Based, country, outfit) {
   const subject = getSubjectBlock('sua')
   const lock = typeof outfit === 'string' ? outfit : outfit.promptLock
   const weather = outfitWeatherSuffix(outfit)
+  const carryUmbrella = outfit?.weather?.carryUmbrella === true
+  const umbrellaNote = carryUmbrella
+    ? ''
+    : ', CRITICAL no umbrella in photo — empty hands, no rain accessory visible'
   const stops = getDayStops('sua', country, day1Based)
-  return stops.map((stop, i) =>
-    wrapTravelPhotoPrompt(
-      `${subject}, ${lock}, distinct facial expression: ${stop.expression}, body pose (unique this slide): ${stop.pose || SUA_POSE_PRESETS[i % SUA_POSE_PRESETS.length]}, ${stop.promptScene}${weather}`
+  return stops.map((stop, i) => {
+    let pose = stop.pose || getSuaPosePreset(i, carryUmbrella)
+    if (!carryUmbrella) pose = stripUmbrellaFromPose(pose)
+    return wrapTravelPhotoPrompt(
+      `${subject}, ${lock}, distinct facial expression: ${stop.expression}, body pose (unique this slide): ${pose}, ${stop.promptScene}${weather}${umbrellaNote}`
     )
-  )
+  })
 }
 
 export function buildEthanImagePrompts(day1Based, country, outfit) {
   const subject = getSubjectBlock('ethan')
   const lock = typeof outfit === 'string' ? outfit : outfit.promptLock
   const weather = outfitWeatherSuffix(outfit)
+  const carryUmbrella = outfit?.weather?.carryUmbrella === true
+  const umbrellaNote = carryUmbrella
+    ? ''
+    : ', CRITICAL no umbrella in photo — empty hands, no rain accessory visible'
   const stops = getDayStops('ethan', country, day1Based)
-  return stops.map((stop, i) =>
-    wrapTravelPhotoPrompt(
-      `${subject}, ${lock}, distinct facial expression: ${stop.expression}, body pose (unique this slide): ${stop.pose || ETHAN_POSE_PRESETS[i % ETHAN_POSE_PRESETS.length]}, ${stop.promptScene}${weather}`
+  return stops.map((stop, i) => {
+    let pose = stop.pose || getEthanPosePreset(i, carryUmbrella)
+    if (!carryUmbrella) pose = stripUmbrellaFromPose(pose)
+    return wrapTravelPhotoPrompt(
+      `${subject}, ${lock}, distinct facial expression: ${stop.expression}, body pose (unique this slide): ${pose}, ${stop.promptScene}${weather}${umbrellaNote}`
     )
-  )
+  })
 }
 
-export function buildReelsScript(character, day1Based, country, outfit) {
+export function buildReelsScript(character, day1Based, country) {
   const visit = country.visitNumber
   const isSua = character === 'sua'
   const name = isSua ? country.nameKo : country.name
@@ -512,7 +550,6 @@ export function buildReelsScript(character, day1Based, country, outfit) {
 }
 
 export function getStoryPrompts(character, day1Based, country) {
-  const visit = country.visitNumber
   const isSua = character === 'sua'
   const name = isSua ? country.nameKo : country.name
   const face = isSua ? ACCOUNTS.sua.faceBlock : ACCOUNTS.ethan.faceBlock
@@ -583,8 +620,8 @@ export async function formatDayBundle(day1Based, date) {
   const ethanCaption = getEthanCaption(day1Based, ethanCountry)
   const suaPrompts = buildSuaImagePrompts(day1Based, suaCountry, suaOutfit)
   const ethanPrompts = buildEthanImagePrompts(day1Based, ethanCountry, ethanOutfit)
-  const suaReels = buildReelsScript('sua', day1Based, suaCountry, suaOutfit)
-  const ethanReels = buildReelsScript('ethan', day1Based, ethanCountry, ethanOutfit)
+  const suaReels = buildReelsScript('sua', day1Based, suaCountry)
+  const ethanReels = buildReelsScript('ethan', day1Based, ethanCountry)
 
   const suaTxt = formatCharacterTxt('sua', day1Based, suaCountry, suaOutfit, suaCaption, suaPrompts, suaReels, suaStops, suaWeather)
   const ethanTxt = formatCharacterTxt('ethan', day1Based, ethanCountry, ethanOutfit, ethanCaption, ethanPrompts, ethanReels, ethanStops, ethanWeather)
@@ -658,5 +695,7 @@ function formatCharacterTxt(character, day1Based, country, outfit, caption, prom
     lines.push('[Story · 수요일 권장]')
     getStoryPrompts(character, day1Based, country).forEach((p, i) => lines.push(`${i + 1}. ${p}`))
   }
+  lines.push('')
+  lines.push(formatStoryCtaBlock(character, country))
   return lines.join('\n')
 }

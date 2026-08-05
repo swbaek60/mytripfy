@@ -1,8 +1,7 @@
 import Header from '@/components/Header'
 import Link from 'next/link'
-import { createClient, getAuthUser } from '@/utils/supabase/server'
 import { getDisputeLabels } from '@/data/dispute-labels'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 
@@ -28,21 +27,19 @@ export default async function ChallengeGuidePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  setRequestLocale(locale)
   const L = getDisputeLabels(locale)
   const t = await getTranslations({ locale, namespace: 'ChallengeGuide' })
-  const supabase = await createClient()
-  const authUser = await getAuthUser()
-  const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/challenges" />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* ── 히어로 ─────────────────────────────────────── */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 bg-danger-light border border-red-200 text-danger text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+          <div className="inline-flex items-center gap-2 bg-danger-light border border-danger-border text-danger-strong text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
             🚩 {L.systemName}
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-heading leading-tight">
@@ -72,13 +69,13 @@ export default async function ChallengeGuidePage({
           <h2 className="text-xl font-bold text-heading mb-6 text-center">{L.guide.howItWorksTitle}</h2>
           <div className="relative">
             {/* 연결선 */}
-            <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-purple-light to-red-200 hidden sm:block" />
+            <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-purple-light to-danger-border hidden sm:block" />
             <div className="space-y-4">
               {[
-                { step: '01', icon: '🔍', color: 'bg-purple-light border-purple-light', badge: 'text-purple bg-purple-light', titleKey: 'step1Title' as const, descKey: 'step1Desc' as const },
-                { step: '02', icon: '🚩', color: 'bg-gold-light border-gold/30', badge: 'text-gold bg-gold-light', titleKey: 'step2Title' as const, descKey: 'step2Desc' as const },
-                { step: '03', icon: '⚖️', color: 'bg-brand-light border-edge-brand', badge: 'text-brand bg-brand-muted', titleKey: 'step3Title' as const, descKey: 'step3Desc' as const },
-                { step: '04', icon: '🏛️', color: 'bg-success-light border-green-200', badge: 'text-success bg-success-light', titleKey: 'step4Title' as const, descKey: 'step4Desc' as const },
+                { step: '01', icon: '🔍', color: 'bg-purple-light border-purple-light', badge: 'text-purple-strong bg-purple-light', titleKey: 'step1Title' as const, descKey: 'step1Desc' as const },
+                { step: '02', icon: '🚩', color: 'bg-gold-light border-gold/30', badge: 'text-gold-strong bg-gold-light', titleKey: 'step2Title' as const, descKey: 'step2Desc' as const },
+                { step: '03', icon: '⚖️', color: 'bg-brand-light border-edge-brand', badge: 'text-brand-strong bg-brand-muted', titleKey: 'step3Title' as const, descKey: 'step3Desc' as const },
+                { step: '04', icon: '🏛️', color: 'bg-success-light border-success-border', badge: 'text-success-strong bg-success-light', titleKey: 'step4Title' as const, descKey: 'step4Desc' as const },
               ].map((item, i) => (
                 <div key={i} className={`relative flex gap-4 sm:gap-6 p-5 rounded-2xl border-2 ${item.color}`}>
                   <div className="flex-shrink-0 w-16 h-16 bg-surface rounded-2xl flex flex-col items-center justify-center shadow-sm">
@@ -101,7 +98,7 @@ export default async function ChallengeGuidePage({
           <div className="grid sm:grid-cols-2 gap-4">
 
             {/* Scenario A: dispute upheld */}
-            <div className="bg-surface rounded-2xl border-2 border-red-200 overflow-hidden">
+            <div className="bg-surface rounded-2xl border-2 border-danger-border overflow-hidden">
               <div className="bg-danger text-white px-5 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wider opacity-80">{t('scenarioALabel')}</p>
                 <p className="text-lg font-extrabold">{t('scenarioATitle')}</p>
@@ -122,8 +119,8 @@ export default async function ChallengeGuidePage({
             </div>
 
             {/* Scenario B: dispute dismissed */}
-            <div className="bg-surface rounded-2xl border-2 border-green-200 overflow-hidden">
-              <div className="bg-success text-white px-5 py-3">
+            <div className="bg-surface rounded-2xl border-2 border-success-border overflow-hidden">
+              <div className="bg-success-strong text-white px-5 py-3">
                 <p className="text-xs font-semibold uppercase tracking-wider opacity-80">{t('scenarioBLabel')}</p>
                 <p className="text-lg font-extrabold">{t('scenarioBTitle')}</p>
                 <p className="text-sm opacity-80">{t('scenarioBSub')}</p>

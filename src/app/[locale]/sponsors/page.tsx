@@ -6,8 +6,11 @@ import { getCountryByCode } from '@/data/countries'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildItemListJsonLd } from '@/lib/seo/json-ld'
 import SponsorsFilterBar from './SponsorsFilterBar'
 import CountryFlag from '@/components/CountryFlag'
+import SmartImage from '@/components/ui/SmartImage'
 
 export async function generateMetadata({
   params,
@@ -43,6 +46,7 @@ export default async function SponsorsPage({
   const { locale } = await params
   const { country, type, q } = await searchParams
   const t = await getTranslations({ locale, namespace: 'Sponsors' })
+  const tm = await getTranslations({ locale, namespace: 'Marketing' })
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
@@ -69,18 +73,30 @@ export default async function SponsorsPage({
     )
   }
 
-  const totalCount = list.length
-
   return (
-    <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/sponsors" />
+    <div className="min-h-screen bg-surface-warm">
+      <JsonLdScript
+        data={buildItemListJsonLd(
+          locale,
+          t('title'),
+          list.slice(0, 30).map(s => ({
+            name: (s.name_en as string | null) || (s.name as string),
+            path: `/sponsors/${s.id}`,
+          }))
+        )}
+      />
+      <Header locale={locale} />
+
+      <section className="relative bg-midnight text-white py-12 sm:py-14 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-midnight via-midnight to-teal-strong/30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">{tm('sponsorsHeroTitle')}</h1>
+          <p className="text-white/70 max-w-xl leading-relaxed">{tm('sponsorsHeroSubtitle')}</p>
+        </div>
+      </section>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-extrabold text-heading">{t('title')}</h1>
-            <p className="text-subtle mt-1 text-sm">{t('subtitle')}</p>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-2 mb-6 -mt-2">
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href={
@@ -89,7 +105,7 @@ export default async function SponsorsPage({
                   : `/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/sponsors/new`)}`
               }
             >
-              <Button className="bg-teal hover:brightness-110 text-white rounded-full text-sm">
+              <Button className="bg-teal-strong hover:brightness-110 text-white rounded-full text-sm shadow-md shadow-teal/25">
                 + {t('addSponsor')}
               </Button>
             </Link>
@@ -106,7 +122,7 @@ export default async function SponsorsPage({
         <SponsorsFilterBar locale={locale} currentCountry={country} currentType={type} currentQ={q} />
 
         {list.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {list.map(sponsor => {
               const countryInfo = getCountryByCode(sponsor.country_code)
               const benefitsCount = Array.isArray(sponsor.sponsor_benefits) ? sponsor.sponsor_benefits.length : 0
@@ -116,11 +132,18 @@ export default async function SponsorsPage({
                 <Link
                   key={sponsor.id}
                   href={`/${locale}/sponsors/${sponsor.id}`}
-                  className="group block bg-surface rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border border-edge/60 hover:border-teal/30 overflow-hidden"
+                  className="group block bg-surface rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-edge/60 hover:border-teal/30 overflow-hidden"
                 >
                   <div className="h-28 bg-gradient-to-r from-teal to-[#0D9488] relative shrink-0">
                     {sponsor.cover_image_url ? (
-                      <img src={sponsor.cover_image_url} alt="" className="w-full h-full object-cover" />
+                      <SmartImage
+                        src={sponsor.cover_image_url}
+                        alt=""
+                        width={640}
+                        height={224}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="w-full h-full object-cover"
+                      />
                     ) : null}
                     <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
                       {countryInfo && <CountryFlag code={countryInfo.code} size="sm" />}
@@ -132,7 +155,7 @@ export default async function SponsorsPage({
                   <div className="p-4 flex items-start gap-3">
                     <div className="w-12 h-12 rounded-xl bg-surface-sunken shrink-0 overflow-hidden flex items-center justify-center text-xl">
                       {sponsor.logo_url ? (
-                        <img src={sponsor.logo_url} alt="" className="w-full h-full object-cover" />
+                        <SmartImage src={sponsor.logo_url} alt="" width={96} height={96} className="w-full h-full object-cover" />
                       ) : (
                         '🏪'
                       )}
@@ -154,11 +177,11 @@ export default async function SponsorsPage({
             })}
           </div>
         ) : (
-          <div className="text-center py-16 bg-surface rounded-2xl border border-edge">
+          <div className="text-center py-16 bg-surface rounded-2xl border border-edge/60 shadow-sm">
             <p className="text-subtle">{t('noSponsors')}</p>
             {user && (
               <Link href={`/${locale}/sponsors/new`} className="inline-block mt-3">
-                <Button className="bg-teal hover:brightness-110 rounded-full text-white">+ {t('addSponsor')}</Button>
+                <Button className="bg-teal-strong hover:brightness-110 rounded-full text-white shadow-md shadow-teal/25">+ {t('addSponsor')}</Button>
               </Link>
             )}
           </div>

@@ -16,6 +16,12 @@ export const ROTATION_POLICY = {
   /** 전날과 반드시 다른 의상 */
   ADJACENT_DAY_AVOID: 1,
 
+  /** 전날과 다른 실루엣(원피스 vs 상하의 세트 등) — 색만 다른 동일 스타일 방지 */
+  ADJACENT_DAY_DIFFERENT_SILHOUETTE: true,
+
+  /** 전날과 시각적으로 다른 조합 — travel jacket #N 변형·같은 재킷+카키 등 Generate 중복 방지 */
+  ADJACENT_DAY_DIFFERENT_VISUAL: true,
+
   /**
    * 최근 N일(어제 포함) 동안 입었던 의상은 재착용 금지.
    * 10일째부터는 10일 전 코디 재착용 허용 → 연 365일 / ~50벌 ≈ 7일마다 1회 순환
@@ -36,6 +42,7 @@ export const ROTATION_POLICY_KO = `
 [SNS 로테이션 정책]
 - 같은 날 캐러셀 4장: 동일 의상·악세서리 (promptLock 고정)
 - 전날과 다른 의상 (인접 일자 중복 금지)
+- 전날과 다른 실루엣 — 원피스 연속 금지, 상하의·쇼츠·스커트 세트 등 교차
 - 최근 9일간 입은 의상은 재착용 금지, 10일 이후 재착용 가능 (~50벌 연간 순환)
 - 날짜마다 다른 관광 코스 (국가별 itinerary variant)
 - 당일 방문 도시 Open-Meteo 날씨로 OOTD 후보 필터·조정

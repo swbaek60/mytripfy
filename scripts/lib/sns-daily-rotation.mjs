@@ -11,7 +11,6 @@ import { fileURLToPath } from 'url'
 import { DAYS_PER_COUNTRY } from './sns-campaign-config.mjs'
 import {
   findOutfitIndexBySummary,
-  getCatalogLength,
   getCatalogList,
   getOutfitByIndex,
 } from './sns-ootd-catalog.mjs'
@@ -81,6 +80,32 @@ export function getWeatherAppropriateOutfitIndices(character, weather) {
   return tagged.length ? tagged : list.map((_, i) => i)
 }
 
+const WEATHER_BAND_EXPAND_ORDER = ['hot', 'warm', 'rainy', 'mild', 'cool', 'cold']
+
+/** hot 풀 고갈 시 warm·rainy 등 순차 확장 (회피·실루엇 선택지 확보) */
+export function getExpandedWeatherOutfitIndices(character, weather) {
+  const list = getCatalogList(character)
+  const primary = effectiveBandForOutfit(weather)
+  const order = [primary, ...WEATHER_BAND_EXPAND_ORDER.filter((b) => b !== primary)]
+  const seen = new Set()
+  /** @type {number[]} */
+  const result = []
+  for (const band of order) {
+    for (let i = 0; i < list.length; i++) {
+      if (seen.has(i)) continue
+      const tags = list[i].weatherTags || ['mild']
+      if (!tags.includes(band)) continue
+      if (isOutfitUnrealisticForWeather(character, list[i], weather)) continue
+      seen.add(i)
+      result.push(i)
+    }
+  }
+  if (result.length) return result
+  return list
+    .map((_, i) => i)
+    .filter((i) => !isOutfitUnrealisticForWeather(character, list[i], weather))
+}
+
 const outfitPickMemo = new Map()
 
 function getCampaignStartDate() {
@@ -141,6 +166,67 @@ export function loadPublishedOutfitAvoid(character, day1Based, lookback = ROTATI
   return loadRecentOutfitAvoid(character, day1Based, lookback)
 }
 
+/** @param {import('./sns-ootd-catalog.mjs').DayOutfit} outfit — 실루엣 카테고리 (연속 날짜 같은 스타일 방지) */
+export function outfitSilhouetteKey(outfit) {
+  const text = outfitText(outfit)
+  if (/\bshorts\b/i.test(text) && !/dress/i.test(text)) return 'shorts-set'
+  if (/(wide-leg|linen pants|cargo pants|trousers|slacks|travel pants)/i.test(text) && !/dress/i.test(text))
+    return 'pants-set'
+  if (/\bskirt\b/i.test(text) && !/dress/i.test(text)) return 'skirt-set'
+  if (/co-ord|coord|jumpsuit/i.test(text)) return 'coord-set'
+  if (/(blazer|utility jacket|denim jacket)/i.test(text) && /(jeans|tee|top|shirt)/i.test(text)) return 'layered-casual'
+  if (/dress/i.test(text)) return 'dress'
+  return 'other'
+}
+
+/**
+ * 시각적 중복 방지 — travel jacket #N 변형·같은 색 재킷+카키 등 Generate에서 똑같이 보이는 조합 차단
+ * @param {import('./sns-ootd-catalog.mjs').DayOutfit} outfit
+ */
+export function outfitVisualKey(outfit) {
+  const text = outfitText(outfit)
+  const top = outfit.pieces[0]
+  const bottom = outfit.pieces.find((p) => /pants|jeans|chinos|slacks|shorts|skirt|trousers/i.test(p.item))
+  const bag = outfit.accessories.find((a) => /bag|backpack|briefcase|tote|daypack/i.test(a.item))
+
+  if (/travel jacket/i.test(text) && /(khaki|travel pants)/i.test(text)) {
+    return `travel-jacket-set|${(top?.colors || '').toLowerCase()}|${(bag?.item || 'bag').toLowerCase()}`
+  }
+  if (/blazer/i.test(text)) {
+    return `blazer-set|${(top?.colors || '').toLowerCase()}|${(bottom?.colors || '').toLowerCase()}|${(bag?.item || '').toLowerCase()}`
+  }
+  if (/field jacket|bomber|windbreaker|utility jacket|leather jacket|overshirt|flannel/i.test(text)) {
+    return `outerwear|${(top?.item || '').toLowerCase()}|${(top?.colors || '').toLowerCase()}|${(bottom?.item || '').toLowerCase()}`
+  }
+  return `${outfitSilhouetteKey(outfit)}|${(top?.item || '').toLowerCase()}|${(top?.colors || '').toLowerCase()}|${(outfit.colorAccent || '').toLowerCase()}`
+}
+
+/** @param {import('./sns-ootd-catalog.mjs').DayOutfit} a @param {import('./sns-ootd-catalog.mjs').DayOutfit} b */
+export function isVisuallySimilarOutfit(a, b) {
+  if (outfitVisualKey(a) === outfitVisualKey(b)) return true
+  const ta = outfitText(a)
+  const tb = outfitText(b)
+  const outerA = /(blazer|travel jacket|field jacket|bomber|windbreaker|utility jacket|leather jacket|overshirt|flannel)/i.test(ta)
+  const outerB = /(blazer|travel jacket|field jacket|bomber|windbreaker|utility jacket|leather jacket|overshirt|flannel)/i.test(tb)
+  if (!outerA || !outerB) return false
+  const neutralBottom = /(khaki|charcoal|beige|stone|neutral|travel pants|slacks|chinos)/i
+  return neutralBottom.test(ta) && neutralBottom.test(tb)
+}
+
+/** @param {number[]} indices @param {import('./sns-ootd-catalog.mjs').DayOutfit[]} list @param {import('./sns-ootd-catalog.mjs').DayOutfit|null} avoidOutfit */
+function preferNotVisuallySimilar(indices, list, avoidOutfit) {
+  if (!avoidOutfit) return indices
+  const different = indices.filter((i) => !isVisuallySimilarOutfit(list[i], avoidOutfit))
+  return different.length ? different : indices
+}
+
+/** @param {number[]} indices @param {import('./sns-ootd-catalog.mjs').DayOutfit[]} list @param {string|null} avoidSilhouette */
+function preferDifferentSilhouette(indices, list, avoidSilhouette) {
+  if (!avoidSilhouette) return indices
+  const different = indices.filter((i) => outfitSilhouetteKey(list[i]) !== avoidSilhouette)
+  return different.length ? different : indices
+}
+
 /** @param {'sua'|'ethan'} character @param {number} day1Based @param {number} outfitIdx */
 function lastWornDaysAgo(character, day1Based, outfitIdx) {
   for (let offset = 1; offset <= ROTATION_POLICY.OUTFIT_SHORT_TERM_AVOID_DAYS; offset++) {
@@ -160,27 +246,71 @@ export function pickDailyOutfitIndex(character, day1Based, weather) {
   const cacheKey = `${character}:${day1Based}:${weather.band}:${weather.rainy}:${weather.maxC ?? ''}`
   if (outfitPickMemo.has(cacheKey)) return outfitPickMemo.get(cacheKey)
 
-  const candidates = getWeatherAppropriateOutfitIndices(character, weather)
+  const list = getCatalogList(character)
+  const candidates = getExpandedWeatherOutfitIndices(character, weather)
   const avoid = loadRecentOutfitAvoid(character, day1Based)
   const yesterdayIdx = loadOutfitIndexFromMeta(character, day1Based - 1)
-  const catalogLen = getCatalogLength(character)
+  const yesterdayOutfit = yesterdayIdx >= 0 ? list[yesterdayIdx] : null
+  const yesterdaySilhouette = yesterdayOutfit ? outfitSilhouetteKey(yesterdayOutfit) : null
+  const yesterdayVisual = yesterdayOutfit ? outfitVisualKey(yesterdayOutfit) : null
 
-  const open = candidates.filter((c) => !avoid.has(c))
-  let idx
-
-  if (open.length > 0) {
-    idx = open[day1Based % open.length]
-  } else {
-    // 날씨 후보 중 가장 오래 전에 입은 코디 우선 (2일 전·어제 코디 회피)
-    const weatherReuse = candidates
-      .filter((c) => c !== yesterdayIdx)
-      .sort((a, b) => lastWornDaysAgo(character, day1Based, b) - lastWornDaysAgo(character, day1Based, a))
-    idx = weatherReuse[0] ?? candidates.find((c) => c !== yesterdayIdx) ?? candidates[0] ?? 0
+  /** @param {number[]} pool */
+  function tryPick(pool) {
+    let stylePool = preferDifferentSilhouette(pool, list, yesterdaySilhouette)
+    stylePool = preferNotVisuallySimilar(stylePool, list, yesterdayOutfit)
+    const notAvoided = (c) => !avoid.has(c) && c !== yesterdayIdx
+    const tiers = [
+      stylePool.filter(notAvoided),
+      preferNotVisuallySimilar(pool.filter(notAvoided), list, yesterdayOutfit),
+      pool.filter(notAvoided),
+    ]
+    for (const tier of tiers) {
+      if (tier.length) return tier[day1Based % tier.length]
+    }
+    return null
   }
 
-  if (yesterdayIdx >= 0 && idx === yesterdayIdx) {
-    const alt = candidates.find((c) => c !== yesterdayIdx) ?? (idx + 1) % catalogLen
-    idx = alt
+  let idx = tryPick(candidates)
+
+  if (idx === null) {
+    // 9일 회피 풀 소진 — 가장 오래 전에 입은 코디 (10일+ 재착용)
+    const reuse = candidates
+      .filter((c) => c !== yesterdayIdx)
+      .sort((a, b) => lastWornDaysAgo(character, day1Based, b) - lastWornDaysAgo(character, day1Based, a))
+    idx = reuse[0] ?? candidates.find((c) => c !== yesterdayIdx) ?? candidates[0] ?? 0
+  }
+
+  if (yesterdaySilhouette && outfitSilhouetteKey(list[idx]) === yesterdaySilhouette) {
+    const alt = candidates.find(
+      (c) =>
+        c !== idx &&
+        c !== yesterdayIdx &&
+        !avoid.has(c) &&
+        outfitSilhouetteKey(list[c]) !== yesterdaySilhouette
+    )
+    if (alt !== undefined) idx = alt
+  }
+
+  if (yesterdayOutfit && isVisuallySimilarOutfit(list[idx], yesterdayOutfit)) {
+    const alt = candidates.find(
+      (c) =>
+        c !== idx &&
+        c !== yesterdayIdx &&
+        !avoid.has(c) &&
+        !isVisuallySimilarOutfit(list[c], yesterdayOutfit)
+    )
+    if (alt !== undefined) idx = alt
+  }
+
+  if (yesterdayVisual && outfitVisualKey(list[idx]) === yesterdayVisual) {
+    const alt = candidates.find(
+      (c) =>
+        c !== idx &&
+        c !== yesterdayIdx &&
+        !avoid.has(c) &&
+        outfitVisualKey(list[c]) !== yesterdayVisual
+    )
+    if (alt !== undefined) idx = alt
   }
 
   outfitPickMemo.set(cacheKey, idx)

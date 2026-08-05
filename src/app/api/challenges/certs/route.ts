@@ -1,89 +1,136 @@
-import { createClient, createAdminClient, getAuthUser } from '@/utils/supabase/server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
+import { adminDb, enforceRateLimit, parseJsonBody, parseSearchParams, requireUser } from '@/lib/api/guard'
+import { apiDbFailure, apiError, apiFailure, apiOk } from '@/lib/api/respond'
+import { isOwnedPath, storagePathFromPublicUrl } from '@/lib/api/storage'
+
+const CERT_BUCKET = 'certifications'
+
+const createSchema = z.object({
+  challengeId: z.string().uuid(),
+  imageUrl: z.string().url().max(600),
+})
+
+const deleteSchema = z.object({
+  challenge_id: z.string().uuid().optional(),
+  challengeId: z.string().uuid().optional(),
+})
+
+const listSchema = z.object({
+  challengeId: z.string().uuid(),
+})
 
 /**
- * DELETE /api/challenges/certs
- * Body: { challenge_id: string } — 본인 인증만 삭제 (auth.uid() = user_id, RLS 적용)
+ * POST /api/challenges/certs
+ * 챌린지 인증을 등록한다. `imageUrl` 은 반드시 본인 폴더에 업로드된
+ * certifications 버킷 URL 이어야 한다 (임의 외부 URL 주입 방지).
  */
+export async function POST(req: NextRequest) {
+  try {
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
+
+    const limited = enforceRateLimit(req, 'challenges:certs', auth.user.profileId)
+    if (limited) return limited.response
+
+    const parsed = await parseJsonBody(req, createSchema)
+    if ('response' in parsed) return parsed.response
+    const { challengeId, imageUrl } = parsed.data
+
+    const storagePath = storagePathFromPublicUrl(CERT_BUCKET, imageUrl)
+    if (!storagePath || !isOwnedPath(storagePath, auth.user.profileId)) {
+      return apiError('bad_request', 'Certification image must be uploaded first.')
+    }
+
+    const db = adminDb()
+
+    const { data: challenge } = await db
+      .from('challenges')
+      .select('id')
+      .eq('id', challengeId)
+      .maybeSingle()
+    if (!challenge) return apiError('not_found', 'Challenge not found.')
+
+    const { error } = await db.from('challenge_certifications').insert({
+      user_id: auth.user.profileId,
+      challenge_id: challengeId,
+      image_url: imageUrl,
+    })
+
+    if (error) return apiDbFailure('challenges/certs', error)
+    return apiOk({ success: true, challengeId, imageUrl }, { status: 201 })
+  } catch (err) {
+    return apiFailure('challenges/certs', err)
+  }
+}
+
+/** DELETE /api/challenges/certs — 본인 인증만 삭제한다. */
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const authUser = await getAuthUser()
-    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const body = await req.json().catch(() => ({}))
-    const challengeId = (body.challenge_id ?? body.challengeId)?.toString()?.trim()
-    if (!challengeId) {
-      return NextResponse.json({ error: 'challenge_id required' }, { status: 400 })
-    }
-    const { error } = await supabase
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
+
+    const parsed = await parseJsonBody(req, deleteSchema)
+    if ('response' in parsed) return parsed.response
+
+    const challengeId = parsed.data.challenge_id ?? parsed.data.challengeId
+    if (!challengeId) return apiError('bad_request', 'challengeId is required.')
+
+    const { error } = await adminDb()
       .from('challenge_certifications')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', auth.user.profileId)
       .eq('challenge_id', challengeId)
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-    return NextResponse.json({ ok: true })
-  } catch (e) {
-    console.error('DELETE /api/challenges/certs', e)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+
+    if (error) return apiDbFailure('challenges/certs', error)
+    return apiOk({ success: true })
+  } catch (err) {
+    return apiFailure('challenges/certs', err)
   }
 }
 
 /**
  * GET /api/challenges/certs?challengeId=xxx
- * 해당 챌린지에 인증한 전체 목록 조회 (인증 현황 보기 모달용).
- * RLS 우회를 위해 서비스 롤로 조회해 항상 전체 인증이 보이도록 함.
+ * 해당 챌린지의 공개 인증 목록. 이름·아바타 등 공개 프로필 필드만 반환한다.
  */
 export async function GET(req: NextRequest) {
   try {
-    const challengeId = req.nextUrl.searchParams.get('challengeId')?.trim()
-    if (!challengeId || challengeId === 'undefined' || challengeId === 'null') {
-      return NextResponse.json({ error: 'challengeId required' }, { status: 400 })
-    }
+    const parsed = parseSearchParams(req, listSchema)
+    if ('response' in parsed) return parsed.response
+    const { challengeId } = parsed.data
 
-    const supabase = createAdminClient()
-    const { data: certs, error: certError } = await supabase
+    const db = adminDb()
+    const { data: certs, error } = await db
       .from('challenge_certifications')
-      .select('user_id, challenge_id, image_url, created_at')
+      .select('user_id, challenge_id, image_url, created_at, dispute_status')
       .eq('challenge_id', challengeId)
       .order('created_at', { ascending: false })
 
-    if (certError) {
-      return NextResponse.json({ error: certError.message }, { status: 500 })
-    }
+    if (error) return apiDbFailure('challenges/certs', error)
 
-    const list = certs || []
-    if (list.length === 0) {
-      return NextResponse.json({ data: [] })
-    }
+    const list = certs ?? []
+    if (!list.length) return apiOk({ data: [] })
 
-    const userIds = [...new Set(list.map((c) => c.user_id))]
-    const { data: profiles } = await supabase
+    const userIds = [...new Set(list.map((cert) => cert.user_id))]
+    const { data: profiles } = await db
       .from('profiles')
       .select('id, full_name, avatar_url')
       .in('id', userIds)
 
-    const profileMap = new Map(
-      (profiles || []).map((p) => [p.id, { full_name: p.full_name || 'User', avatar_url: p.avatar_url }])
-    )
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]))
 
-    const data = list.map((c) => ({
-      user_id: c.user_id,
-      challenge_id: c.challenge_id,
-      image_url: c.image_url,
-      created_at: c.created_at,
-      dispute_status: (c as { dispute_status?: string }).dispute_status || 'clean',
-      full_name: profileMap.get(c.user_id)?.full_name ?? 'User',
-      avatar_url: profileMap.get(c.user_id)?.avatar_url ?? null,
-    }))
-
-    return NextResponse.json({ data })
-  } catch (e) {
-    console.error('GET /api/challenges/certs', e)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    return apiOk({
+      data: list.map((cert) => ({
+        user_id: cert.user_id,
+        challenge_id: cert.challenge_id,
+        image_url: cert.image_url,
+        created_at: cert.created_at,
+        dispute_status: cert.dispute_status || 'clean',
+        full_name: profileMap.get(cert.user_id)?.full_name ?? 'User',
+        avatar_url: profileMap.get(cert.user_id)?.avatar_url ?? null,
+      })),
+    })
+  } catch (err) {
+    return apiFailure('challenges/certs', err)
   }
 }

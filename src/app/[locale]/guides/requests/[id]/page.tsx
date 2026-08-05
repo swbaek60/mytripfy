@@ -8,10 +8,12 @@ import ApplyAsGuideButton from './ApplyAsGuideButton'
 import GuideApplicationsList from './GuideApplicationsList'
 import DeleteGuideRequestButton from './DeleteGuideRequestButton'
 import type { Metadata } from 'next'
-import { getLanguageByCode, getLevelInfo as getLangLevel } from '@/data/languages'
+import { getLanguageByCode } from '@/data/languages'
 import { getTranslations } from 'next-intl/server'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import TranslatedText from '@/components/TranslatedText'
+import Avatar from '@/components/ui/Avatar'
+import SmartImage from '@/components/ui/SmartImage'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { locale, id } = await params
@@ -74,17 +76,17 @@ export default async function GuideRequestDetailPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/guides" />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
-          <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-amber-600 flex items-center gap-1">
+          <Link href={`/${locale}/guides/requests`} className="text-sm text-subtle hover:text-warning flex items-center gap-1">
             {tc('back')}
           </Link>
           {isOwner && (
             <div className="flex items-center gap-2">
               <Link href={`/${locale}/guides/requests/${id}/edit`}>
-                <Button size="sm" variant="outline" className="rounded-full text-xs px-4 border-amber-300 text-amber-600 hover:bg-amber-50">
+                <Button size="sm" variant="outline" className="rounded-full text-xs px-4 border-warning-border text-warning hover:bg-warning-light">
                   {tc('edit')}
                 </Button>
               </Link>
@@ -96,7 +98,7 @@ export default async function GuideRequestDetailPage({
         <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {request.cover_image ? (
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/7' }}>
-              <img src={request.cover_image} alt="" className="w-full h-full object-cover" />
+              <SmartImage src={request.cover_image} alt="" width={1200} height={525} sizes="100vw" priority className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                 <div className="flex items-end justify-between gap-3">
@@ -114,7 +116,7 @@ export default async function GuideRequestDetailPage({
                     </div>
                   </div>
                   <span className={`shrink-0 text-xs font-bold px-3 py-1 rounded-full ${
-                    effectiveStatus === 'open' ? 'bg-green-400 text-green-900' : effectiveStatus === 'ended' ? 'bg-orange-400 text-white' : 'bg-gray-400 text-white'
+                    effectiveStatus === 'open' ? 'bg-success-muted text-success-strong' : effectiveStatus === 'ended' ? 'bg-sunset-strong text-white' : 'bg-subtle text-white'
                   }`}>
                     {effectiveStatus === 'open' ? 'OPEN' : effectiveStatus === 'ended' ? 'ENDED' : 'CLOSED'}
                   </span>
@@ -128,7 +130,7 @@ export default async function GuideRequestDetailPage({
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-amber-400 to-orange-500 p-6 text-white">
+            <div className="bg-gradient-to-r from-warning-strong to-sunset-strong p-6 text-white">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-3xl">{destCountry?.emoji || '🌍'}</span>
                 <div>
@@ -142,7 +144,7 @@ export default async function GuideRequestDetailPage({
                   )}
                 </div>
                 <span className={`ml-auto text-xs font-bold px-3 py-1 rounded-full ${
-                  effectiveStatus === 'open' ? 'bg-green-400 text-green-900' : effectiveStatus === 'ended' ? 'bg-orange-400 text-white' : 'bg-gray-400 text-white'
+                  effectiveStatus === 'open' ? 'bg-success-muted text-success-strong' : effectiveStatus === 'ended' ? 'bg-sunset-strong text-white' : 'bg-subtle text-white'
                 }`}>
                   {effectiveStatus === 'open' ? 'OPEN' : effectiveStatus === 'ended' ? 'ENDED' : 'CLOSED'}
                 </span>
@@ -166,19 +168,19 @@ export default async function GuideRequestDetailPage({
 
             {/* 선호 언어 */}
             {request.preferred_languages && (request.preferred_languages as string[]).length > 0 && (
-              <div className="bg-purple-light border border-purple-100 rounded-xl p-4">
-                <div className="text-xs font-semibold text-purple-700 mb-2">🗣️ {t('preferredLangsTitle')}</div>
+              <div className="bg-purple-light border border-purple-muted rounded-xl p-4">
+                <div className="text-xs font-semibold text-purple-strong mb-2">🗣️ {t('preferredLangsTitle')}</div>
                 <div className="flex flex-wrap gap-2">
                   {(request.preferred_languages as string[]).map(code => {
                     const lang = getLanguageByCode(code)
                     return lang ? (
-                      <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-purple-200 text-purple-800 rounded-full text-sm font-medium">
+                      <span key={code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-purple-border text-purple-strong rounded-full text-sm font-medium">
                         {lang.emoji} {lang.name}
                       </span>
                     ) : null
                   })}
                 </div>
-                <p className="text-xs text-purple-500 mt-2">
+                <p className="text-xs text-purple mt-2">
                   {t('langNotificationHint')}
                 </p>
               </div>
@@ -201,16 +203,11 @@ export default async function GuideRequestDetailPage({
                   <div className="text-center py-4">
                     <p className="text-subtle text-sm mb-3">{t('loginToApply')}</p>
                     <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests/${id}`)}`}>
-                      <Button className="bg-amber-500 hover:bg-amber-600 rounded-full px-8 text-white">Login</Button>
+                      <Button className="bg-warning-strong hover:bg-warning rounded-full px-8 text-white">{tc('login')}</Button>
                     </Link>
                   </div>
                 ) : (
-                  <ApplyAsGuideButton
-                    requestId={id}
-                    guideId={user.id}
-                    locale={locale}
-                    alreadyApplied={alreadyApplied}
-                  />
+                  <ApplyAsGuideButton requestId={id} alreadyApplied={alreadyApplied} />
                 )}
               </div>
             )}
@@ -219,7 +216,7 @@ export default async function GuideRequestDetailPage({
               <div className="text-center py-4 border-t border-edge">
                 <p className="text-subtle text-sm mb-3">{t('registerAsGuide')}</p>
                 <Link href={`/${locale}/login?returnTo=${encodeURIComponent(`/${locale}/guides/requests/${id}`)}`}>
-                  <Button className="bg-amber-500 hover:bg-amber-600 rounded-full px-8 text-white">Login</Button>
+                  <Button className="bg-warning-strong hover:bg-warning rounded-full px-8 text-white">{tc('login')}</Button>
                 </Link>
               </div>
             )}
@@ -227,7 +224,7 @@ export default async function GuideRequestDetailPage({
               <div className="text-center py-4 border-t border-edge">
                 <p className="text-subtle text-sm mb-3">{t('registerAsGuide')}</p>
                 <Link href={`/${locale}/profile/edit`}>
-                  <Button variant="outline" className="rounded-full px-6 border-amber-300 text-amber-600 hover:bg-amber-50">Profile / Register as Guide</Button>
+                  <Button variant="outline" className="rounded-full px-6 border-warning-border text-warning hover:bg-warning-light">{t('profileOrRegisterGuide')}</Button>
                 </Link>
               </div>
             )}
@@ -237,20 +234,20 @@ export default async function GuideRequestDetailPage({
         <div className="bg-surface rounded-2xl shadow-sm p-6">
           <h3 className="font-bold text-heading mb-4">{t('postedBy')}</h3>
           <div className="flex items-center gap-4">
-            <Link href={`/${locale}/users/${author?.id}`} className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center shrink-0 overflow-hidden">
+            <Link href={`/${locale}/users/${author?.id}`} className="w-14 h-14 rounded-full bg-warning-muted flex items-center justify-center shrink-0 overflow-hidden">
               {(author?.avatar_url as string) ? (
-                <img src={author.avatar_url as string} alt="" className="w-full h-full object-cover" />
-              ) : <span className="text-amber-600 text-xl">?</span>}
+                <Avatar src={author.avatar_url as string} size={56} fill />
+              ) : <span className="text-warning text-xl">?</span>}
             </Link>
             <div>
-              <Link href={`/${locale}/users/${author?.id}`} className="font-bold text-heading hover:text-amber-600">
+              <Link href={`/${locale}/users/${author?.id}`} className="font-bold text-heading hover:text-warning">
                 {(author?.full_name as string) || 'Traveler'}
               </Link>
               {user && !isOwner && (
                 <div className="mt-2">
                   <Link href={`/${locale}/messages/${author?.id}`}>
-                    <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs">
-                      Message
+                    <Button size="sm" className="bg-warning-strong hover:bg-warning text-white rounded-full text-xs">
+                      {tc('message')}
                     </Button>
                   </Link>
                 </div>
@@ -260,12 +257,7 @@ export default async function GuideRequestDetailPage({
         </div>
 
         {isOwner && applications && (
-          <GuideApplicationsList
-            applications={applications}
-            requestId={id}
-            requestTitle={request.title}
-            locale={locale}
-          />
+          <GuideApplicationsList applications={applications} requestId={id} locale={locale} />
         )}
       </main>
     </div>

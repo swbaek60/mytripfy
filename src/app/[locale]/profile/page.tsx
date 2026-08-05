@@ -12,6 +12,20 @@ import { getTranslations } from 'next-intl/server'
 import UserChallengeAchievements from '@/components/UserChallengeAchievements'
 import SponsorVisitList from '@/components/SponsorVisitList'
 import { getPersonalityDisplay } from '@/data/personalityTypes'
+import ReferralShare from '@/components/ReferralShare'
+import Avatar from '@/components/ui/Avatar'
+
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/profile', namespace: 'Nav', titleKey: 'profile' })
+}
 export default async function ProfilePage({
   params,
 }: {
@@ -144,7 +158,7 @@ export default async function ProfilePage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -154,7 +168,7 @@ export default async function ProfilePage({
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full border-2 border-edge bg-surface-sunken flex items-center justify-center text-xl overflow-hidden shrink-0">
                 {profile?.avatar_url
-                  ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                  ? <Avatar src={profile.avatar_url} name={profile.full_name} fill size={48} />
                   : <span className="text-hint">👤</span>}
               </div>
               <div>
@@ -162,7 +176,7 @@ export default async function ProfilePage({
                 <p className="text-xs text-hint">{t('quickEditSubtitle')}</p>
               </div>
             </div>
-            <span className="text-sm font-semibold text-brand bg-brand-light px-4 py-2 rounded-xl group-hover:bg-brand group-hover:text-white transition-colors">
+            <span className="text-sm font-semibold text-brand-strong bg-brand-light px-4 py-2 rounded-xl group-hover:bg-brand group-hover:text-white transition-colors">
               {t('editBtn')} →
             </span>
           </div>
@@ -194,14 +208,24 @@ export default async function ProfilePage({
           />
         </div>
 
+        {profile?.referral_code && (
+          <div className="mb-6">
+            <ReferralShare
+              locale={locale}
+              code={profile.referral_code as string}
+              referralCount={(profile.referral_count as number) ?? 0}
+            />
+          </div>
+        )}
+
         {/* 프로필 카드 */}
         <div className="bg-surface rounded-2xl shadow-sm overflow-hidden mb-6">
-          <div className="h-24 bg-gradient-to-r from-blue-500 to-indigo-600" />
+          <div className="h-24 bg-gradient-to-r from-brand to-indigo" />
           <div className="px-6 pb-6">
             <div className="flex items-end justify-between -mt-10 mb-4">
               <div className="w-20 h-20 rounded-full border-4 border-white bg-brand-muted flex items-center justify-center text-3xl shadow-md overflow-hidden">
                 {profile?.avatar_url
-                  ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                  ? <Avatar src={profile.avatar_url} name={profile.full_name} fill size={80} />
                   : '👤'}
               </div>
               <Link href={`/${locale}/profile/edit`}>
@@ -226,13 +250,13 @@ export default async function ProfilePage({
             {/* 인증 뱃지 */}
             <div className="flex gap-2 flex-wrap mb-4">
               {profile?.email_verified && (
-                <span className="px-2 py-1 bg-success-light text-success text-xs rounded-full border border-green-200">✅ {t('emailVerified')}</span>
+                <span className="px-2 py-1 bg-success-light text-success-strong text-xs rounded-full border border-success-border">✅ {t('emailVerified')}</span>
               )}
               {profile?.phone_verified && (
                 <span className="px-2 py-1 bg-brand-light text-brand-hover text-xs rounded-full border border-edge-brand">📱 {t('phoneVerified')}</span>
               )}
               {profile?.sns_verified && (
-                <span className="px-2 py-1 bg-purple-light text-purple-700 text-xs rounded-full border border-purple-200">🔗 {t('snsVerified')}</span>
+                <span className="px-2 py-1 bg-purple-light text-purple-strong text-xs rounded-full border border-purple-border">🔗 {t('snsVerified')}</span>
               )}
               {!profile?.email_verified && !profile?.phone_verified && !profile?.sns_verified && (
                 <span className="px-2 py-1 bg-surface-sunken text-subtle text-xs rounded-full border border-edge">{t('earnBadge')}</span>
@@ -270,9 +294,9 @@ export default async function ProfilePage({
                 href={`/${locale}/users/${user.id}#reviews`}
                 className="text-center border-l border-edge hover:bg-warning-light rounded-lg p-1 transition-colors"
               >
-                <div className="text-2xl font-bold text-yellow-500 flex items-center justify-center gap-1">
+                <div className="text-2xl font-bold text-gold flex items-center justify-center gap-1">
                   <span>{profile?.trust_score ? Number(profile.trust_score).toFixed(1) : '-'}</span>
-                  <span className="text-yellow-400">★</span>
+                  <span className="text-gold">★</span>
                 </div>
                 <div className="text-xs text-subtle mt-1">
                   {profile?.review_count || 0} {t('receivedReviews')}
@@ -290,7 +314,7 @@ export default async function ProfilePage({
             {/* 내가 리뷰한 사람들 링크 */}
             <Link
               href={`/${locale}/reviews/mine`}
-              className="flex items-center justify-center gap-2 py-2 mt-2 text-sm font-medium text-purple hover:text-purple-700 hover:bg-purple-light rounded-lg transition-colors"
+              className="flex items-center justify-center gap-2 py-2 mt-2 text-sm font-medium text-purple hover:text-purple-strong hover:bg-purple-light rounded-lg transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
               {t('reviewsIWrote')} ({myReviewsCount ?? 0})
@@ -301,25 +325,25 @@ export default async function ProfilePage({
               <div className="flex gap-3 flex-wrap pt-4 border-t border-edge">
                 {profile?.instagram_url && (
                   <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-pink-600 hover:underline">
+                    className="flex items-center gap-1 text-sm text-sns-instagram-strong hover:underline">
                     📸 Instagram
                   </a>
                 )}
                 {profile?.facebook_url && (
                   <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-brand-hover hover:underline">
+                    className="flex items-center gap-1 text-sm text-sns-facebook-strong hover:underline">
                     👤 Facebook
                   </a>
                 )}
                 {profile?.twitter_url && (
                   <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-sky-500 hover:underline">
+                    className="flex items-center gap-1 text-sm text-sns-x-strong hover:underline">
                     🐦 X (Twitter)
                   </a>
                 )}
                 {profile?.whatsapp && (
                   <a href={`https://wa.me/${profile.whatsapp}`} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-success hover:underline">
+                    className="flex items-center gap-1 text-sm text-sns-whatsapp-strong hover:underline">
                     💬 WhatsApp
                   </a>
                 )}
@@ -379,7 +403,7 @@ export default async function ProfilePage({
         <div className="bg-surface rounded-2xl shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold text-heading">🏆 World 100 Challenges</h2>
+              <h2 className="text-lg font-bold text-heading">🏆 {t('worldChallengesHeading')}</h2>
               <p className="text-sm text-subtle mt-0.5">
                 <span className="font-bold text-purple">{t('challengesDone', { count: challengesCompleted })}</span>
                 &nbsp;·&nbsp;
@@ -390,19 +414,19 @@ export default async function ProfilePage({
             </div>
             <div className="flex gap-2">
               <Link href={`/${locale}/hall-of-fame`}>
-                <Button variant="outline" size="sm" className="rounded-full text-xs border-amber-400 text-amber-700">
+                <Button variant="outline" size="sm" className="rounded-full text-xs border-warning text-warning-strong">
                   🏆 {t('hallOfFame')}
                 </Button>
               </Link>
               <Link href={`/${locale}/challenges`}>
-                <Button variant="outline" size="sm" className="rounded-full text-xs border-purple-500 text-purple">
+                <Button variant="outline" size="sm" className="rounded-full text-xs border-purple text-purple">
                   {t('challengeCta')} →
                 </Button>
               </Link>
             </div>
           </div>
           <div className="w-full bg-surface-sunken rounded-full h-2.5 mb-3">
-            <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2.5 rounded-full transition-all"
+            <div className="bg-gradient-to-r from-purple to-indigo h-2.5 rounded-full transition-all"
               style={{ width: `${Math.min(100, Math.round((challengesCompleted / 1600) * 100))}%` }} />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -410,7 +434,7 @@ export default async function ProfilePage({
               <span key={m.at}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
                   challengesCompleted >= m.at
-                    ? 'bg-purple-light border-purple-200 text-purple-700'
+                    ? 'bg-purple-light border-purple-border text-purple-strong'
                     : 'bg-surface-sunken border-edge text-hint'
                 }`}>
                 {m.emoji} {m.label}
@@ -455,7 +479,7 @@ export default async function ProfilePage({
                     <div>
                       <span className="font-semibold text-sm text-heading">{lang?.name || sl.lang}</span>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <span className="text-xs text-yellow-500">{lvl?.stars || '★'}</span>
+                        <span className="text-xs text-gold">{lvl?.stars || '★'}</span>
                         <span className="text-xs text-subtle">{lvl?.label || sl.level}</span>
                       </div>
                     </div>
@@ -472,7 +496,7 @@ export default async function ProfilePage({
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-heading">{t('visitedSectionTitle')}</h2>
               <Link href={`/${locale}/challenges/countries`}>
-                <Button variant="ghost" size="sm" className="text-xs text-brand hover:bg-brand-light rounded-full">100 Countries →</Button>
+                <Button variant="ghost" size="sm" className="text-xs text-brand hover:bg-brand-light rounded-full">{t('hundredCountriesLink')}</Button>
               </Link>
             </div>
             {(visitedCodes.length > 0 || certifiedCountryCodes.size > 0) && (
@@ -501,7 +525,7 @@ export default async function ProfilePage({
                   {wishedCountryCodes.map(code => {
                     const country = getCountryByCode(code)
                     return (
-                      <span key={code} className="text-sm bg-amber-light text-amber-700 rounded-full px-3 py-1.5 border border-amber-200">
+                      <span key={code} className="text-sm bg-warning-light text-warning-strong rounded-full px-3 py-1.5 border border-warning-border">
                         {country?.emoji || '🏳'} {country?.name || '–'}
                       </span>
                     )
@@ -548,7 +572,7 @@ export default async function ProfilePage({
                     {(profile.guide_city_regions as GuideRegion[]).map(region => {
                       const c = getCountryByCode(region.country)
                       return (
-                        <div key={region.country} className="bg-amber-light rounded-xl border border-amber-100 p-3">
+                        <div key={region.country} className="bg-warning-light rounded-xl border border-warning-muted p-3">
                           <div className="flex items-center gap-1.5 mb-1.5">
                             <span>{c?.emoji}</span>
                             <span className="font-semibold text-sm text-heading">{c?.name || region.country}</span>
@@ -556,7 +580,7 @@ export default async function ProfilePage({
                           {region.cities.length > 0 ? (
                             <div className="flex flex-wrap gap-1.5">
                               {region.cities.map(city => (
-                                <span key={city} className="text-xs bg-surface border border-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                                <span key={city} className="text-xs bg-surface border border-warning-border text-warning-strong px-2 py-0.5 rounded-full">
                                   {city}
                                 </span>
                               ))}
@@ -578,7 +602,7 @@ export default async function ProfilePage({
                     {(profile.guide_regions as string[]).map(r => {
                       const c = getCountryByCode(r)
                       return (
-                        <span key={r} className="text-xs bg-warning-light border border-yellow-200 rounded-full px-2.5 py-1">
+                        <span key={r} className="text-xs bg-warning-light border border-gold-border rounded-full px-2.5 py-1">
                           {c ? `${c.emoji} ${c.name}` : '🏳 Unknown'}
                         </span>
                       )

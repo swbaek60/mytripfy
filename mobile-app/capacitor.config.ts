@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'web',
   server: {
     // 앱 실행 시 이 URL을 웹뷰로 불러옵니다. 배포된 웹 주소로 변경하세요.
-    url: 'https://mytripfy.com',
+    url: 'https://www.mytripfy.com',
     cleartext: false,
   },
 };

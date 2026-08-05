@@ -1,9 +1,10 @@
 import { createClient, getAuthUser } from '@/utils/supabase/server'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { getLevelInfo, getCountryByCode, getCountryFlagEmoji } from '@/data/countries'
+import { getLevelInfo, getCountryByCode } from '@/data/countries'
 import CountryFlag from '@/components/CountryFlag'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
@@ -13,23 +14,26 @@ import GuideContactModal from './GuideContactModal'
 import GuideDetailTabs from './GuideDetailTabs'
 import type { CertificationItem } from './GuideDetailTabs'
 import GuideHeroGallery from '@/components/GuideHeroGallery'
+import JsonLdScript from '@/components/seo/JsonLdScript'
+import { buildBreadcrumbJsonLd, buildGuidePersonJsonLd } from '@/lib/seo/json-ld'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; id: string }> }): Promise<Metadata> {
   const { locale, id } = await params
   const supabase = await createClient()
   const { data: guide } = await supabase.from('profiles').select('full_name, bio, avatar_url, guide_regions').eq('id', id).single()
-  if (!guide) return { title: 'Guide Not Found' }
-  const title = `${guide.full_name || 'Local Guide'} – Guide Profile`
-  const description =
-    (guide.bio as string | null)?.slice(0, 160) ||
-    `Connect with ${guide.full_name || 'this local guide'} on mytripfy.`
+  const tg = await getTranslations({ locale, namespace: 'GuideDetail' })
+  const tGuides = await getTranslations({ locale, namespace: 'Guides' })
+  if (!guide) return { title: tg('notFoundTitle') }
+  const name = (guide.full_name as string | null) || tGuides('anonymousGuide')
+  const title = tg('seoTitle', { name })
+  const description = (guide.bio as string | null)?.slice(0, 160) || tg('seoDescription', { name })
   const base = buildPageMetadata({
     locale,
     path: `/guides/${id}`,
     title,
     description,
     openGraphType: 'article',
-    keywords: ['local guide', 'private tour', 'mytripfy'],
+    keywords: [tGuides('title'), tg('seoKeyword')],
   })
   const avatar = guide.avatar_url as string | null
   if (avatar?.startsWith('http')) {
@@ -51,6 +55,11 @@ export default async function GuideDetailPage({
   const supabase = await createClient()
   const authUser = await getAuthUser()
   const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
+  const tc = await getTranslations({ locale, namespace: 'Common' })
+  const tg = await getTranslations({ locale, namespace: 'GuideDetail' })
+  const tb = await getTranslations({ locale, namespace: 'Bookmarks' })
+  const tGuides = await getTranslations({ locale, namespace: 'Guides' })
+  const tNav = await getTranslations({ locale, namespace: 'Nav' })
 
   const { data: guide } = await supabase
     .from('profiles')
@@ -160,20 +169,46 @@ export default async function GuideDetailPage({
   const nationalityCountry = nationalityCode.length === 2 ? getCountryByCode(nationalityCode) : null
   const isOwn = user?.id === id
 
+  const guideName = guide.full_name || tb('anonymousGuide')
+  const ratingSum = reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0)
+  const guideRegionNames = ((guide.guide_city_regions as GuideRegion[] | null) ?? [])
+    .map(region => getCountryByCode(region.country)?.name ?? region.country)
+  const guideLanguages = ((guide.spoken_languages as LanguageSkill[] | null) ?? [])
+    .map(skill => skill.lang)
+
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/guides" />
+      <JsonLdScript
+        data={buildGuidePersonJsonLd({
+          locale,
+          guideId: id,
+          name: guideName,
+          description: guide.bio,
+          image: typeof guide.avatar_url === 'string' ? guide.avatar_url : null,
+          areaServed: guideRegionNames,
+          languages: guideLanguages,
+          reviewCount: reviews.length,
+          ratingValue: reviews.length > 0 ? Number((ratingSum / reviews.length).toFixed(1)) : undefined,
+        })}
+      />
+      <JsonLdScript
+        data={buildBreadcrumbJsonLd(locale, [
+          { name: tNav('findGuides'), path: '/guides' },
+          { name: guideName, path: `/guides/${id}` },
+        ])}
+      />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <Link href={`/${locale}/guides`} className="text-sm text-subtle hover:text-brand flex items-center gap-1">
-          ← Back to guides
+          ← {tGuides('backToGuides')}
         </Link>
 
         {/* ── 히어로 갤러리 ── */}
         <GuideHeroGallery
           avatar={guide.avatar_url as string | null}
           photos={(guide.profile_photos as string[] | null) ?? []}
-          name={guide.full_name || 'Guide'}
+          name={guideName}
         />
 
         {/* ── 프로필 카드 ── */}
@@ -189,13 +224,13 @@ export default async function GuideDetailPage({
               </span>
               {isOwn && (
                 <Link href={`/${locale}/profile/edit`}>
-                  <Button variant="outline" size="sm" className="rounded-full text-sm">✏️ Edit Profile</Button>
+                  <Button variant="outline" size="sm" className="rounded-full text-sm">✏️ {tc('editProfile')}</Button>
                 </Link>
               )}
             </div>
 
             {/* 이름 */}
-            <h1 className="text-2xl font-bold text-heading mb-1">{guide.full_name || 'Anonymous Guide'}</h1>
+            <h1 className="text-2xl font-bold text-heading mb-1">{guide.full_name || tb('anonymousGuide')}</h1>
 
             {/* 국적 */}
             {nationalityCode.length === 2 && (
@@ -208,9 +243,9 @@ export default async function GuideDetailPage({
             {/* 인증 배지 */}
             {(guide.email_verified || guide.phone_verified || guide.sns_verified) && (
               <div className="flex gap-2 flex-wrap mb-3">
-                {guide.email_verified && <span className="px-2 py-0.5 bg-success-light text-success text-xs rounded-full border border-green-200">✅ Email Verified</span>}
-                {guide.phone_verified && <span className="px-2 py-0.5 bg-brand-light text-brand-hover text-xs rounded-full border border-edge-brand">📱 Phone Verified</span>}
-                {guide.sns_verified && <span className="px-2 py-0.5 bg-purple-light text-purple text-xs rounded-full border border-purple/20">🔗 SNS Verified</span>}
+                {guide.email_verified && <span className="px-2 py-0.5 bg-success-light text-success-strong text-xs rounded-full border border-success-border">✅ {tg('emailVerified')}</span>}
+                {guide.phone_verified && <span className="px-2 py-0.5 bg-brand-light text-brand-hover text-xs rounded-full border border-edge-brand">📱 {tg('phoneVerified')}</span>}
+                {guide.sns_verified && <span className="px-2 py-0.5 bg-purple-light text-purple-strong text-xs rounded-full border border-purple/20">🔗 {tg('snsVerified')}</span>}
               </div>
             )}
 
@@ -220,7 +255,7 @@ export default async function GuideDetailPage({
                 <GuideContactModal
                   locale={locale}
                   guideId={id}
-                  guideName={guide.full_name || 'Guide'}
+                  guideName={guideName}
                   whatsapp={guide.whatsapp as string | null}
                   telegram={guide.telegram as string | null}
                   lineId={guide.line_id as string | null}

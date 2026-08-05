@@ -39,14 +39,48 @@ const isApiRoute = createRouteMatcher(['/api(.*)'])
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { pathname } = req.nextUrl
 
+  // /en/invite/abc123 → cookie + sign-up (Server Component cookie set 회피)
+  const inviteMatch = pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)\/invite\/([a-zA-Z0-9]{4,16})\/?$/)
+  if (inviteMatch) {
+    const locale = inviteMatch[1]
+    const code = inviteMatch[2].toLowerCase()
+    const url = req.nextUrl.clone()
+    url.pathname = '/sign-up'
+    url.search = `?redirect_url=${encodeURIComponent(`/${locale}`)}`
+    const res = NextResponse.redirect(url)
+    res.cookies.set('mt_ref', code, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    })
+    return res
+  }
+
+  // Capture ?ref= for referral attribution
+  const refParam = req.nextUrl.searchParams.get('ref')
+  const setRefCookie = (res: NextResponse) => {
+    if (refParam && /^[a-zA-Z0-9]{4,16}$/.test(refParam)) {
+      res.cookies.set('mt_ref', refParam.toLowerCase(), {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30,
+        sameSite: 'lax',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+      })
+    }
+    return res
+  }
+
   // Clerk 전용 경로: i18n 우회, Clerk 처리만
   if (isClerkRoute(req)) {
-    return NextResponse.next()
+    return setRefCookie(NextResponse.next())
   }
 
   // API 경로: i18n 우회, Clerk 인증 컨텍스트는 유지됨
   if (isApiRoute(req)) {
-    return NextResponse.next()
+    return setRefCookie(NextResponse.next())
   }
 
   // 정적 파일 및 Next.js 내부 경로 우회
@@ -63,8 +97,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   // next-intl 로케일 라우팅 처리
-  // clerkMiddleware가 이 응답에 Clerk 인증 헤더를 자동으로 추가함
-  return intlMiddleware(req)
+  return setRefCookie(intlMiddleware(req) as NextResponse)
 })
 
 export const config = {

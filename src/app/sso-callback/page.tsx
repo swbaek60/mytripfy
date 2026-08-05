@@ -74,7 +74,7 @@ export default function SSOCallbackPage() {
   }, [clerk, signIn, signUp])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-surface-sunken to-brand-light">
       <div className="flex flex-col items-center gap-4">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
         <p className="text-sm text-subtle">Processing login...</p>

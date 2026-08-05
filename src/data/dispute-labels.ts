@@ -705,9 +705,6 @@ const labels: Record<string, DisputeLabels> = {
 labels['pt-BR'] = labels['pt']
 labels['ms']    = labels['id']   // Malay ≈ Indonesian
 
-/* Default languages not explicitly translated → English */
-const SUPPORTED = new Set(Object.keys(labels))
-
 /**
  * Returns locale-appropriate dispute labels.
  * Falls back to English for unsupported locales.

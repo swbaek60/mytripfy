@@ -1,7 +1,7 @@
 /**
  * SNS 캠페인 "100 Countries in 1 Year" 일정용 국가 코드 순서.
+ * ⚠️ Instagram 운영 스크립트 전용 — 웹 UI에서 import/노출 금지.
  * 1년(365일) 동안 약 3.65일씩 한 국가 방문.
- * getCountryByCode()로 이름·이모지 조회 가능.
  */
 export const SNS_100_COUNTRIES: string[] = [
   'KR', 'JP', 'CN', 'HK', 'TW', 'VN', 'TH', 'SG', 'MY', 'ID',  // 1-10 Asia

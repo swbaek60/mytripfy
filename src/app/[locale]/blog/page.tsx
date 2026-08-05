@@ -1,7 +1,7 @@
 import Header from '@/components/Header'
 import SectionShell from '@/components/layout/SectionShell'
 import { Link } from '@/i18n/routing'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildPageMetadata } from '@/lib/seo/build-metadata'
 import { BLOG_SLUGS } from '@/data/blog-articles'
@@ -31,6 +31,7 @@ export default async function BlogIndexPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'Blog' })
   const tb = await getTranslations({ locale, namespace: 'SeoPages' })
 
@@ -54,7 +55,7 @@ export default async function BlogIndexPage({
     <div className="min-h-screen bg-surface-warm">
       <JsonLdScript data={breadcrumb} />
       <JsonLdScript data={itemList} />
-      <Header locale={locale} currentPath="/blog" />
+      <Header locale={locale} />
 
       <section className="relative bg-midnight text-white py-16 sm:py-20">
         <div className="ds-container-wide text-center max-w-3xl mx-auto">

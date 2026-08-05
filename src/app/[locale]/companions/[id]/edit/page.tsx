@@ -3,6 +3,18 @@ import { redirect, notFound } from 'next/navigation'
 import Header from '@/components/Header'
 import CompanionForm from '../../new/CompanionForm'
 
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}): Promise<Metadata> {
+  const { locale, id } = await params
+  return buildPrivateMetadata({ locale, path: `/companions/${id}/edit`, namespace: 'CompanionDetail', titleKey: 'editTripTitle' })
+}
+
 export default async function EditCompanionPage({
   params,
 }: {
@@ -25,9 +37,9 @@ export default async function EditCompanionPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/companions" />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <CompanionForm userId={user.id} locale={locale} initialData={post} />
+        <CompanionForm locale={locale} initialData={post} />
       </main>
     </div>
   )

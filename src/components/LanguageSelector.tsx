@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import CountryFlag from '@/components/CountryFlag'
@@ -27,7 +27,7 @@ function GlobeIcon({ className = '' }: { className?: string }) {
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`shrink-0 text-blue-500 ${className}`}
+      className={`shrink-0 text-brand ${className}`}
     >
       <circle cx="12" cy="12" r="10" />
       <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
@@ -43,7 +43,7 @@ function getLocaleShortLabel(locale: string): string {
 const LANGUAGE_GROUPS = [
   {
     regionKey: 'regionEastAsia' as const,
-    color: 'from-rose-500 to-pink-500',
+    color: 'from-challenge to-purple',
     langs: [
       { locale: 'ko', native: '한국어', english: 'Korean' },
       { locale: 'ja', native: '日本語', english: 'Japanese' },
@@ -53,7 +53,7 @@ const LANGUAGE_GROUPS = [
   },
   {
     regionKey: 'regionSoutheastAsia' as const,
-    color: 'from-orange-500 to-amber-500',
+    color: 'from-sunset to-warning',
     langs: [
       { locale: 'th', native: 'ภาษาไทย', english: 'Thai' },
       { locale: 'vi', native: 'Tiếng Việt', english: 'Vietnamese' },
@@ -65,7 +65,7 @@ const LANGUAGE_GROUPS = [
   },
   {
     regionKey: 'regionEuropeWest' as const,
-    color: 'from-blue-500 to-indigo-500',
+    color: 'from-brand to-indigo',
     langs: [
       { locale: 'en', native: 'English', english: 'English' },
       { locale: 'fr', native: 'Français', english: 'French' },
@@ -81,7 +81,7 @@ const LANGUAGE_GROUPS = [
   },
   {
     regionKey: 'regionEuropeEast' as const,
-    color: 'from-violet-500 to-purple-500',
+    color: 'from-purple to-indigo',
     langs: [
       { locale: 'ru', native: 'Русский', english: 'Russian' },
       { locale: 'uk', native: 'Українська', english: 'Ukrainian' },
@@ -90,7 +90,7 @@ const LANGUAGE_GROUPS = [
   },
   {
     regionKey: 'regionMiddleEast' as const,
-    color: 'from-teal-500 to-emerald-500',
+    color: 'from-teal to-success',
     langs: [
       { locale: 'ar', native: 'العربية', english: 'Arabic' },
       { locale: 'fa', native: 'فارسی', english: 'Persian' },
@@ -141,7 +141,7 @@ export function LocaleTriggerButton({
         ? 'w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-body shrink-0'
         : compact
           ? 'flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-surface-hover transition-colors text-sm font-medium text-body'
-          : 'flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-edge hover:border-blue-400 hover:bg-brand-light transition-all text-sm font-medium text-body group'
+          : 'flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-edge hover:border-brand hover:bg-brand-light transition-all text-sm font-medium text-body group'
       }
       aria-label={t('language')}
     >
@@ -182,22 +182,22 @@ export default function LanguageSelector({
   const tc = useTranslations('Common')
   const [internalOpen, setInternalOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [mounted, setMounted] = useState(false)
   const [switching, setSwitching] = useState(false)
   const pathname = usePathname()
   const searchRef = useRef<HTMLInputElement>(null)
 
   const isOpen = controlledOpen ?? internalOpen
-  const setOpen = (value: boolean) => {
-    onOpenChange?.(value)
-    if (controlledOpen === undefined) setInternalOpen(value)
-  }
+  const isControlled = controlledOpen !== undefined
+  const setOpen = useCallback(
+    (value: boolean) => {
+      onOpenChange?.(value)
+      if (!isControlled) setInternalOpen(value)
+    },
+    [onOpenChange, isControlled]
+  )
 
-  useEffect(() => { setMounted(true) }, [])
-  useBodyScrollLock(isOpen && mounted)
-
-  const allLangs = LANGUAGE_GROUPS.flatMap(g => g.langs)
-  const currentLang = allLangs.find(l => l.locale === currentLocale) || allLangs[0]
+  // 모달은 사용자 조작으로만 열리므로 isOpen 자체가 하이드레이션 이후를 뜻한다.
+  useBodyScrollLock(isOpen)
 
   const filtered = search.trim()
     ? LANGUAGE_GROUPS.map(group => ({
@@ -211,12 +211,13 @@ export default function LanguageSelector({
     : LANGUAGE_GROUPS
 
   useEffect(() => {
+    if (!isOpen) return
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [])
+  }, [isOpen, setOpen])
 
   useEffect(() => {
     if (!isOpen) return
@@ -253,7 +254,7 @@ export default function LanguageSelector({
     void handleSelect(locale)
   }
 
-  const modal = isOpen && mounted ? createPortal(
+  const modal = isOpen ? createPortal(
     <ModalPortalShell onBackdropClick={() => setOpen(false)}>
       <div className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[min(88dvh,calc(100dvh-1.5rem))] sm:h-auto sm:max-h-[min(85vh,92dvh)]">
         <div className="px-6 pt-6 pb-4 border-b border-edge shrink-0">
@@ -265,6 +266,7 @@ export default function LanguageSelector({
             <button
               type="button"
               onClick={() => setOpen(false)}
+              aria-label={tc('close')}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors text-hint hover:text-body"
             >
               ✕
@@ -278,7 +280,7 @@ export default function LanguageSelector({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent"
+              className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken rounded-xl border border-edge focus:outline-none focus:ring-2 focus:ring-brand-border focus:border-transparent"
             />
           </div>
         </div>
@@ -303,20 +305,20 @@ export default function LanguageSelector({
                       style={{ touchAction: 'manipulation' }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
                         isActive
-                          ? 'bg-brand text-white shadow-md shadow-blue-200'
+                          ? 'bg-brand text-white shadow-md shadow-edge-brand'
                           : 'hover:bg-surface-hover border border-edge hover:border-edge-brand'
                       }`}
                     >
                       {LOCALE_TO_COUNTRY[lang.locale] ? (
                         <CountryFlag code={LOCALE_TO_COUNTRY[lang.locale]} size="md" className={isActive ? 'ring-1 ring-white/50' : ''} />
                       ) : (
-                        <GlobeIcon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-blue-500'}`} />
+                        <GlobeIcon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-brand'}`} />
                       )}
                       <div className="min-w-0">
                         <div className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-heading'}`}>
                           {lang.native}
                         </div>
-                        <div className={`text-xs truncate ${isActive ? 'text-blue-200' : 'text-hint'}`}>
+                        <div className={`text-xs truncate ${isActive ? 'text-edge-brand' : 'text-hint'}`}>
                           {lang.english}
                         </div>
                       </div>

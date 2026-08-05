@@ -67,7 +67,7 @@ export async function GET() {
       else directChatIds.push(p.chat_id)
     }
 
-    let memberCountByChat = new Map<string, number>()
+    const memberCountByChat = new Map<string, number>()
     if (groupChatIds.length > 0) {
       const { data: counts, error: cntErr } = await admin.rpc('chat_participant_counts', {
         p_chat_ids: groupChatIds,
@@ -89,7 +89,7 @@ export async function GET() {
       }
     }
 
-    let peerByChat = new Map<
+    const peerByChat = new Map<
       string,
       { id: string; full_name: string | null; avatar_url: string | null }
     >()

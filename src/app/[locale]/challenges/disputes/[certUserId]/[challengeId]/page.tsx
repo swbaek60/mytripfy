@@ -3,9 +3,28 @@ import Header from '@/components/Header'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import JuryClient from './JuryClient'
+import Avatar from '@/components/ui/Avatar'
+import SmartImage from '@/components/ui/SmartImage'
+import { relationOne, type ChallengeRef, type ProfileRef } from '@/lib/db/relation'
 import { getDisputeLabels } from '@/data/dispute-labels'
 import { getTranslationsForChallenges } from '@/utils/challengeTranslations'
 import { getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; certUserId: string; challengeId: string }>
+}): Promise<Metadata> {
+  const { locale, certUserId, challengeId } = await params
+  return buildPrivateMetadata({
+    locale,
+    path: `/challenges/disputes/${certUserId}/${challengeId}`,
+    namespace: 'SeoPages',
+    titleKey: 'disputeTitle',
+  })
+}
 
 export default async function DisputePage({
   params,
@@ -33,7 +52,7 @@ export default async function DisputePage({
 
   if (!cert) notFound()
 
-  const challenge = cert.challenges as any
+  const challenge = relationOne<ChallengeRef>(cert.challenges)
   const translations = await getTranslationsForChallenges(supabase, [cert.challenge_id], locale)
   const tr = translations.get(cert.challenge_id)
   const challengeWithLocale = challenge ? {
@@ -43,7 +62,7 @@ export default async function DisputePage({
   } : null
 
   // 딴지 목록
-  const { data: disputes } = await supabase
+  const { data: disputesRaw } = await supabase
     .from('challenge_disputes')
     .select('id, reporter_id, reason, points_staked, status, created_at, profiles(full_name, avatar_url)')
     .eq('cert_user_id', certUserId)
@@ -51,29 +70,42 @@ export default async function DisputePage({
     .order('created_at', { ascending: true })
 
   // 투표 현황
-  const { data: votes } = await supabase
+  const { data: votesRaw } = await supabase
     .from('dispute_votes')
     .select('voter_id, vote, created_at, profiles(full_name, avatar_url)')
     .eq('cert_user_id', certUserId)
     .eq('cert_challenge_id', challengeId)
 
-  const validCount = (votes || []).filter(v => v.vote === 'valid').length
-  const invalidCount = (votes || []).filter(v => v.vote === 'invalid').length
+  const disputes = (disputesRaw ?? []).map((d) => ({
+    reporterId: d.reporter_id as string,
+    reason: d.reason as string,
+    createdAt: d.created_at as string,
+    reporter: relationOne<ProfileRef>(d.profiles),
+  }))
+
+  const votes = (votesRaw ?? []).map((v) => ({
+    voterId: v.voter_id as string,
+    vote: v.vote as 'valid' | 'invalid',
+    voter: relationOne<ProfileRef>(v.profiles),
+  }))
+
+  const validCount = votes.filter((v) => v.vote === 'valid').length
+  const invalidCount = votes.filter((v) => v.vote === 'invalid').length
 
   // 내 투표 여부
-  const myVote = user ? (votes || []).find(v => v.voter_id === user.id)?.vote ?? null : null
+  const myVote = user ? votes.find((v) => v.voterId === user.id)?.vote ?? null : null
 
   // 이해충돌 여부 (신고자 / 인증자)
-  const isReporter = user ? (disputes || []).some(d => d.reporter_id === user.id) : false
+  const isReporter = user ? disputes.some((d) => d.reporterId === user.id) : false
   const isCertOwner = user?.id === certUserId
 
   const canVote = user && !myVote && !isReporter && !isCertOwner && cert.dispute_status === 'reviewing'
 
-  const profile = cert.profiles as any
+  const profile = relationOne<ProfileRef>(cert.profiles)
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} currentPath="/challenges" />
+      <Header locale={locale} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
@@ -95,7 +127,7 @@ export default async function DisputePage({
           </div>
         )}
         {cert.dispute_status === 'invalidated' && (
-          <div className="bg-danger-light border-2 border-red-200 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <div className="bg-danger-light border-2 border-danger-border rounded-2xl px-5 py-4 flex items-start gap-3">
             <span className="text-2xl">❌</span>
             <div>
               <p className="font-bold text-heading">{td('verdictInvalidTitle')}</p>
@@ -104,7 +136,7 @@ export default async function DisputePage({
           </div>
         )}
         {cert.dispute_status === 'clean' && (
-          <div className="bg-success-light border-2 border-green-200 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <div className="bg-success-light border-2 border-success-border rounded-2xl px-5 py-4 flex items-start gap-3">
             <span className="text-2xl">✅</span>
             <div>
               <p className="font-bold text-heading">{td('verdictValidTitle')}</p>
@@ -116,7 +148,7 @@ export default async function DisputePage({
         {/* 인증 정보 */}
         <div className="bg-surface rounded-2xl overflow-hidden shadow-sm border border-edge">
           <div className="relative h-56">
-            <img src={cert.image_url} alt={challengeWithLocale?.title ?? challenge?.title_en} className="w-full h-full object-cover" />
+            <SmartImage src={cert.image_url} alt={challengeWithLocale?.title ?? challenge?.title_en ?? ''} width={1280} height={448} sizes="(max-width: 1280px) 100vw, 1280px" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
               <div className="text-white">
                 <p className="text-lg font-extrabold">{challengeWithLocale?.title ?? challenge?.title_en}</p>
@@ -129,13 +161,12 @@ export default async function DisputePage({
 
           <div className="p-5">
             <div className="flex items-center gap-3">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 flex items-center justify-center text-white font-bold">
-                  {profile?.full_name?.[0]?.toUpperCase() ?? '?'}
-                </div>
-              )}
+              <Avatar
+                src={profile?.avatar_url}
+                name={profile?.full_name}
+                size={40}
+                fallbackClassName="bg-gradient-to-br from-purple to-indigo text-white"
+              />
               <div>
                 <p className="font-bold text-heading">{profile?.full_name ?? 'Unknown'}</p>
                 <p className="text-xs text-hint">
@@ -198,20 +229,14 @@ export default async function DisputePage({
           />
 
           {/* 투표자 목록 */}
-          {(votes || []).length > 0 && (
+          {votes.length > 0 && (
             <div className="mt-4 pt-4 border-t border-edge">
               <p className="text-xs font-semibold text-subtle mb-2">{td('juryVoteHistory')}</p>
               <div className="space-y-2">
-                {(votes || []).map((v, i) => (
+                {votes.map((v, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    {(v.profiles as any)?.avatar_url ? (
-                      <img src={(v.profiles as any).avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-surface-sunken flex items-center justify-center text-subtle text-xs font-bold">
-                        {(v.profiles as any)?.full_name?.[0]?.toUpperCase() ?? '?'}
-                      </div>
-                    )}
-                    <span className="text-xs text-body">{(v.profiles as any)?.full_name ?? 'User'}</span>
+                    <Avatar src={v.voter?.avatar_url} name={v.voter?.full_name} size={24} />
+                    <span className="text-xs text-body">{v.voter?.full_name ?? 'User'}</span>
                     <span className={`ml-auto text-xs font-bold ${v.vote === 'valid' ? 'text-success' : 'text-danger'}`}>
                       {v.vote === 'valid' ? `✅ ${td('voteValid')}` : `❌ ${td('voteInvalid')}`}
                     </span>
@@ -224,22 +249,22 @@ export default async function DisputePage({
 
         {/* 딴지 이유들 */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm border border-edge">
-          <h2 className="font-bold text-heading mb-4">🚩 {td('filedDisputes')} ({(disputes || []).length})</h2>
-          {(disputes || []).length === 0 ? (
+          <h2 className="font-bold text-heading mb-4">🚩 {td('filedDisputes')} ({disputes.length})</h2>
+          {disputes.length === 0 ? (
             <p className="text-sm text-hint text-center py-4">{td('noDisputes')}</p>
           ) : (
             <div className="space-y-3">
-              {(disputes || []).map((d, i) => (
+              {disputes.map((d, i) => (
                 <div key={i} className="bg-surface-sunken rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-danger-light flex items-center justify-center text-danger text-xs font-bold">
+                    <div className="w-6 h-6 rounded-full bg-danger-light flex items-center justify-center text-danger-strong text-xs font-bold">
                       {i + 1}
                     </div>
                     <span className="text-xs font-semibold text-body">
-                      {(d.profiles as any)?.full_name ?? td('anonymous')}
+                      {d.reporter?.full_name ?? td('anonymous')}
                     </span>
                     <span className="ml-auto text-[10px] text-hint">
-                      {new Date(d.created_at).toLocaleDateString(locale)}
+                      {new Date(d.createdAt).toLocaleDateString(locale)}
                     </span>
                   </div>
                   <p className="text-sm text-body leading-relaxed">{d.reason}</p>

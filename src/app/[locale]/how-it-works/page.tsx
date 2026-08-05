@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Users, ShieldCheck, Map, Trophy } from 'lucide-react'
 import SectionShell from '@/components/layout/SectionShell'
 import type { Metadata } from 'next'
@@ -25,6 +25,7 @@ export async function generateMetadata({
 
 export default async function HowItWorksPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
+  setRequestLocale(locale)
   const tm = await getTranslations({ locale, namespace: 'Marketing' })
 
   const steps = [
@@ -36,19 +37,20 @@ export default async function HowItWorksPage({ params }: { params: Promise<{ loc
 
   return (
     <div className="min-h-screen bg-surface-warm">
-      <Header locale={locale} currentPath="/how-it-works" />
+      <Header locale={locale} />
 
-      <section className="relative bg-midnight text-white py-16 sm:py-24">
-        <div className="ds-container-wide text-center">
+      <section className="relative bg-midnight text-white py-16 sm:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-midnight via-midnight to-brand-deep/20" />
+        <div className="relative ds-container-wide text-center">
           <h1 className="ds-hero-display text-3xl sm:text-5xl mb-4">{tm('howItWorksTitle')}</h1>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">{tm('howItWorksSubtitle')}</p>
+          <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed">{tm('howItWorksSubtitle')}</p>
         </div>
       </section>
 
       <SectionShell variant="light">
-        <div className="max-w-3xl mx-auto space-y-12">
+        <div className="max-w-3xl mx-auto space-y-10">
           {steps.map(step => (
-            <div key={step.num} className="flex gap-6 items-start">
+            <div key={step.num} className="flex gap-6 items-start rounded-2xl border border-edge/50 bg-surface p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow">
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${step.color}18` }}
@@ -65,7 +67,7 @@ export default async function HowItWorksPage({ params }: { params: Promise<{ loc
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-14">
           <Link href={`/${locale}/companions`}>
-            <Button className="bg-brand hover:bg-brand-hover rounded-full px-8">{tm('howCtaBrowse')}</Button>
+            <Button className="bg-brand hover:bg-brand-hover rounded-full px-8 shadow-md shadow-brand/20">{tm('howCtaBrowse')}</Button>
           </Link>
           <Link href={`/${locale}/personality`}>
             <Button variant="outline" className="rounded-full border-brand/30 text-brand hover:bg-brand-light px-8">

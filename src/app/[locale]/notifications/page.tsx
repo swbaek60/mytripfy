@@ -4,6 +4,18 @@ import Header from '@/components/Header'
 import NotificationsList from './NotificationsList'
 import { getTranslations } from 'next-intl/server'
 
+import type { Metadata } from 'next'
+import { buildPrivateMetadata } from '@/lib/seo/private-metadata'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return buildPrivateMetadata({ locale, path: '/notifications', namespace: 'Nav', titleKey: 'notifications' })
+}
+
 export default async function NotificationsPage({
   params,
 }: { params: Promise<{ locale: string }> }) {
@@ -33,7 +45,7 @@ export default async function NotificationsPage({
 
   return (
     <div className="min-h-screen bg-surface-sunken">
-      <Header user={user} locale={locale} />
+      <Header locale={locale} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-2xl font-bold text-heading mb-6">{t('title')}</h1>
         <NotificationsList notifications={notifications ?? []} locale={locale} />

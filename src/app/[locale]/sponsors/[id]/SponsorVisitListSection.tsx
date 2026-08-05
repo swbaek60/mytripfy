@@ -29,13 +29,17 @@ export default function SponsorVisitListSection({
 
   useEffect(() => {
     let cancelled = false
-    setError(null)
     fetch(`/api/sponsors/${sponsorId}/visits`)
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return
-        if (data?.error) setError(data.error)
-        else if (Array.isArray(data.visits)) setVisits(data.visits)
+        if (data?.error) {
+          setError(data.error)
+          return
+        }
+        // 성공 시 이전 방문 목록의 에러 표시를 함께 지운다.
+        setError(null)
+        if (Array.isArray(data.visits)) setVisits(data.visits)
       })
       .catch(() => {
         if (!cancelled) setError('Failed to load')
@@ -54,7 +58,7 @@ export default function SponsorVisitListSection({
       {loading ? (
         <p className="text-sm text-subtle">{t('loadingVisits')}</p>
       ) : error ? (
-        <p className="text-sm text-amber">{error}</p>
+        <p className="text-sm text-warning">{error}</p>
       ) : visits.length === 0 ? (
         <p className="text-sm text-subtle">
           {t('noVerifiedVisitsYet')}

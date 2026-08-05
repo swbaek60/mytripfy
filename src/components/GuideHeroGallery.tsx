@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X, Images } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface Props {
   avatar: string | null
@@ -11,16 +13,16 @@ interface Props {
 }
 
 export default function GuideHeroGallery({ avatar, photos, name }: Props) {
+  const tc = useTranslations('Common')
+
   // avatar + 추가 사진 합치기 (중복 제거)
   const all: string[] = [
     ...(avatar ? [avatar] : []),
     ...photos.filter(p => p && p !== avatar),
   ]
 
+  // 라이트박스는 클릭으로만 열리므로 lightbox !== null 자체가 하이드레이션 이후를 뜻한다.
   const [lightbox, setLightbox] = useState<number | null>(null)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => { setMounted(true) }, [])
 
   const openLightbox = (i: number) => setLightbox(i)
   const closeLightbox = () => setLightbox(null)
@@ -62,7 +64,7 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
     if (shown.length === 1) {
       return (
         <div className="w-full aspect-[16/9] rounded-2xl overflow-hidden">
-          <img src={shown[0]} alt={name} className={imgClass} onClick={() => openLightbox(0)} />
+          <SmartImage src={shown[0]} alt={name} width={1200} height={675} sizes="100vw" priority className={imgClass} onClick={() => openLightbox(0)} />
         </div>
       )
     }
@@ -72,7 +74,7 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
         <div className="grid grid-cols-2 gap-1.5 aspect-[16/9] rounded-2xl overflow-hidden">
           {shown.map((src, i) => (
             <div key={i} className="overflow-hidden">
-              <img src={src} alt={`${name} ${i + 1}`} className={imgClass} onClick={() => openLightbox(i)} />
+              <SmartImage src={src} alt={`${name} ${i + 1}`} width={600} height={675} sizes="(max-width: 640px) 50vw, 400px" priority={i === 0} className={imgClass} onClick={() => openLightbox(i)} />
             </div>
           ))}
         </div>
@@ -84,13 +86,13 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
         <div className="grid grid-cols-3 gap-1.5 aspect-[16/9] rounded-2xl overflow-hidden">
           {/* 왼쪽 대형 */}
           <div className="col-span-2 overflow-hidden">
-            <img src={shown[0]} alt={name} className={imgClass} onClick={() => openLightbox(0)} />
+            <SmartImage src={shown[0]} alt={name} width={800} height={675} sizes="(max-width: 640px) 67vw, 540px" priority className={imgClass} onClick={() => openLightbox(0)} />
           </div>
           {/* 오른쪽 2장 */}
           <div className="grid grid-rows-2 gap-1.5">
             {shown.slice(1).map((src, i) => (
               <div key={i} className="overflow-hidden">
-                <img src={src} alt={`${name} ${i + 2}`} className={imgClass} onClick={() => openLightbox(i + 1)} />
+                <SmartImage src={src} alt={`${name} ${i + 2}`} width={400} height={340} sizes="(max-width: 640px) 33vw, 270px" className={imgClass} onClick={() => openLightbox(i + 1)} />
               </div>
             ))}
           </div>
@@ -102,12 +104,12 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
       return (
         <div className="grid grid-cols-3 gap-1.5 aspect-[16/9] rounded-2xl overflow-hidden">
           <div className="col-span-2 overflow-hidden">
-            <img src={shown[0]} alt={name} className={imgClass} onClick={() => openLightbox(0)} />
+            <SmartImage src={shown[0]} alt={name} width={800} height={675} sizes="(max-width: 640px) 67vw, 540px" priority className={imgClass} onClick={() => openLightbox(0)} />
           </div>
           <div className="grid grid-rows-3 gap-1.5">
             {shown.slice(1).map((src, i) => (
               <div key={i} className="overflow-hidden">
-                <img src={src} alt={`${name} ${i + 2}`} className={imgClass} onClick={() => openLightbox(i + 1)} />
+                <SmartImage src={src} alt={`${name} ${i + 2}`} width={400} height={225} sizes="(max-width: 640px) 33vw, 270px" className={imgClass} onClick={() => openLightbox(i + 1)} />
               </div>
             ))}
           </div>
@@ -120,13 +122,13 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
       <div className="grid grid-cols-3 gap-1.5 aspect-[16/9] rounded-2xl overflow-hidden">
         {/* 메인 */}
         <div className="col-span-2 overflow-hidden">
-          <img src={shown[0]} alt={name} className={imgClass} onClick={() => openLightbox(0)} />
+          <SmartImage src={shown[0]} alt={name} width={800} height={675} sizes="(max-width: 640px) 67vw, 540px" priority className={imgClass} onClick={() => openLightbox(0)} />
         </div>
         {/* 오른쪽 2x2 */}
         <div className="grid grid-cols-2 grid-rows-2 gap-1.5">
           {shown.slice(1, 5).map((src, i) => (
             <div key={i} className="overflow-hidden relative">
-              <img src={src} alt={`${name} ${i + 2}`} className={imgClass} onClick={() => openLightbox(i + 1)} />
+              <SmartImage src={src} alt={`${name} ${i + 2}`} width={300} height={340} sizes="(max-width: 640px) 17vw, 140px" className={imgClass} onClick={() => openLightbox(i + 1)} />
               {/* 마지막 셀에 +N 오버레이 */}
               {i === 3 && extra > 0 && (
                 <button
@@ -156,27 +158,31 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
             className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-black/60 hover:bg-black/75 text-white text-xs font-semibold rounded-full backdrop-blur-sm transition-colors"
           >
             <Images className="w-3.5 h-3.5" />
-            {all.length} photos
+            {tc('photosCount', { count: all.length })}
           </button>
         )}
       </div>
 
       {/* ── 라이트박스 ── */}
-      {lightbox !== null && mounted && createPortal(
+      {lightbox !== null && createPortal(
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={name}
           className="fixed inset-0 z-[10100] bg-white flex items-center justify-center"
           onClick={closeLightbox}
         >
           {/* 닫기 */}
           <button
             onClick={closeLightbox}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/8 hover:bg-black/15 text-gray-700 flex items-center justify-center transition-colors"
+            aria-label={tc('close')}
+            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/8 hover:bg-black/15 text-body flex items-center justify-center transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* 카운터 */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-gray-500 text-sm font-medium">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-subtle text-sm font-medium">
             {lightbox + 1} / {all.length}
           </div>
 
@@ -184,7 +190,8 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
           {all.length > 1 && (
             <button
               onClick={e => { e.stopPropagation(); prev() }}
-              className="absolute left-3 sm:left-6 z-10 w-11 h-11 rounded-full bg-black/8 hover:bg-black/15 text-gray-700 flex items-center justify-center transition-colors"
+              aria-label={tc('previousPhoto')}
+              className="absolute left-3 sm:left-6 z-10 w-11 h-11 rounded-full bg-black/8 hover:bg-black/15 text-body flex items-center justify-center transition-colors"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -195,9 +202,13 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
             className="relative max-w-[90vw] max-h-[85vh] flex items-center justify-center"
             onClick={e => e.stopPropagation()}
           >
-            <img
+            <SmartImage
               src={all[lightbox]}
               alt={`${name} photo ${lightbox + 1}`}
+              width={1600}
+              height={1600}
+              sizes="100vw"
+              priority
               className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-lg select-none"
               draggable={false}
             />
@@ -207,7 +218,8 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
           {all.length > 1 && (
             <button
               onClick={e => { e.stopPropagation(); next() }}
-              className="absolute right-3 sm:right-6 z-10 w-11 h-11 rounded-full bg-black/8 hover:bg-black/15 text-gray-700 flex items-center justify-center transition-colors"
+              aria-label={tc('nextPhoto')}
+              className="absolute right-3 sm:right-6 z-10 w-11 h-11 rounded-full bg-black/8 hover:bg-black/15 text-body flex items-center justify-center transition-colors"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -220,11 +232,13 @@ export default function GuideHeroGallery({ avatar, photos, name }: Props) {
                 <button
                   key={i}
                   onClick={e => { e.stopPropagation(); setLightbox(i) }}
+                  aria-label={`${tc('photo')} ${i + 1}`}
+                  aria-current={i === lightbox}
                   className={`shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
-                    i === lightbox ? 'border-gray-800 scale-110 shadow-lg' : 'border-gray-300 opacity-60 hover:opacity-90'
+                    i === lightbox ? 'border-heading scale-110 shadow-lg' : 'border-edge-strong opacity-60 hover:opacity-90'
                   }`}
                 >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <SmartImage src={src} alt="" width={96} height={96} sizes="48px" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

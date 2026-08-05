@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Users, MessageSquare, Trash2 } from 'lucide-react'
+import Avatar from '@/components/ui/Avatar'
 
 interface GroupChat {
   chatId: string
@@ -31,6 +32,8 @@ interface Props {
 export default function MessagesList({ locale, groupChats: initialGroups, directChats: initialDirect }: Props) {
   const router = useRouter()
   const tc = useTranslations('Common')
+  const tNav = useTranslations('Nav')
+  const tm = useTranslations('Messages')
   const [groups, setGroups] = useState(initialGroups)
   const [directs, setDirects] = useState(initialDirect)
   const [leavingId, setLeavingId] = useState<string | null>(null)
@@ -77,17 +80,17 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
     return (
       <div className="text-center py-20 bg-surface rounded-2xl shadow-sm">
         <MessageSquare className="w-12 h-12 text-hint mx-auto mb-4" />
-        <p className="text-subtle font-medium">No conversations yet.</p>
-        <p className="text-hint text-sm mt-1">Find a companion or guide and start chatting!</p>
+          <p className="text-subtle font-medium">{tc('noConversationsYet')}</p>
+          <p className="text-hint text-sm mt-1">{tc('findCompanionOrGuideHint')}</p>
         <div className="flex gap-3 justify-center mt-6">
           <Link href={`/${locale}/companions`}>
             <button className="bg-brand hover:bg-brand-hover text-white rounded-full px-6 py-2 text-sm font-medium transition-colors">
-              Find Companions
+              {tNav('findCompanions')}
             </button>
           </Link>
           <Link href={`/${locale}/guides`}>
-            <button className="bg-warning hover:bg-warning text-white rounded-full px-6 py-2 text-sm font-medium transition-colors">
-              Find Guides
+            <button className="bg-warning-strong hover:bg-warning text-white rounded-full px-6 py-2 text-sm font-medium transition-colors">
+              {tNav('findGuides')}
             </button>
           </Link>
         </div>
@@ -102,7 +105,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
         <button
           onClick={clearAll}
           disabled={clearingAll}
-          className="flex items-center gap-1.5 text-xs text-danger hover:text-red-700 bg-danger-light hover:bg-danger-light px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 text-xs text-danger-strong hover:text-danger-strong bg-danger-light hover:bg-danger-light px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
         >
           <Trash2 className="w-3.5 h-3.5" />
           {clearingAll ? tc('deleting') : tc('delete')}
@@ -113,7 +116,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
       {groups.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-subtle uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5" /> Trip Group Chats
+            <Users className="w-3.5 h-3.5" /> {tm('groupChats')}
           </p>
           <div className="space-y-2">
             {groups.map(chat => (
@@ -126,14 +129,14 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-heading truncate">{chat.name}</p>
-                        <span className="text-xs bg-brand-muted text-brand px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-xs bg-brand-muted text-brand-strong px-2 py-0.5 rounded-full shrink-0">
                           {chat.memberCount} members
                         </span>
                       </div>
                       {chat.lastMessage ? (
                         <p className="text-sm text-subtle truncate">{chat.lastMessage}</p>
                       ) : (
-                        <p className="text-sm text-hint italic">No messages yet</p>
+                        <p className="text-sm text-hint italic">{tc('noMessagesYet')}</p>
                       )}
                     </div>
                     {chat.lastAt && (
@@ -162,7 +165,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
       {directs.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-subtle uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <MessageSquare className="w-3.5 h-3.5" /> Direct Messages
+            <MessageSquare className="w-3.5 h-3.5" /> {tm('directMessages')}
           </p>
           <div className="space-y-2">
             {directs.map(chat => (
@@ -171,7 +174,7 @@ export default function MessagesList({ locale, groupChats: initialGroups, direct
                   <div className="bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-4 border border-transparent hover:border-edge-brand pr-12">
                     <div className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center shrink-0 overflow-hidden">
                       {chat.other?.avatar_url ? (
-                        <img src={chat.other.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <Avatar src={chat.other.avatar_url} fill size={48} />
                       ) : <span className="text-hint text-xl">👤</span>}
                     </div>
                     <div className="flex-1 min-w-0">

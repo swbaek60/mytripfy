@@ -61,13 +61,14 @@ export default function LanguageMultiSelect({
             return (
               <span
                 key={code}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-full text-sm font-medium"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-warning-strong text-white rounded-full text-sm font-medium"
               >
                 {lang?.emoji} {lang?.name}
                 <button
                   type="button"
                   onClick={() => remove(code)}
-                  className="hover:text-amber-200 ml-0.5 font-bold leading-none"
+                  aria-label={`${tc('remove')} ${lang?.name ?? code}`}
+                  className="hover:text-warning-border ml-0.5 font-bold leading-none"
                 >
                   ×
                 </button>
@@ -87,7 +88,7 @@ export default function LanguageMultiSelect({
             onFocus={() => setOpen(true)}
             onBlur={handleBlur}
             placeholder={placeholder || tc('searchLanguage')}
-            className="w-full h-10 rounded-xl border border-edge px-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            className="w-full h-10 rounded-xl border border-edge px-4 text-sm focus:outline-none focus:ring-2 focus:ring-warning focus:border-transparent"
           />
 
           {open && filtered.length > 0 && (
@@ -100,7 +101,7 @@ export default function LanguageMultiSelect({
                   key={lang.code}
                   type="button"
                   onClick={() => add(lang.code)}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-amber-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-warning-light transition-colors text-left"
                 >
                   <span className="text-lg">{lang.emoji}</span>
                   <div>

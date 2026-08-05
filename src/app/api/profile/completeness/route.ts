@@ -1,5 +1,6 @@
-import { createClient, getAuthUser, createAdminClient } from '@/utils/supabase/server'
-import { NextResponse } from 'next/server'
+import { adminDb, requireUser } from '@/lib/api/guard'
+import { apiFailure, apiOk } from '@/lib/api/respond'
+import { CACHE_PRIVATE_SHORT } from '@/lib/http-cache'
 import { getProfileCompleteness } from '@/utils/profileCompleteness'
 
 /**
@@ -8,39 +9,48 @@ import { getProfileCompleteness } from '@/utils/profileCompleteness'
  */
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const authUser = await getAuthUser()
-    const user = authUser ? { id: authUser.profileId, email: authUser.email } : null
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await requireUser()
+    if ('response' in auth) return auth.response
 
-    const admin = createAdminClient()
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('full_name, bio, avatar_url, nationality, instagram_url, facebook_url, twitter_url, whatsapp, telegram, line_id, profile_photos, spoken_languages, is_guide, guide_city_regions, email_verified')
-      .eq('id', user.id)
-      .single()
+    const db = adminDb()
+    const userId = auth.user.profileId
 
-    const { data: visited } = await admin
-      .from('visited_countries')
-      .select('country_code')
-      .eq('user_id', user.id)
-    const { data: certRows } = await admin
-      .from('challenge_certifications')
-      .select('challenge_id')
-      .eq('user_id', user.id)
-    const certIds = (certRows ?? []).map(r => r.challenge_id)
-    const { data: certChallenges } = certIds.length > 0
-      ? await admin.from('challenges').select('id, country_code').eq('category', 'countries').in('id', certIds)
-      : { data: [] }
-    const certifiedCodes = new Set((certChallenges ?? []).map(c => c.country_code).filter(Boolean) as string[])
-    const visitedCodes = visited?.map(v => v.country_code) ?? []
-    const countryCount = new Set([...visitedCodes, ...certifiedCodes]).size
-    const emailVerified = !!(profile?.email_verified)
+    const [profileRes, visitedRes, certRes] = await Promise.all([
+      db
+        .from('profiles')
+        .select(
+          'full_name, bio, avatar_url, nationality, instagram_url, facebook_url, twitter_url, whatsapp, telegram, line_id, profile_photos, spoken_languages, is_guide, guide_city_regions, email_verified'
+        )
+        .eq('id', userId)
+        .maybeSingle(),
+      db.from('visited_countries').select('country_code').eq('user_id', userId),
+      db.from('challenge_certifications').select('challenge_id').eq('user_id', userId),
+    ])
 
-    const { percent, nextStepKey, earned, total } = getProfileCompleteness(profile, countryCount, emailVerified)
-    return NextResponse.json({ percent, nextStepKey, earned, total })
-  } catch (e) {
-    console.error('profile completeness api', e)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    const profile = profileRes.data
+    const certIds = (certRes.data ?? []).map((r) => r.challenge_id)
+
+    // 국가 챌린지 인증도 "방문한 나라"로 센다.
+    const { data: certChallenges } = certIds.length
+      ? await db
+          .from('challenges')
+          .select('id, country_code')
+          .eq('category', 'countries')
+          .in('id', certIds)
+      : { data: [] as { country_code: string | null }[] }
+
+    const codes = new Set<string>()
+    for (const v of visitedRes.data ?? []) if (v.country_code) codes.add(v.country_code)
+    for (const c of certChallenges ?? []) if (c.country_code) codes.add(c.country_code)
+
+    const { percent, nextStepKey, earned, total } = getProfileCompleteness(
+      profile,
+      codes.size,
+      !!profile?.email_verified
+    )
+
+    return apiOk({ percent, nextStepKey, earned, total }, { cache: CACHE_PRIVATE_SHORT })
+  } catch (err) {
+    return apiFailure('profile/completeness', err)
   }
 }

@@ -14,6 +14,8 @@ export default function RecentCompanionsBar({ locale, title }: Props) {
   const [items, setItems] = useState<RecentCompanion[]>([])
 
   useEffect(() => {
+    // 최근 본 목록은 localStorage 에 있어 서버 HTML 과 맞출 수 없다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(getRecentCompanions())
   }, [])
 

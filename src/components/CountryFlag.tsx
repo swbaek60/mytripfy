@@ -29,6 +29,7 @@ export default function CountryFlag({ code, size = 'sm', className = '' }: Props
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- flagcdn 은 이미 정확한 크기로 서빙하므로 next/image 를 거칠 이유가 없다.
     <img
       src={`https://flagcdn.com/${w}x${h}/${lower}.png`}
       srcSet={`https://flagcdn.com/${w * 2}x${h * 2}/${lower}.png 2x`}

@@ -5,6 +5,7 @@ import { Users, MessageSquare } from 'lucide-react'
 import { getLevelInfo } from '@/data/countries'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
+import Avatar from '@/components/ui/Avatar'
 
 interface Member {
   id: string
@@ -56,9 +57,9 @@ export default function TripMembersCard({ locale, host, acceptedMembers, groupCh
               href={`/${locale}/users/${m.id}`}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-sunken hover:bg-brand-light border border-transparent hover:border-edge-brand transition-all"
             >
-              <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-9 h-9 rounded-full bg-edge flex items-center justify-center overflow-hidden shrink-0">
                 {m.avatar_url ? (
-                  <img src={m.avatar_url} alt="" className="w-full h-full object-cover" />
+                  <Avatar src={m.avatar_url} size={36} fill />
                 ) : (
                   <span className="text-subtle text-sm">👤</span>
                 )}
@@ -69,8 +70,8 @@ export default function TripMembersCard({ locale, host, acceptedMembers, groupCh
                     {m.full_name || tc('anonymous')}
                   </span>
                   {m.isHost && (
-                    <span className="text-[10px] bg-amber-light text-amber-700 px-1.5 py-0.5 rounded font-medium shrink-0">
-                      Host
+                    <span className="text-[10px] bg-warning-light text-warning-strong px-1.5 py-0.5 rounded font-medium shrink-0">
+                      {tc('host')}
                     </span>
                   )}
                 </div>

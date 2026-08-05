@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import CountrySelect from '@/components/CountrySelect'
+import SmartImage from '@/components/ui/SmartImage'
 import Link from 'next/link'
 
 const BUSINESS_TYPES = ['restaurant', 'cafe', 'bar', 'shop', 'accommodation', 'experience', 'other'] as const
 const BENEFIT_TYPES = [
-  { value: 'discount_percent', needValue: true, valueLabel: '%' },
-  { value: 'discount_fixed', needValue: true, valueLabel: 'Amount' },
+  { value: 'discount_percent', needValue: true, valueUnit: 'percent' },
+  { value: 'discount_fixed', needValue: true, valueUnit: 'amount' },
   { value: 'free_item', needValue: false },
   { value: 'free_drink', needValue: false },
   { value: 'free_entry', needValue: false },
@@ -182,21 +183,21 @@ export default function SponsorEditForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-surface rounded-2xl p-6 shadow-sm border border-edge">
-      {error && <p className="text-sm text-danger bg-danger-light p-3 rounded-xl">{error}</p>}
+      {error && <p className="text-sm text-danger-strong bg-danger-light p-3 rounded-xl">{error}</p>}
       <div>
-        <Label>Store name *</Label>
+        <Label>{t('storeNameRequired')}</Label>
         <Input value={name} onChange={e => setName(e.target.value)} required />
       </div>
       <div>
-        <Label>Store name (English)</Label>
+        <Label>{t('storeNameEn')}</Label>
         <Input value={nameEn} onChange={e => setNameEn(e.target.value)} />
       </div>
       <div>
-        <Label>Description</Label>
-        <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
+        <Label>{t('descriptionLabel')}</Label>
+        <textarea value={description} onChange={e => setDescription(e.target.value)} aria-label={t('descriptionLabel')} className="w-full min-h-[80px] rounded-xl border border-edge px-3 py-2 text-sm" />
       </div>
       <div>
-        <Label>Business type</Label>
+        <Label>{t('businessType')}</Label>
         <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full rounded-xl border border-edge px-3 py-2 text-sm">
           {BUSINESS_TYPES.map(tp => (
             <option key={tp} value={tp}>{t(tp)}</option>
@@ -204,23 +205,23 @@ export default function SponsorEditForm({
         </select>
       </div>
       <div>
-        <Label>Country</Label>
+        <Label>{t('filterCountry')}</Label>
         <div className="mt-1">
-          <CountrySelect value={countryCode} onChange={setCountryCode} placeholder="Select country" className="rounded-xl" />
+          <CountrySelect value={countryCode} onChange={setCountryCode} className="rounded-xl" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Region</Label>
+          <Label>{tCommon('region')}</Label>
           <Input value={region} onChange={e => setRegion(e.target.value)} />
         </div>
         <div>
-          <Label>City</Label>
+          <Label>{tCommon('city')}</Label>
           <Input value={city} onChange={e => setCity(e.target.value)} />
         </div>
       </div>
       <div>
-        <Label>Address</Label>
+        <Label>{tCommon('address')}</Label>
         <Input value={address} onChange={e => setAddress(e.target.value)} />
       </div>
       <div>
@@ -241,7 +242,7 @@ export default function SponsorEditForm({
           <Input value={facebookUrl} onChange={e => setFacebookUrl(e.target.value)} />
         </div>
         <div>
-          <Label>Twitter</Label>
+          <Label>{t('twitterX')}</Label>
           <Input value={twitterUrl} onChange={e => setTwitterUrl(e.target.value)} />
         </div>
       </div>
@@ -250,13 +251,13 @@ export default function SponsorEditForm({
         <Label>{t('logoImage')}</Label>
         {currentLogoUrl ? (
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <img src={currentLogoUrl} alt="Logo" className="h-16 w-16 rounded-xl border border-edge object-cover" />
+            <SmartImage src={currentLogoUrl} alt={t('logoAlt')} width={128} height={128} className="h-16 w-16 rounded-xl border border-edge object-cover" />
             <div className="flex flex-col gap-1">
-              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveLogo(true); setLogoFile(null) }} className="rounded-full text-danger border-red-200 hover:bg-danger-light w-fit">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveLogo(true); setLogoFile(null) }} className="rounded-full text-danger border-danger-border hover:bg-danger-light w-fit">
                 {t('remove')}
               </Button>
               <label className="text-sm text-subtle cursor-pointer">
-                <span className="inline-block rounded-full border border-emerald-300 px-3 py-1 text-emerald-700 text-xs font-medium hover:bg-emerald-50">
+                <span className="inline-block rounded-full border border-success-border px-3 py-1 text-success-strong text-xs font-medium hover:bg-success-light">
                   {t('replace')}
                 </span>
                 <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) { setLogoFile(f); setRemoveLogo(false) } }} />
@@ -265,8 +266,8 @@ export default function SponsorEditForm({
           </div>
         ) : (
           <div className="mt-1">
-            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveLogo(false); setLogoFile(f || null) }} className="block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
-            {removeLogo && <p className="text-xs text-amber mt-1">{t('logoRemovedOnSave')}</p>}
+            <input type="file" accept="image/*" aria-label={t('logoImage')} onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveLogo(false); setLogoFile(f || null) }} className="block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-success-light file:text-success-strong" />
+            {removeLogo && <p className="text-xs text-warning mt-1">{t('logoRemovedOnSave')}</p>}
           </div>
         )}
       </div>
@@ -275,13 +276,20 @@ export default function SponsorEditForm({
         <Label>{t('coverImage')}</Label>
         {currentCoverUrl ? (
           <div className="mt-2 space-y-2">
-            <img src={currentCoverUrl} alt="Cover" className="w-full max-h-40 rounded-xl border border-edge object-cover" />
+            <SmartImage
+              src={currentCoverUrl}
+              alt={t('coverAlt')}
+              width={1200}
+              height={400}
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="w-full max-h-40 rounded-xl border border-edge object-cover"
+            />
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveCover(true); setCoverFile(null) }} className="rounded-full text-danger border-red-200 hover:bg-danger-light">
+              <Button type="button" variant="outline" size="sm" onClick={() => { setRemoveCover(true); setCoverFile(null) }} className="rounded-full text-danger border-danger-border hover:bg-danger-light">
                 {t('remove')}
               </Button>
               <label className="cursor-pointer">
-                <span className="inline-block rounded-full border border-emerald-300 px-3 py-1 text-emerald-700 text-xs font-medium hover:bg-emerald-50">
+                <span className="inline-block rounded-full border border-success-border px-3 py-1 text-success-strong text-xs font-medium hover:bg-success-light">
                   {t('replace')}
                 </span>
                 <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) { setCoverFile(f); setRemoveCover(false) } }} />
@@ -290,8 +298,8 @@ export default function SponsorEditForm({
           </div>
         ) : (
           <div className="mt-1">
-            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveCover(false); setCoverFile(f || null) }} className="block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700" />
-            {removeCover && <p className="text-xs text-amber mt-1">{t('coverRemovedOnSave')}</p>}
+            <input type="file" accept="image/*" aria-label={t('coverImage')} onChange={e => { const f = e.target.files?.[0]; if (f) setRemoveCover(false); setCoverFile(f || null) }} className="block w-full text-sm text-subtle file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-success-light file:text-success-strong" />
+            {removeCover && <p className="text-xs text-warning mt-1">{t('coverRemovedOnSave')}</p>}
           </div>
         )}
       </div>
@@ -299,14 +307,14 @@ export default function SponsorEditForm({
       <hr className="border-edge" />
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-heading">{t('benefits')}</h3>
-        <Button type="button" variant="outline" size="sm" onClick={addBenefit} className="rounded-full text-emerald-600 border-emerald-300">
+        <Button type="button" variant="outline" size="sm" onClick={addBenefit} className="rounded-full text-success border-success-border">
           + {t('addBenefit')}
         </Button>
       </div>
       {benefitRows.map((benefit, index) => {
         const meta = BENEFIT_TYPES.find(b => b.value === benefit.benefit_type)
         return (
-          <div key={benefit.id} className="rounded-xl border border-edge p-4 bg-gray-50/50 space-y-3">
+          <div key={benefit.id} className="rounded-xl border border-edge p-4 bg-surface-sunken/50 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-body">{t('benefit')} #{index + 1}</span>
               <Button type="button" variant="ghost" size="sm" onClick={() => removeBenefit(benefit.id)} className="text-danger hover:text-danger hover:bg-danger-light">
@@ -315,11 +323,11 @@ export default function SponsorEditForm({
             </div>
             <div>
               <Label>{t('benefitTitle')}</Label>
-              <Input value={benefit.title} onChange={e => updateBenefit(benefit.id, 'title', e.target.value)} placeholder="e.g. 10% off for mytripfy users" className="mt-1" />
+              <Input value={benefit.title} onChange={e => updateBenefit(benefit.id, 'title', e.target.value)} placeholder={t('benefitTitlePlaceholder')} className="mt-1" />
             </div>
             <div>
               <Label>{t('benefitTitleEn')}</Label>
-              <Input value={benefit.title_en} onChange={e => updateBenefit(benefit.id, 'title_en', e.target.value)} placeholder="Optional" className="mt-1" />
+              <Input value={benefit.title_en} onChange={e => updateBenefit(benefit.id, 'title_en', e.target.value)} placeholder={tCommon('optional')} className="mt-1" />
             </div>
             <div>
               <Label>{t('benefitType')}</Label>
@@ -336,13 +344,13 @@ export default function SponsorEditForm({
             {meta?.needValue && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Value {meta.valueLabel}</Label>
-                  <Input value={benefit.value_num} onChange={e => updateBenefit(benefit.id, 'value_num', e.target.value)} placeholder={meta.valueLabel === '%' ? '10' : '5'} type="text" className="mt-1" />
+                  <Label>{t('value')} {meta.valueUnit === 'percent' ? '%' : t('amount')}</Label>
+                  <Input value={benefit.value_num} onChange={e => updateBenefit(benefit.id, 'value_num', e.target.value)} placeholder={meta.valueUnit === 'percent' ? '10' : '5'} aria-label={t('value')} type="text" className="mt-1" />
                 </div>
                 {benefit.benefit_type === 'discount_fixed' && (
                   <div>
                     <Label>{t('currencyOrValue')}</Label>
-                    <Input value={benefit.value_text} onChange={e => updateBenefit(benefit.id, 'value_text', e.target.value)} placeholder="USD, EUR" className="mt-1" />
+                    <Input value={benefit.value_text} onChange={e => updateBenefit(benefit.id, 'value_text', e.target.value)} placeholder={t('currencyValuePlaceholder')} aria-label={t('currencyOrValue')} className="mt-1" />
                   </div>
                 )}
               </div>
@@ -361,7 +369,7 @@ export default function SponsorEditForm({
         )
       })}
       <div className="flex gap-3">
-        <Button type="submit" disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 rounded-full">
+        <Button type="submit" disabled={saving} className="bg-success hover:bg-success-strong rounded-full">
           {saving ? tProfileEdit('saving') : tCommon('save')}
         </Button>
         <Link href={`/${locale}/sponsors/${sponsor.id}`}>

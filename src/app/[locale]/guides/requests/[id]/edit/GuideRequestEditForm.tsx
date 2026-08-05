@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,16 +11,14 @@ import { getCitiesForCountry } from '@/data/cities'
 import Link from 'next/link'
 import PostCoverUpload from '@/components/PostCoverUpload'
 import LanguageMultiSelect from '@/components/LanguageMultiSelect'
-import { getLanguageByCode } from '@/data/languages'
 import { useTranslations } from 'next-intl'
 
 interface Props {
-  userId: string
   locale: string
   request: Record<string, unknown>
 }
 
-export default function GuideRequestEditForm({ userId, locale, request }: Props) {
+export default function GuideRequestEditForm({ locale, request }: Props) {
   const router = useRouter()
   const t = useTranslations('GuideRequests')
   const tc = useTranslations('Common')
@@ -82,49 +80,21 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
     setError('')
 
     try {
-      const supabase = createClient()
-
-      const updatePayload: Record<string, unknown> = {
+      await api.patch('/api/guide-requests', {
+        id,
         title,
-        destination_country: country,
-        destination_city: selectedCities.length > 0 ? selectedCities.join(', ') : null,
-        start_date: startDate,
-        end_date: endDate,
+        destinationCountry: country,
+        destinationCity: selectedCities.length > 0 ? selectedCities.join(', ') : null,
+        startDate,
+        endDate,
         description: description || null,
-        cover_image: coverImage || null,
+        coverImage: coverImage || null,
+        preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
         status,
-        updated_at: new Date().toISOString(),
-      }
-      if (preferredLanguages.length > 0) {
-        updatePayload.preferred_languages = preferredLanguages
-      }
-
-      let { error: dbError } = await supabase
-        .from('guide_requests')
-        .update(updatePayload)
-        .eq('id', id)
-        .eq('user_id', userId)
-
-      // preferred_languages 컬럼 미존재 시 폴백
-      if (dbError && dbError.message?.includes('preferred_languages')) {
-        const { preferred_languages: _, ...fallback } = updatePayload as Record<string, unknown> & { preferred_languages?: unknown }
-        const res = await supabase
-          .from('guide_requests')
-          .update(fallback)
-          .eq('id', id)
-          .eq('user_id', userId)
-        dbError = res.error
-      }
-
-      if (dbError) {
-        setError(`${tc('errorSubmit')} ${dbError.message}`)
-        return
-      }
-
+      })
       router.push(`/${locale}/guides/requests/${id}`)
     } catch (err) {
-      setError(tc('errorUnexpected'))
-      console.error(err)
+      setError(errorMessage(err, tc('errorSubmit')))
     } finally {
       setSaving(false)
     }
@@ -133,14 +103,14 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-heading">✏️ Edit Guide Request</h2>
-        <Link href={`/${locale}/guides/requests/${id}`} className="text-sm text-subtle hover:text-amber-600">
+        <h2 className="text-xl font-bold text-heading">✏️ {t('editTitle')}</h2>
+        <Link href={`/${locale}/guides/requests/${id}`} className="text-sm text-subtle hover:text-warning">
           {tc('back')}
         </Link>
       </div>
 
       {error && (
-        <div className="bg-danger-light border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-danger-light border border-danger-border text-danger-strong px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
@@ -150,36 +120,32 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
         <h3 className="font-bold text-heading border-b border-edge pb-3">{t('tripDetails')}</h3>
 
         <div className="space-y-1.5">
-          <Label>Title <span className="text-danger">*</span></Label>
+          <Label>{tc('title')} <span className="text-danger">*</span></Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. Need a local guide in Seoul for 3 days"
+            placeholder={t('titlePlaceholder')}
             className="w-full"
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label>Destination Country <span className="text-danger">*</span></Label>
-          <CountrySelect
-            value={country}
-            onChange={handleCountryChange}
-            placeholder="Select country"
-          />
+          <Label>{tc('destinationCountry')} <span className="text-danger">*</span></Label>
+          <CountrySelect value={country} onChange={handleCountryChange} />
         </div>
 
         {country && (
           <div className="space-y-2">
             <Label>{t('citiesOptional')}</Label>
             {selectedCities.length > 0 && (
-              <div className="flex flex-wrap gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <div className="flex flex-wrap gap-2 p-3 bg-warning-light rounded-xl border border-warning-muted">
                 {selectedCities.map(city => (
                   <span
                     key={city}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-full text-sm font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-warning-strong text-white rounded-full text-sm font-medium"
                   >
                     {city}
-                    <button type="button" onClick={() => toggleCity(city)} className="hover:text-amber-200">×</button>
+                    <button type="button" onClick={() => toggleCity(city)} aria-label={`${tc('remove')} ${city}`} className="hover:text-warning-border">×</button>
                   </span>
                 ))}
               </div>
@@ -193,8 +159,8 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
                     onClick={() => toggleCity(city)}
                     className={`px-3 py-1.5 rounded-full text-sm border ${
                       selectedCities.includes(city)
-                        ? 'bg-amber-500 text-white border-amber-500'
-                        : 'bg-surface text-body border-edge hover:border-amber-400'
+                        ? 'bg-warning-strong text-white border-warning'
+                        : 'bg-surface text-body border-edge hover:border-warning'
                     }`}
                   >
                     {selectedCities.includes(city) ? '✓ ' : ''}{city}
@@ -207,11 +173,12 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
                 value={customCity}
                 onChange={e => setCustomCity(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomCity())}
-                placeholder="Add city..."
+                placeholder={tc('addCity')}
+                aria-label={tc('addCity')}
                 className="flex-1"
               />
               <Button type="button" variant="outline" onClick={addCustomCity} disabled={!customCity.trim()} className="shrink-0">
-                + Add
+                + {tc('add')}
               </Button>
             </div>
           </div>
@@ -219,11 +186,11 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Start Date <span className="text-danger">*</span></Label>
+            <Label>{tc('startDate')} <span className="text-danger">*</span></Label>
             <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>End Date <span className="text-danger">*</span></Label>
+            <Label>{tc('endDate')} <span className="text-danger">*</span></Label>
             <Input type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} />
           </div>
         </div>
@@ -240,14 +207,14 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                   status === s
                     ? s === 'open'
-                      ? 'bg-success text-white border-success'
+                      ? 'bg-success-strong text-white border-success'
                       : s === 'closed'
-                        ? 'bg-gray-500 text-white border-gray-500'
+                        ? 'bg-subtle text-white border-edge-strong'
                         : 'bg-brand text-white border-brand'
-                    : 'bg-surface text-body border-edge hover:border-amber-400'
+                    : 'bg-surface text-body border-edge hover:border-warning'
                 }`}
               >
-                {s === 'open' ? '🟢 Open' : s === 'closed' ? '⛔ Closed' : '✅ Completed'}
+                {s === 'open' ? `🟢 ${t('statusOpen')}` : s === 'closed' ? `⛔ ${t('statusClosed')}` : `✅ ${t('statusCompleted')}`}
               </button>
             ))}
           </div>
@@ -265,7 +232,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
             onChange={e => setDescription(e.target.value)}
             placeholder="Preferred language, group size, activities you're interested in, etc."
             rows={5}
-            className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-xl border border-edge px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-warning"
           />
         </div>
       </div>
@@ -284,7 +251,7 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
           placeholder={tc('searchLanguage')}
         />
         {preferredLanguages.length > 0 && (
-          <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-800">
+          <div className="flex items-start gap-2 p-3 bg-warning-light rounded-xl border border-warning-muted text-xs text-warning-strong">
             <span className="text-sm">💡</span>
             <span>
               {t('langNotificationHint')}
@@ -296,13 +263,13 @@ export default function GuideRequestEditForm({ userId, locale, request }: Props)
       {/* 커버 이미지 */}
       <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
         <h3 className="font-bold text-heading border-b border-edge pb-3">{t('coverImage')}</h3>
-        <PostCoverUpload userId={userId} currentUrl={coverImage} onUpload={setCoverImage} />
+        <PostCoverUpload currentUrl={coverImage} onUpload={setCoverImage} />
       </div>
 
       <Button
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full bg-amber-500 hover:bg-amber-600 py-6 text-lg rounded-xl text-white"
+        className="w-full bg-warning-strong hover:bg-warning py-6 text-lg rounded-xl text-white"
       >
         {saving ? tc('saving') : `💾 ${tc('save')}`}
       </Button>

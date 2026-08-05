@@ -61,12 +61,12 @@ export default function ProfileCompleteness({
   const percent = Math.round((earned / total) * 100)
 
   const barColor =
-    percent >= 80 ? 'bg-emerald-500' :
-    percent >= 50 ? 'bg-brand-light0'    : 'bg-orange-400'
+    percent >= 80 ? 'bg-success' :
+    percent >= 50 ? 'bg-brand'   : 'bg-warning'
 
   const gradientClass =
-    percent >= 80 ? 'from-emerald-400 to-green-500' :
-    percent >= 50 ? 'from-blue-400 to-indigo-500'   : 'from-orange-400 to-amber-400'
+    percent >= 80 ? 'from-success to-success' :
+    percent >= 50 ? 'from-brand to-indigo'   : 'from-sunset to-warning'
 
   const nextStep = steps.find(s => !s.done)
 
@@ -104,12 +104,12 @@ export default function ProfileCompleteness({
               }`}
             >
               <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-                step.done ? 'bg-success-light0 text-white' : 'bg-surface border-2 border-edge-strong text-hint'
+                step.done ? 'bg-success-strong text-white' : 'bg-surface border-2 border-edge-strong text-hint'
               }`}>
                 {step.done ? '✓' : ''}
               </div>
               <div className="flex-1 min-w-0">
-                <span className={`text-xs font-semibold ${step.done ? 'text-success line-through decoration-green-400' : 'text-body'}`}>
+                <span className={`text-xs font-semibold ${step.done ? 'text-success line-through decoration-success/50' : 'text-body'}`}>
                   {step.label}
                 </span>
                 {!step.done && (
@@ -127,7 +127,7 @@ export default function ProfileCompleteness({
       {/* 다음 단계 / 완성 메시지 */}
       <div className="px-5 pb-5">
         {percent === 100 ? (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl px-4 py-3 text-center">
+          <div className="bg-gradient-to-r from-success-light to-success-light border border-success-border rounded-xl px-4 py-3 text-center">
             <p className="font-bold text-success text-sm">{t('completenessComplete')}</p>
           </div>
         ) : nextStep ? (
@@ -137,7 +137,7 @@ export default function ProfileCompleteness({
                 <p className="text-xs font-semibold text-brand">{t('completenessNextStep')}</p>
                 <p className="text-sm font-bold text-brand-hover mt-0.5">{nextStep.label}</p>
               </div>
-              <span className="text-xs font-bold text-brand bg-brand-muted px-2 py-1 rounded-lg">+{nextStep.points}pt →</span>
+              <span className="text-xs font-bold text-brand-strong bg-brand-muted px-2 py-1 rounded-lg">+{nextStep.points}pt →</span>
             </div>
           </Link>
         ) : null}

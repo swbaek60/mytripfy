@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Siren } from 'lucide-react'
+import SmartImage from '@/components/ui/SmartImage'
 
 export interface DisputeTargetCert {
   user_id: string
@@ -60,7 +61,7 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !submitting && onClose()} />
       <div className="relative bg-surface rounded-3xl overflow-hidden w-full max-w-md shadow-2xl">
-        <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-5 text-white">
+        <div className="bg-gradient-to-r from-danger to-sunset-strong px-6 py-5 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
@@ -73,6 +74,7 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
             </div>
             <button
               onClick={() => !submitting && onClose()}
+              aria-label={tc('close')}
               className="w-8 h-8 bg-surface/20 rounded-full flex items-center justify-center hover:bg-surface/30"
             >✕</button>
           </div>
@@ -90,10 +92,10 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
           ) : (
             <>
               <div className="relative h-32 rounded-2xl overflow-hidden mb-4">
-                <img src={target.image_url} alt="" className="w-full h-full object-cover" />
+                <SmartImage src={target.image_url} alt="" width={448} height={128} sizes="(max-width: 480px) 100vw, 448px" className="w-full h-full object-cover" />
               </div>
 
-              <div className="bg-gold-light border border-gold/20 rounded-xl p-3 mb-4 text-sm text-gold">
+              <div className="bg-gold-light border border-gold/20 rounded-xl p-3 mb-4 text-sm text-gold-strong">
                 {t('disputeDepositWarning')}
               </div>
 
@@ -106,14 +108,14 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
                 onChange={e => setReason(e.target.value)}
                 placeholder={t('disputeReasonPlaceholder')}
                 rows={4}
-                className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-full border border-edge rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-danger-border"
               />
-              <p className={`text-xs mt-1 ${reason.length < 10 ? 'text-red-400' : 'text-green-500'}`}>
+              <p className={`text-xs mt-1 ${reason.length < 10 ? 'text-danger' : 'text-success'}`}>
                 {t('minCharsRequired', { count: reason.length })}
               </p>
 
               {error && (
-                <div className="mt-3 text-danger text-sm bg-danger-light p-3 rounded-xl">{error}</div>
+                <div className="mt-3 text-danger-strong text-sm bg-danger-light p-3 rounded-xl">{error}</div>
               )}
 
               <div className="flex gap-2 mt-4">
@@ -125,7 +127,7 @@ export default function DisputeModal({ target, onClose, onSuccess }: Props) {
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || reason.trim().length < 10}
-                  className="flex-1 bg-danger text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  className="flex-1 bg-danger text-white font-bold py-3 rounded-xl hover:bg-danger transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   {submitting
                     ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t('processing')}</>

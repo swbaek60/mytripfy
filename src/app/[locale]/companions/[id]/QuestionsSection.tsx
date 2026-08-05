@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { api, errorMessage } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useTranslations } from 'next-intl'
@@ -19,7 +19,6 @@ interface QuestionItem {
 
 interface Props {
   postId: string
-  postTitle: string
   locale: string
   currentUserId: string | null
   hostId: string
@@ -29,7 +28,6 @@ interface Props {
 
 export default function QuestionsSection({
   postId,
-  postTitle,
   locale,
   currentUserId,
   hostId,
@@ -43,52 +41,47 @@ export default function QuestionsSection({
   const [error, setError] = useState('')
   const t = useTranslations('CompanionDetail')
 
-  const supabase = createClient()
-
   const handleSubmit = async () => {
     if (!currentUserId) {
       setError(t('qaLoginError'))
       return
     }
-    if (!content.trim()) {
+    const text = content.trim()
+    if (!text) {
       setError(t('qaEmptyError'))
       return
     }
     setSubmitting(true)
     setError('')
-    const text = content.trim()
-    setContent('')
 
-    const { data, error: dbError } = await supabase
-      .from('companion_questions')
-      .insert({
-        post_id: postId,
-        question_user_id: currentUserId,
-        question_content: text,
-      })
-      .select()
-      .single()
+    try {
+      const { question } = await api.post<{
+        question: {
+          id: string
+          question_content: string
+          question_created_at: string
+          question_user_id: string
+        }
+      }>('/api/companions/questions', { postId, content: text })
 
-    setSubmitting(false)
-    if (dbError || !data) {
-      setError(t('qaSubmitFail'))
-      return
+      setContent('')
+      setQuestions(prev => [
+        ...prev,
+        {
+          id: question.id,
+          question: question.question_content,
+          question_created_at: question.question_created_at,
+          question_user_id: question.question_user_id,
+          question_user_name: 'You',
+          answer: null,
+          answer_created_at: null,
+        },
+      ])
+    } catch (err) {
+      setError(errorMessage(err, t('qaSubmitFail')))
+    } finally {
+      setSubmitting(false)
     }
-
-    // 호스트 알림은 DB 트리거(notify_on_new_question)에서 전송
-
-    setQuestions(prev => [
-      ...prev,
-      {
-        id: data.id,
-        question: data.question_content,
-        question_created_at: data.question_created_at,
-        question_user_id: data.question_user_id,
-        question_user_name: 'You',
-        answer: data.answer_content,
-        answer_created_at: data.answer_created_at,
-      },
-    ])
   }
 
   const handleAnswerChange = (id: string, value: string) => {
@@ -103,41 +96,28 @@ export default function QuestionsSection({
     setSubmitting(true)
     setError('')
 
-    const { data, error: dbError } = await supabase
-      .from('companion_questions')
-      .update({
-        answer_user_id: currentUserId,
-        answer_content: text,
-        answer_created_at: new Date().toISOString(),
-      })
-      .eq('id', questionId)
-      .select()
-      .single()
+    try {
+      const { question } = await api.patch<{
+        question: { id: string; answer_content: string; answer_created_at: string }
+      }>('/api/companions/questions', { questionId, content: text })
 
-    setSubmitting(false)
-    if (dbError || !data) {
-      setError(t('qaAnswerFail'))
-      return
-    }
-
-    // 질문자 알림은 DB 트리거(notify_on_new_answer)에서 전송
-
-    setQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? {
-              ...q,
-              answer: data.answer_content,
-              answer_created_at: data.answer_created_at,
-            }
-          : q
+      setQuestions(prev =>
+        prev.map(q =>
+          q.id === questionId
+            ? { ...q, answer: question.answer_content, answer_created_at: question.answer_created_at }
+            : q
+        )
       )
-    )
-    setAnswerDrafts(prev => {
-      const next = { ...prev }
-      delete next[questionId]
-      return next
-    })
+      setAnswerDrafts(prev => {
+        const next = { ...prev }
+        delete next[questionId]
+        return next
+      })
+    } catch (err) {
+      setError(errorMessage(err, t('qaAnswerFail')))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -206,7 +186,7 @@ export default function QuestionsSection({
                       suppressHydrationWarning
                       className="text-xs text-hint"
                     >
-                      {new Date(q.question_created_at).toLocaleDateString('en-US')}
+                      {new Date(q.question_created_at).toLocaleDateString(locale)}
                     </span>
                   </div>
                   <TranslatedText
@@ -229,7 +209,7 @@ export default function QuestionsSection({
                           suppressHydrationWarning
                           className="text-xs text-hint"
                         >
-                          {new Date(q.answer_created_at).toLocaleDateString('en-US')}
+                          {new Date(q.answer_created_at).toLocaleDateString(locale)}
                         </span>
                       )}
                     </div>

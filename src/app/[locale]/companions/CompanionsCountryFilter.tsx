@@ -46,7 +46,7 @@ export default function CompanionsCountryFilter({
   const allHref = `/${locale}/companions${purpose || searchQuery ? `?${new URLSearchParams([...(purpose ? [['purpose', purpose]] : []), ...(searchQuery ? [['q', searchQuery]] : [])]).toString()}` : ''}`
 
   return (
-    <div className="bg-surface rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap gap-2 items-center">
+    <div className="bg-surface rounded-2xl shadow-sm border border-edge/60 p-4 mb-4 flex flex-wrap gap-2 items-center">
       <span className="text-sm text-subtle font-medium mr-1 shrink-0">{labelFilter}</span>
       <Link href={allHref}>
         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${!currentCountry ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>
@@ -61,7 +61,7 @@ export default function CompanionsCountryFilter({
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${isActive ? 'bg-brand text-white' : 'bg-surface-sunken text-body hover:bg-brand-light'}`}>
               <CountryFlag code={code} size="sm" className="shrink-0" />
               <span>{info?.name ?? code}</span>
-              <span className={isActive ? 'text-blue-200' : 'text-hint'}>({count})</span>
+              <span className={isActive ? 'text-edge-brand' : 'text-hint'}>({count})</span>
             </span>
           </Link>
         )

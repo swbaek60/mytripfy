@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
+import { api } from '@/lib/client/api'
 import { Button } from '@/components/ui/button'
 import { PERSONALITY_TYPES } from '@/data/personalityTypes'
 
@@ -107,7 +107,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string | n
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
+  const [shareMsg, setShareMsg] = useState('')
 
   const handleAnswer = (value: string) => {
     const newAnswers = { ...answers, [QUESTIONS[currentQ].id]: value }
@@ -123,19 +123,31 @@ export default function PersonalityTest({ userId, locale }: { userId: string | n
 
   const saveResult = async (personality: string, ans: Record<string, string>) => {
     if (!userId) return
-    setSaving(true)
-    const supabase = createClient()
-    await supabase.from('travel_personalities').upsert({
-      id: userId,
-      personality_type: personality,
-      personality_desc: PERSONALITY_TYPES[personality]?.desc,
-      scores: ans,
-      updated_at: new Date().toISOString(),
-    })
-    setSaving(false)
+    try {
+      await api.put('/api/personality', { personalityType: personality, answers: ans })
+    } catch {
+      // 결과 화면은 그대로 보여준다. 저장은 다시 테스트하면 재시도된다.
+    }
   }
 
   const progress = ((currentQ) / QUESTIONS.length) * 100
+
+  const shareResult = async (personality: string) => {
+    const p = PERSONALITY_TYPES[personality]
+    const url = `${window.location.origin}/${locale}/personality?vibe=${personality}`
+    const text = `I'm a ${p.type} on mytripfy — what's your travel type?`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'mytripfy Trip Matcher', text, url })
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`)
+        setShareMsg(t('shareCopied'))
+        setTimeout(() => setShareMsg(''), 2500)
+      }
+    } catch {
+      /* user cancelled */
+    }
+  }
 
   if (result) {
     const p = PERSONALITY_TYPES[result]
@@ -173,6 +185,14 @@ export default function PersonalityTest({ userId, locale }: { userId: string | n
                 {t('loginToSave')}
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => shareResult(result)}
+              className="w-full rounded-full border-brand/30 text-brand"
+            >
+              📤 {t('shareResult')}
+            </Button>
+            {shareMsg && <p className="text-xs text-brand">{shareMsg}</p>}
             <Button
               variant="outline"
               onClick={() => { setCurrentQ(0); setAnswers({}); setResult(null) }}
@@ -213,7 +233,7 @@ export default function PersonalityTest({ userId, locale }: { userId: string | n
             <button
               key={opt.value}
               onClick={() => handleAnswer(opt.value)}
-              className="w-full text-left px-5 py-4 rounded-xl border-2 border-edge hover:border-blue-400 hover:bg-brand-light transition-all text-sm font-medium text-body"
+              className="w-full text-left px-5 py-4 rounded-xl border-2 border-edge hover:border-brand hover:bg-brand-light transition-all text-sm font-medium text-body"
             >
               {opt.label}
             </button>
